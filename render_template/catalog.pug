@@ -1,0 +1,24 @@
+doctype html
+html
+	head
+		meta(charset='utf-8')
+		meta(lang='ru')
+		style= styles
+	body
+		each item in items
+			.item
+				-
+					var image = fs.readFileSync(root + '/files/images/' + item.image)
+					var base64Image = new Buffer.from(image).toString('base64')
+					var dataURI = 'data:image/jpeg;base64,' + base64Image
+				img.item-pic.item-data(src=dataURI)
+				.item-about.item-data
+					p.item-title= item.title
+					.item-cost-container
+						- var isDiscount = item.discount > 0
+						if !isDiscount
+							p.item-cost= item.price + ' руб.'
+						else
+							- var newPrice = Math.floor(item.price * (1 - item.discount / 100))
+							p.old-cost= item.price + ' руб.'
+							p.item-discount= newPrice + ' руб.'
