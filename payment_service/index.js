@@ -21,6 +21,7 @@ function createPaymentProvider(bot) {
       
       if (req.body.status === 'paid') {
         payment.status = 'paid';
+        payment.transactionID = Number(req.body.transaction_id);
         
         const user = await users.findOne({
           telegramID: payment.user

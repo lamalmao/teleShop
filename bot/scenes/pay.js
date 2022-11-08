@@ -21,10 +21,11 @@ pay.enterHandler = async function(ctx) {
       [ Markup.button.url('Оплатить', payUrl) ],
       [ Markup.button.callback('Отменить', `cancelPayment#${payment.paymentID}`) ]
     ]).reply_markup);
+
   } catch (e) {
     console.log(e);
   } finally {
-    ctx.scene.leave();
+    ctx.scene.enter('start');
   }
 };
 

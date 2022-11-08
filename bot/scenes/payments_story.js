@@ -61,7 +61,7 @@ paymentsStory.action(/payment#\d+/, async ctx => {
 
     if (!payment) throw new Error('Платеж не найден');
 
-    await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, `Платеж <code>${paymentID}</code>\n\nДата: <b>${new Date(payment.date).toLocaleString()} по МСК</b>\nСумма: <b>${payment.amount} руб.</b>`, {
+    await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, `Платеж <code>${payment.transactionID}</code>\n\nДата: <b>${new Date(payment.date).toLocaleString()} по МСК</b>\nСумма: <b>${payment.amount} руб.</b>`, {
       parse_mode: 'HTML'
     });
     await ctx.telegram.editMessageReplyMarkup(ctx.from.id, ctx.scene.state.menu.message_id, undefined, keys.BackMenu.keyboard.reply_markup);

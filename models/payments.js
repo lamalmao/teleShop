@@ -19,6 +19,7 @@ const Payment = new Schema({
   },
   payment_message: Number,
   amount: Number,
+  transactionID: Number,
   date: {
     type: Date,
     default: Date.now()
