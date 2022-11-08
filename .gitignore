@@ -106,6 +106,7 @@ dist
 
 settings.json
 
-files/blanks/*
-files/images/*
+files/*/*
 !files/images/blank_**
+
+.vscode
