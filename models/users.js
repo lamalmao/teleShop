@@ -28,6 +28,18 @@ const User = new Schema({
       message: 'Несуществующая роль'
     },
     default: 'client'
+  },
+  purchases: {
+    type: Number,
+    default: 0
+  },
+  invitedBy: {
+    type: Number,
+    default: null
+  },
+  refills: {
+    type: Number,
+    default: 0
   }
 });
 

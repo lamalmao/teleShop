@@ -15,13 +15,16 @@ start.enterHandler = async function(ctx) {
     });
 
     if (!user) {
-      users.create({
+      const inviter = /\d+/.test(ctx.message.text) ? Number(/\d+/.exec(ctx.message.text)) : null;
+
+    await users.create({
         telegramID: userId,
-        username: ctx.from.username ? ctx.from.username : ctx.from.first_name
+        username: ctx.from.username ? ctx.from.username : ctx.from.first_name,
+        invitedBy: inviter !== ctx.from.id ? inviter : null
       });
     }
 
-    await sendMenu(ctx);
+    await sendMenu(ctx, ctx.scene.state.menu);
   } catch (e) {
     console.log(e);
   } finally {

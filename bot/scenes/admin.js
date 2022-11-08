@@ -11,11 +11,13 @@ const adminPanel = new Scenes.WizardScene('admin',
         telegramID: ctx.from.id
       }, 'role');
 
-      if (user.role !== 'admin') await ctx.scene.leave();
-      else {
-        ctx.scene.state.menu = await EnterAdmin(ctx);
-        await ctx.wizard.next();
-      }
+      if (user) {
+        if (user.role !== 'admin') await ctx.scene.leave();
+        else {
+          ctx.scene.state.menu = await EnterAdmin(ctx);
+          await ctx.wizard.next();
+        }
+      } await ctx.scene.leave();
     } catch (e) {
       ctx.reply('Что-то пошло не так').catch(_ => null);
       ctx.scene.state = undefined;

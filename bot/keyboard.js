@@ -80,6 +80,17 @@ const GoodsManageKeyboard = Markup.inlineKeyboard([
   [cb('Назад', GoodsManageButtons.back)]
 ]);
 
+const ProfileMenuButtons = {
+  refill: 'refill',
+  story: 'spendingLog'
+};
+
+const ProfileMenuKeyboard = Markup.inlineKeyboard([
+  [cb('Пополнить баланс', ProfileMenuButtons.refill)],
+  [cb('История баланса', ProfileMenuButtons.story)],
+  [cb('Назад', BackButton)]
+]);
+
 module.exports.Menu = {
   buttons: MenuButtons,
   keyboard: MenuKeyboard
@@ -113,4 +124,9 @@ module.exports.CategoriesManageMenu = {
 module.exports.GoodsManageMenu = {
   buttons: GoodsManageButtons,
   keyboard: GoodsManageKeyboard
+};
+
+module.exports.ProfileMenu = {
+  buttons: ProfileMenuButtons,
+  keyboard: ProfileMenuKeyboard
 };

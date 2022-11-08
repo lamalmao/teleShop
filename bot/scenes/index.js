@@ -13,5 +13,8 @@ const goodsManage = require('./goods');
 const addItem = require('./add_item');
 const showGoods = require('./show_goods');
 const manageItem = require('./manage_item');
+const profile = require('./profile');
+const pay = require('./pay');
+const paymentsStory = require('./payments_story');
 
-module.exports = new Scenes.Stage([start, admin, managers, addManager, showManagers, categoriesManage, createCategory, showCategories, editCategory, goodsManage, addItem, showGoods, manageItem]);
+module.exports = new Scenes.Stage([start, admin, managers, addManager, showManagers, categoriesManage, createCategory, showCategories, editCategory, goodsManage, addItem, showGoods, manageItem, profile, pay, paymentsStory]);

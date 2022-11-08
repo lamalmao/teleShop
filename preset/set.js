@@ -13,7 +13,17 @@ module.exports = {
 	},
 	anypay_token: {
 		type: 'string',
-		default: 'APNYPAY TOKEN',
+		default: 'APNYPAY_TOKEN',
+		required: true
+	},
+	anypay_project_id: {
+		type: 'number',
+		default: 0000,
+		required: true
+	},
+	host: {
+		type: 'string',
+		default: 'localhost',
 		required: true
 	}
 }
