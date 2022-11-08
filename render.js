@@ -8,8 +8,6 @@ const categories = require('./models/categories');
 const goods = require('./models/goods');
 const root = process.cwd();
 
-const { mongoose } = require('mongoose');
-
 // Функция рендера pug шаблона в html
 const render = pug.compileFile(path.join(root, 'render_template', 'catalog.pug'));
 const itemRender = pug.compileFile(path.join(root, 'render_template', 'item.pug'));
@@ -49,7 +47,6 @@ async function genImageFromHTML(filename){
 		html: file
 	});
 
-	fs.unlinkSync(pathToHTMLFile);
 	return resultFilename;
 }
 
