@@ -19,6 +19,6 @@ html
 						if !isDiscount
 							p.item-cost= item.price + ' руб.'
 						else
-							- var newPrice = Math.floor(item.price * (1 - item.discount / 100))
+							- var newPrice = item.getPrice()
 							p.old-cost= item.price + ' руб.'
 							p.item-discount= newPrice + ' руб.'

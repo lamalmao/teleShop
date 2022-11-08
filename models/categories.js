@@ -13,12 +13,11 @@ const Categories = new Schema({
 	image: {
 		type: String,
 		required: true,
-		default: 'category_blank.jpg'
+		default: 'blank_logo.jpg'
 	},
 	type: {
 		type: String,
 		required: true,
-		// Может быть main или sub
 		default: 'main',
 		enum: {
 			values: ['main', 'sub'],
@@ -29,21 +28,27 @@ const Categories = new Schema({
 		type: String,
 		required: true,
 		validate: checkCategoryExistence
+	},
+	hidden: {
+		type: Boolean,
+		required: true,
+		default: false
 	}
 });
 
 const categories = model('categories', Categories);
 
-async function checkCategoryExistence (categoryName) {
-	if (this.type === 'main' && categoryName !== 'core')
-		throw new Error('Тип основных категорий может быть только core');
+async function checkCategoryExistence (categoryID) {
+	if (this.type === 'main' && categoryID !== 'core')
+		throw new Error('"Родителем" основных категорий может быть только "core"');
 	else if (this.type === 'sub') {
 		const parent = await categories.findOne({
-			title: categoryName
-		}, 'type title');
+			_id: categoryID,
+			type: 'main'
+		}, '_id type title');
 
 		if (!parent)
-			throw new Error(`Категории ${categoryName} не существует`);
+			throw new Error(`Основной категории ${categoryName} не существует`);
 	}
 
 	return true;

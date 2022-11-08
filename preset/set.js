@@ -11,9 +11,9 @@ module.exports = {
 		default: 'mongodb://user:pwd@hostname/basename',
 		required: true
 	},
-	shop_logo: {
+	anypay_token: {
 		type: 'string',
-		default: 'logo.jpg',
+		default: 'APNYPAY TOKEN',
 		required: true
 	}
 }

@@ -10,7 +10,11 @@ const Goods = new Schema({
 	description: String,
 	image: {
 		type: String,
-		default: 'item_blank.jpg'
+		default: 'blank_item.jpg'
+	},
+	bigImage: {
+		type: String,
+		default: 'blank_item.jpg'
 	},
 	price: {
 		type: Number,
@@ -32,17 +36,24 @@ const Goods = new Schema({
 		min: [0, 'Значение не может быть ниже 0'],
 		max: [100, 'Значение не может быть больше 100%'],
 		default: 0
+	},
+	hidden: {
+		type: Boolean,
+		required: true,
+		default: false
 	}
 });
 
 async function checkCategoryExistence(category) {
-	const parent = await categories.findOne({
-		title: category
-	}, 'title');
+	const parent = await categories.findById(category, '_id title');
 
 	if (!parent) throw new Error('Указанной категории не существует');
 	else return true;
 }
+
+Goods.methods.getPrice = function () {
+	return Math.floor(this.price * (1 - this.discount / 100)).toFixed(2);
+};
 
 const goods = model('goods', Goods);
 

@@ -1,0 +1,88 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 1280px;
+  height: 720px;
+	background-color: #182633;
+}
+
+.item {
+	display: block;
+}
+
+.item-data {
+	display: inline-block;
+	/* position: relative; */
+	width: 60%;
+	height: inherit;
+	vertical-align: top;
+}
+
+.item-image {
+	height: 720px;
+	width: 30%;
+	border-radius: 6px;
+  object-fit: cover;
+}
+
+.item-info {
+	display: block;
+	width: 768px;
+	height: 720px;
+	color: #6c8499;
+	position: absolute;
+}
+
+.item-title {
+	margin: 5% auto;
+	font-size: 46px;
+	font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+	text-align: center;
+	color: #a79660;
+	max-height: 30px;
+}
+
+.item-description {
+	display: block;
+	font-size: 35px;
+	margin-left: 5%;
+	/*color: #bbb;*/
+	text-align: justify;
+}
+
+.item-cost-container {
+	/*margin: 30px 0 0 40px;*/
+	top: 550px;
+	left: 18%;
+	width: 550px;
+	height: 80px;
+	background-color: #081521;
+	border-radius: 12px;
+	padding: 0 15px 0;
+	box-sizing: border-box;
+	position: relative;
+}
+
+.item-cost {
+	text-align: center;
+	font-size: 42px;
+	color: #eee;
+	line-height: 80px;
+}
+
+.old-cost {
+	text-decoration: line-through;
+	color: rgb(255, 255, 255);
+	font-size: 36px;
+	text-align: left;
+}
+
+.item-discount {
+	font-size: 42px;
+	text-align: right;
+	color: #a79173;
+  line-height: 15px;
+}
