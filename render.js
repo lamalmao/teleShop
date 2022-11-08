@@ -10,8 +10,6 @@ const root = process.cwd();
 
 const { mongoose } = require('mongoose');
 
-mongoose.connect('mongodb://localhost/site');
-
 // Функция рендера pug шаблона в html
 const render = pug.compileFile(path.join(root, 'render_template', 'catalog.pug'));
 const itemRender = pug.compileFile(path.join(root, 'render_template', 'item.pug'));
