@@ -17,8 +17,8 @@ html
 					.item-cost-container
 						- var isDiscount = item.discount > 0
 						if !isDiscount
-							p.item-cost= item.price + ' руб.'
+							p.item-cost= item.price + ' руб'
 						else
 							- var newPrice = item.getPrice()
-							p.old-cost= item.price + ' руб.'
-							p.item-discount= newPrice + ' руб.'
+							p.old-cost= item.price + ' руб'
+							p.item-discount= newPrice + ' руб'
