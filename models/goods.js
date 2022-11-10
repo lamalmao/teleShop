@@ -52,7 +52,7 @@ async function checkCategoryExistence(category) {
 }
 
 Goods.methods.getPrice = function () {
-	return Math.floor(this.price * (1 - this.discount / 100)).toFixed(2);
+	return Math.floor(this.price * (1 - this.discount / 100));
 };
 
 const goods = model('goods', Goods);
