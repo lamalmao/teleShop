@@ -69,12 +69,12 @@ acceptPurchase.on('message', (ctx, next) => {
     ctx.deleteMessage().catch(_ => null);
 
     if (ctx.scene.state.dataWaiting) {
-      const data = /(^\w+([\.-]?\w+)*@\w+(?>[\.-]?\w+)*(?>\.\w{2,3})+)[ ]+(\S{8,})/gi.exec(ctx.message.text);
+      const data = /(^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+)[ ]+(\S{8,})/gi.exec(ctx.message.text);
 
       if (data) {
         ctx.scene.state.data = {
           login: data[1],
-          password: data[2]
+          password: data[5]
         };
         next();
       } else {
