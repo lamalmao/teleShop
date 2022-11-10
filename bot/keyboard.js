@@ -4,10 +4,10 @@ const cb = Markup.button.callback;
 
 const MenuButtons = {
   shop: 'shop',
-  questions: 'questions',
+  questions: 'FAQ',
   profile: 'profile',
   guarantees: 'guarantees',
-  comments: 'comments',
+  comments: 'reviews',
   support: 'support'
 }
 

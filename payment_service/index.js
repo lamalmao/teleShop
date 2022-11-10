@@ -25,7 +25,7 @@ function createPaymentProvider(bot) {
         
         const user = await users.findOne({
           telegramID: payment.user
-        }, 'balance refills telegramID');
+      }, 'balance refills telegramID');
 
         user.balance += payment.amount;
         user.refills++;

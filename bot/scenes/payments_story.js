@@ -2,20 +2,26 @@ const { Scenes, Markup } = require('telegraf');
 
 const users = require('../../models/users');
 const payments = require('../../models/payments');
+const orders = require('../../models/orders');
 const keys = require('../keyboard');
 
 const paymentsStory = new Scenes.BaseScene('paymentsStory');
 
 paymentsStory.enterHandler = async function(ctx) {
   try {
-    const story = await payments.find({
+    const refills = await payments.find({
       user: ctx.from.id,
       status: 'paid'
     });
 
+    const ordersList = await orders.find({
+      client: ctx.from.id
+    });
+
     let msg, keyboard = [];
-    
-    if (!story) {
+    const story = refills.concat(ordersList); 
+
+    if (story.length === 0) {
       msg = 'Вы еще не совершали платежей'
     } else {
       msg = 'Ваши пополнения и покупки';
@@ -26,16 +32,21 @@ paymentsStory.enterHandler = async function(ctx) {
           month: '2-digit',
           day: '2-digit'
         });
-        keyboard.push([ Markup.button.callback(`+${payment.amount}₽ от ${date}`, `payment#${payment.paymentID}`) ]);
-      }
 
-      keyboard.push([ Markup.button.callback('Назад', keys.BackMenu.buttons) ]);
+        if (payment.itemTitle) {
+          keyboard.push(([ Markup.button.callback(`-${payment.amount}₽ - ${payment.itemTitle}`, `order#${payment.orderID}`) ]));
+        } else {
+          keyboard.push([ Markup.button.callback(`+${payment.amount}₽ от ${date}`, `payment#${payment.paymentID}`) ]);
+        }
+      }
     }
+
+    keyboard.push([ Markup.button.callback('Назад', keys.BackMenu.buttons) ]);
 
     await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, msg);
     await ctx.telegram.editMessageReplyMarkup(ctx.from.id, ctx.scene.state.menu.message_id, undefined, Markup.inlineKeyboard(keyboard).reply_markup);
   } catch (e) {
-    console.log(e.message);
+    console.log(e);
     ctx.scene.enter('profile', {
       menu: ctx.scene.state.menu
     });

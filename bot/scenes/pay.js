@@ -19,7 +19,7 @@ pay.enterHandler = async function(ctx) {
     await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, messages.payment.provided.format(ctx.scene.state.amount));
     await ctx.telegram.editMessageReplyMarkup(ctx.from.id, ctx.scene.state.menu.message_id, undefined, Markup.inlineKeyboard([
       [ Markup.button.url('Оплатить', payUrl) ],
-      [ Markup.button.callback('Отменить', `cancelPayment#${payment.paymentID}`) ]
+      // [ Markup.button.callback('Отменить', `cancelPayment#${payment.paymentID}`) ]
     ]).reply_markup);
 
   } catch (e) {

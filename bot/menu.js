@@ -13,9 +13,10 @@ async function sendMenu(ctx, menu) {
         source: logoRoot
       },
       type: 'photo'
+    }, {
+      caption: 'Главное меню',
+      reply_markup: keys.Menu.keyboard.reply_markup
     });
-    await ctx.telegram.editMessageCaption(ctx.from.id, menu.message_id, null, 'Главное меню');
-    await  ctx.telegram.editMessageReplyMarkup(ctx.from.id, menu.message_id, null, keys.Menu.keyboard.reply_markup);
   }
 }
 
