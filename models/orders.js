@@ -20,6 +20,10 @@ const Order = new Schema({
     enum: ['untaken', 'processing', 'done', 'refund'],
     default: 'untaken'
   },
+  paid: {
+    type: Boolean,
+    default: false
+  },
   date: {
     type: Date,
     default: Date.now()
@@ -36,10 +40,16 @@ const Order = new Schema({
     type: Number,
     required: true
   },
+  platform: {
+    type: String,
+    enum: ['ps', 'pc', 'android', 'xbox', 'nintendo']
+  },
   data: {
     login: String,
     password: String
-  }
+  },
+  refundData: String,
+  refundStatus: Boolean
 });
 
 const orders = model('orders', Order);

@@ -29,8 +29,10 @@ manageItem.enterHandler = async function(ctx) {
       media: { source: path.join(process.cwd(), 'files', 'images', item.bigImage) },
       type: 'photo'
     } );
-    await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, itemMessage);
+    const update = await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, itemMessage);
     await ctx.telegram.editMessageReplyMarkup(ctx.from.id, ctx.scene.state.menu.message_id, undefined, itemKeyboard.reply_markup);
+
+    console.log(update);
   } catch (e) {
     console.log(e);
 

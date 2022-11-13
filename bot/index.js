@@ -13,16 +13,6 @@ function CreateBot(token) {
   bot.use(stage.middleware());
 
   bot.start(ctx => ctx.scene.enter('start'));
-  bot.command('admin', ctx => ctx.scene.enter('admin'));
-  bot.command('clean',
-    async ctx => {
-      const user = await users.findOne({
-        telegramID: ctx.from.id,
-        role: 'admin'
-      }, 'role')
-
-      if (user) clean();
-  });
 
   bot.on('callback_query', (ctx, next) => {
     console.log(ctx.callbackQuery.data);
@@ -79,18 +69,35 @@ function CreateBot(token) {
       amount: amount
     });
   });
-  bot.action(/accept#\w+/, ctx => ctx.scene.enter('accept_purchase'));
+  bot.action(/proceed#\w+/, ctx => ctx.scene.enter('proceed'))
+  bot.action(/accept#\d+/, ctx => ctx.scene.enter('accept_purchase'));
+  bot.action(/order#\d+/, ctx => ctx.scene.enter('order_data'));
 
-  bot.action(keys.BackMenu.buttons, ctx => ctx.scene.enter('start', {
-    menu: ctx.callbackQuery.message
-  }));
+  bot.action(/refund_data#\d+/, ctx => ctx.scene.enter('user_refund'));
 
+  bot.action(keys.BackMenu.buttons, ctx => {
+    ctx.editMessageCaption('Главное меню', {
+      reply_markup: keys.Menu.keyboard.reply_markup
+    }).catch(_ => null);
+  });
 
-  // bot.on('callback_query', ctx => {
-  //   console.log(ctx.callbackQuery.data);
-  //   ctx.deleteMessage(ctx.callbackQuery.message.message_id)
-  //     .catch(_ => null)
-  // });
+  bot.command('admin', ctx => ctx.scene.enter('admin'));
+  bot.command('manager', ctx => ctx.scene.enter('manager_menu'));
+  bot.action('manager_menu', ctx => ctx.scene.enter('manager_menu'));
+  bot.action(keys.ManagerWorkMenu.buttons.active, ctx => ctx.scene.enter('current_orders'));
+  bot.action(keys.ManagerWorkMenu.buttons.list, ctx => ctx.scene.enter('orders_list'));
+  bot.action(keys.ManagerWorkMenu.buttons.back, ctx => ctx.deleteMessage().catch(_ => null));
+  bot.action(/manager_take#\d+/, ctx => ctx.scene.enter('take_order'));
+
+  bot.command('clean',
+    async ctx => {
+      const user = await users.findOne({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      }, 'role')
+
+      if (user) clean();
+  });
 
   bot.on('message', ctx => ctx.scene.enter('start'));
 

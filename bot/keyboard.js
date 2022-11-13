@@ -91,6 +91,18 @@ const ProfileMenuKeyboard = Markup.inlineKeyboard([
   [cb('Назад', BackButton)]
 ]);
 
+const ManagerWorkButton = {
+  list: 'active_orders',
+  active: 'manager_list',
+  back: 'manager_leave'
+};
+
+const ManagerWorkKeyboard = Markup.inlineKeyboard([
+  [cb('Взять заказ в работу', ManagerWorkButton.list)],
+  [cb('Мои заказы', ManagerWorkButton.active)],
+  [cb('Выйти', ManagerWorkButton.back)]
+]);
+
 module.exports.Menu = {
   buttons: MenuButtons,
   keyboard: MenuKeyboard
@@ -130,3 +142,8 @@ module.exports.ProfileMenu = {
   buttons: ProfileMenuButtons,
   keyboard: ProfileMenuKeyboard
 };
+
+module.exports.ManagerWorkMenu = {
+  buttons: ManagerWorkButton,
+  keyboard: ManagerWorkKeyboard
+}

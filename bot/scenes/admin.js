@@ -19,6 +19,7 @@ const adminPanel = new Scenes.WizardScene('admin',
         }
       } await ctx.scene.leave();
     } catch (e) {
+      console.log(e);
       ctx.reply('Что-то пошло не так').catch(_ => null);
       ctx.scene.state = undefined;
       ctx.scene.reenter('admin', { menu: undefined } );
@@ -34,14 +35,15 @@ const adminPanel = new Scenes.WizardScene('admin',
           ctx.scene.leave();
         }
         else ctx.scene.enter(query, ctx.scene.state).catch(_ => ctx.answerCbQuery('Неизвестная ошибка').catch(_ => null));
-      } else if (ctx.message.from.id === ctx.from.id) {
-        if (ctx.message.text === '/start' || ctx.message.text === '/menu') {
-          await ctx.deleteMessage(ctx.scene.state.menu.message_id);
-          ctx.scene.enter('start');
-        }
-      }
+      } 
+      // else if (ctx.message.from.id === ctx.from.id) {
+      //   if (ctx.message.text === '/start' || ctx.message.text === '/menu') {
+      //     await ctx.deleteMessage(ctx.scene.state.menu.message_id);
+      //     ctx.scene.enter('start');
+      //   }
+      // }
     } catch (e) {
-      console.log(e)
+      console.log(e);
       ctx.scene.leave();
     }
   }

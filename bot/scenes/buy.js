@@ -18,7 +18,7 @@ buy.enterHandler = async function(ctx) {
     if (item.hidden) {
       ctx.answerCbQuery('На данный момент товар недоступен')
         .catch(_ => null);
-      ctx.scene.enter(`sub_section#${item.category}`);
+      ctx.scene.enter(`shop`);
     } else {
       const user = await users.findOne({
         telegramID: ctx.from.id
@@ -47,7 +47,7 @@ buy.enterHandler = async function(ctx) {
           {
             parse_mode: 'HTML',
             reply_markup: Markup.inlineKeyboard([
-              [ Markup.button.callback('Да', `accept#${itemID}`) ],
+              [ Markup.button.callback('Да', `proceed#${itemID}`) ],
               [ Markup.button.callback('Нет', `item#${itemID}`) ]
             ]).reply_markup
           }
