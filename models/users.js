@@ -18,7 +18,7 @@ const User = new Schema({
   join_date: {
     type: Date,
     required: true,
-    default: Date.now()
+    default: Date.now
   },
   role: {
     type: String,

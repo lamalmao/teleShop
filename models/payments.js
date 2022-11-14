@@ -22,7 +22,7 @@ const Payment = new Schema({
   transactionID: Number,
   date: {
     type: Date,
-    default: Date.now()
+    default: Date.now
   }
 });
 

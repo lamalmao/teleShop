@@ -26,7 +26,7 @@ const Order = new Schema({
   },
   date: {
     type: Date,
-    default: Date.now()
+    default: Date.now
   },
   item: {
     type: String,
