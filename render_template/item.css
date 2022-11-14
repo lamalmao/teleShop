@@ -87,7 +87,7 @@ body {
 	position: relative;
 	display: ruby-text;
 	margin-right: 15px;
-	float: top;
+	float: left;
 }
 
 .item-discount {
