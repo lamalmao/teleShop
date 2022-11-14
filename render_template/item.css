@@ -84,7 +84,10 @@ body {
 	color: #aaa;
 	font-size: 33px;
 	text-align: left;
-	position: absolute;
+	position: relative;
+	display: ruby-text;
+	margin-right: 15px;
+	float: top;
 }
 
 .item-discount {
@@ -93,4 +96,5 @@ body {
 	text-align: right;
 	color: #fff;
 	line-height: 75px;
+	display: inline-block;
 }
