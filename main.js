@@ -30,5 +30,5 @@ bot.launch();
 const paymentWorker = createPaymentProvider(bot);
 paymentWorker.listen({
   host: settings.host,
-  port: 80
+  port: 3000
 }, _ => console.log('Обработчик платежей запущен'));
