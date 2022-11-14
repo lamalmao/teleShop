@@ -18,7 +18,7 @@ body {
 .item-data {
 	display: inline-block;
 	/* position: relative; */
-	width: 60%;
+	width: 50%;
 	height: inherit;
 	vertical-align: top;
 }
@@ -26,13 +26,14 @@ body {
 .item-image {
 	height: 720px;
 	width: 540px;
-	border-radius: 6px;
+	border-radius: 45px;
   object-fit: cover;
+  box-shadow: 10px 10px 5px -6px rgba(5,5,5,1);
 }
 
 .item-info {
 	display: block;
-	width: 730px;
+	width: 710px;
 	height: 720px;
 	color: #2e2e2e;
 	position: absolute;
@@ -57,8 +58,8 @@ body {
 
 .item-cost-container {
 	/*margin: 30px 0 0 40px;*/
-	top: 570px;
-	left: 40%;
+	top: 610px;
+	left: 50%;
 	/* width: 550px; */
 	height: 80px;
 	padding: 5px 10px;
@@ -67,6 +68,7 @@ body {
 	box-sizing: border-box;
 	position: relative;
 	width: 340px;
+	box-shadow: 10px 10px 5px -6px rgba(5,5,5,1);
 }
 
 .item-cost {
