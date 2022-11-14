@@ -15,7 +15,8 @@ paymentsStory.enterHandler = async function(ctx) {
     });
 
     const ordersList = await orders.find({
-      client: ctx.from.id
+      client: ctx.from.id,
+      paid: true
     });
 
     let msg, keyboard = [];
