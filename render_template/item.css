@@ -28,7 +28,7 @@ body {
 	width: 540px;
 	border-radius: 45px;
   object-fit: cover;
-  box-shadow: 10px 10px 5px -6px rgba(5,5,5,1);
+  box-shadow: 10px 10px 5px -10px rgba(5,5,5,1);
 }
 
 .item-info {
@@ -68,7 +68,6 @@ body {
 	box-sizing: border-box;
 	position: relative;
 	width: 340px;
-	box-shadow: 10px 10px 5px -6px rgba(5,5,5,1);
 }
 
 .item-cost {
