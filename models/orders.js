@@ -49,7 +49,10 @@ const Order = new Schema({
     password: String
   },
   refundData: String,
-  refundStatus: Boolean
+  refundStatus: {
+    type: String,
+    enum: ['rejected', 'approved', 'waiting']
+  }
 });
 
 const orders = model('orders', Order);

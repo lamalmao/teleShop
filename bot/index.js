@@ -99,7 +99,7 @@ function CreateBot(token) {
       if (user) clean();
   });
 
-  bot.on('message', ctx => ctx.scene.enter('start'));
+  // bot.on('message', ctx => ctx.scene.enter('start'));
 
   return bot;
 }

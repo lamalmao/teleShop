@@ -182,7 +182,7 @@ takeOrder.action('order_refund', async ctx => {
 takeOrder.action('refund', async ctx => {
   try {
     ctx.scene.state.order.status = 'refund';
-    ctx.scene.state.order.refundStatus = false;
+    ctx.scene.state.order.refundStatus = 'waiting';
     ctx.scene.state.order.data = {
       login: '',
       password: ''

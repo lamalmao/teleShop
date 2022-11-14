@@ -17,7 +17,7 @@ const adminPanel = new Scenes.WizardScene('admin',
           ctx.scene.state.menu = await EnterAdmin(ctx);
           await ctx.wizard.next();
         }
-      } await ctx.scene.leave();
+      } else await ctx.scene.leave();
     } catch (e) {
       console.log(e);
       ctx.reply('Что-то пошло не так').catch(_ => null);
@@ -31,17 +31,17 @@ const adminPanel = new Scenes.WizardScene('admin',
       if (ctx.callbackQuery) {
         const query = ctx.callbackQuery.data;
         if (query === keys.AdminMenu.buttons.exit) {
-          ctx.deleteMessage(ctx.scene.state.menu.message_id).catch(_ => null);
           ctx.scene.leave();
+          ctx.deleteMessage(ctx.scene.state.menu.message_id).catch(_ => null);
         }
         else ctx.scene.enter(query, ctx.scene.state).catch(_ => ctx.answerCbQuery('Неизвестная ошибка').catch(_ => null));
       } 
-      // else if (ctx.message.from.id === ctx.from.id) {
-      //   if (ctx.message.text === '/start' || ctx.message.text === '/menu') {
-      //     await ctx.deleteMessage(ctx.scene.state.menu.message_id);
-      //     ctx.scene.enter('start');
-      //   }
-      // }
+      else if (ctx.message.from.id === ctx.from.id) {
+        if (ctx.message.text === '/start' || ctx.message.text === '/menu') {
+          await ctx.deleteMessage(ctx.scene.state.menu.message_id);
+          ctx.scene.enter('start');
+        }
+      }
     } catch (e) {
       console.log(e);
       ctx.scene.leave();
