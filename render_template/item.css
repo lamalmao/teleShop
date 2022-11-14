@@ -25,14 +25,14 @@ body {
 
 .item-image {
 	height: 720px;
-	width: 30%;
+	width: 540px;
 	border-radius: 6px;
   object-fit: cover;
 }
 
 .item-info {
 	display: block;
-	width: 768px;
+	width: 730px;
 	height: 720px;
 	color: #2e2e2e;
 	position: absolute;
@@ -57,8 +57,8 @@ body {
 
 .item-cost-container {
 	/*margin: 30px 0 0 40px;*/
-	top: 550px;
-	left: 50%;
+	top: 570px;
+	left: 40%;
 	/* width: 550px; */
 	height: 80px;
 	padding: 5px 10px;
