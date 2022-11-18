@@ -7,7 +7,7 @@
 }
 
 body {
-	width: 2220px;
+	width: 2520px;
 	min-height: 720px;
 	background-color: #182633;
 	padding: 10px;
@@ -15,7 +15,7 @@ body {
 }
 
 .item {
-	width: 725px;
+	width: 825px;
 	height: 370px;
 	background-color: #2e2e2e;
 	display: inline-block;
