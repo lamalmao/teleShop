@@ -52,13 +52,13 @@ body {
 	margin-left: 10%;
 	color: #fff;
 	max-height: 30px;
-	font-size: 44px;
+	font-size: 48px;
 }
 
 .item-cost-container {
 	margin-top: 60%;
 	margin-left: 18%;
-	height: 60px;
+	height: 80px;
 	padding: 0 10px;
 	background-color: #212121;
 	border-radius: 12px;
@@ -70,7 +70,7 @@ body {
 .item-cost {
 	text-align: center;
 	color: #e7e8ea;
-	line-height: 60px;
+	line-height: 80px;
 	font-size: 40px;
 }
 
@@ -79,7 +79,7 @@ body {
 	text-decoration-color: #fff;
 	text-decoration-thickness: 150;
 	color: #aaa;
-	font-size: 25px;
+	font-size: 35px;
 	text-align: left;
 	position: relative;
 	bottom: 30px;
@@ -89,10 +89,10 @@ body {
 
 .item-discount {
 	position: relative;
-	font-size: 35px;
+	font-size: 45px;
 	text-align: right;
 	color: #fff;
-	line-height: 80px;
+	line-height: 100px;
 	display: inline-block;
 	/* left: 60px; */
 }
