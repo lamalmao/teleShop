@@ -78,7 +78,11 @@ managersInfo.action(/manager#\d+/, async ctx => {
       const processingP = ((stats.processing / sum) * 100).toFixed(2);
       const refundP = ((stats.refund / sum) * 100).toFixed(2);
       
-      let msg = `<b>Менеджер</b> <code>${user.telegramID}</code>\n\n<b>Статистика</b>\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${stats.processing} = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${stats.refund} = ${Number.isNaN(refundP) ? 0 : refundP}%`;
+      let msg = `<b>Статистика менеджера</b> ${user.telegramID}:<a href="tg://user?id=${user.telegramID}">${user.username}</a>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${stats.processing} = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${stats.refund} = ${Number.isNaN(refundP) ? 0 : refundP}%\n\n<b>Статистика по последним заказам</b>\n`;
+
+      for (let stat of user.stats) {
+        msg += `<i>${stat.title}</i>: ${stat.count}\n`
+      } 
 
       let inWork = '';
       for (let order of works) {
@@ -86,7 +90,8 @@ managersInfo.action(/manager#\d+/, async ctx => {
           inWork += `\n<code>${order.orderID}</code>: "${order.itemTitle}"`;
         }
       }
-      msg += inWork !== '' ? '\n' + inWork : '\n\n<b>Активных заказов нет</b>';
+      msg += '\n<b>Активные заказы</b>'
+      msg += inWork !== '' ? inWork : '\n<i>Активных заказов нет</i>';
 
       ctx.telegram.editMessageText(
         ctx.from.id,
@@ -96,6 +101,7 @@ managersInfo.action(/manager#\d+/, async ctx => {
         {
           reply_markup: Markup.inlineKeyboard([
             [ Markup.button.callback('Удалить из менеджеров', `delete#${user.telegramID}`) ],
+            [ Markup.button.callback('Сбросить статистику', `drop#${user.telegramID}`) ],
             [ Markup.button.callback('Назад', 'prev') ]
           ]).reply_markup,
           parse_mode: 'HTML'
@@ -137,6 +143,66 @@ managersInfo.action(/delete#\d+/, async ctx => {
         .catch(_ => null);
       ctx.scene.reenter();
     }
+  } catch (e) {
+    console.log(e);
+    ctx.scene.reenter();
+  }
+});
+
+managersInfo.action(/drop#\d+/, async ctx => {
+  try {
+    const userID = /\d+/.exec(ctx.callbackQuery.data)[0];
+    const user = await users.findOne({
+      telegramID: userID
+    }, 'username');
+
+    if (!user) {
+      ctx.answerCbQuery('Пользователь не найден')
+        .catch(_ => null);
+      ctx.scene.reenter();
+    } else {
+      ctx.scene.state.target = userID;
+      await ctx.telegram.editMessageText(
+        ctx.from.id,
+        ctx.callbackQuery.message.message_id,
+        undefined,
+        `Вы точно хотите сбросить статистику менеджера <a href="tg://user?id=${userID}">${user.username}</a>?`,
+        {
+          reply_markup: Markup.inlineKeyboard([
+            [ Markup.button.callback('Да', 'drop') ],
+            [ Markup.button.callback('Нет', `manager#${userID}`) ]
+          ]).reply_markup,
+          parse_mode: 'HTML'
+        }
+      );
+    }
+  } catch (e) {
+    console.log(e);
+    ctx.scene.reenter();
+  }
+});
+
+managersInfo.action('drop', async ctx => {
+  try {
+    await users.updateOne({
+      telegramID: ctx.scene.state.target
+    }, {
+      $set: {
+        stats: []
+      }
+    });
+
+    await ctx.telegram.editMessageText(
+      ctx.from.id,
+      ctx.callbackQuery.message.message_id,
+      undefined,
+      'Готово',
+      {
+        reply_markup: Markup.inlineKeyboard([
+          [ Markup.button.callback('Назад', `manager#${ctx.scene.state.target}`) ]
+        ]).reply_markup
+      }
+    );
   } catch (e) {
     console.log(e);
     ctx.scene.reenter();

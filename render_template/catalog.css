@@ -7,20 +7,20 @@
 }
 
 body {
-	width: 1190px;
-	min-height: 300px;
+	width: 1920px;
+	min-height: 720px;
 	background-color: #182633;
 	padding: 10px;
 	display: block;
 }
 
 .item {
-	width: 385px;
-	height: 150px;
+	width: 625px;
+	height: 370px;
 	background-color: #2e2e2e;
 	display: inline-block;
-	border-radius: 6px;
-	margin-right: 10px;
+	border-radius: 30px;
+	margin-right: 15px;
 	margin-bottom: 10px;
 	align-items: top;
 }
@@ -32,47 +32,46 @@ body {
 
 .item-pic {
 	height: inherit;
-	width: 30%;
-	border-radius: 6px;
+	width: 280px;
+	border-radius: 30px;
   object-fit: cover;
 }
 
 .item-about {
 	/* margin-left: 5%; */
 	vertical-align: top;
-	width: 70%;
+	width: 340px;
 	height: inherit;
 	color: #6c8499;
 }
 
 .item-title {
-	margin-top: 10px;
-	font-size: 20px;
+	margin-top: 25px;
+	margin-right: 40px;
 	text-align: left;
 	margin-left: 10%;
 	color: #fff;
 	max-height: 30px;
+	font-size: 44px;
 }
 
 .item-cost-container {
-	margin-top: 22%;
-	margin-left: 27%;
-	/* width: 70%; */
-	/* height: 40px; */
-	width: 165px;
-	padding: 12px 10px;
+	margin-top: 60%;
+	margin-left: 18%;
+	height: 60px;
+	padding: 0 10px;
 	background-color: #212121;
 	border-radius: 12px;
-	padding: 0 15px 0;
 	box-sizing: border-box;
-	height: 30px;
+	width: fit-content;
+	min-width: 250px;
 }
 
 .item-cost {
 	text-align: center;
-	font-size: 18px;
 	color: #e7e8ea;
-	line-height: 30px;
+	line-height: 60px;
+	font-size: 40px;
 }
 
 .old-cost {
@@ -80,15 +79,20 @@ body {
 	text-decoration-color: #fff;
 	text-decoration-thickness: 150;
 	color: #aaa;
-	font-size: 14px;
+	font-size: 25px;
 	text-align: left;
-	position: absolute;
+	position: relative;
+	bottom: 30px;
+	margin-right: 5px;
+	/* display: inline-block; */
 }
 
 .item-discount {
-	position: static;
-	font-size: 20px;
+	position: relative;
+	font-size: 35px;
 	text-align: right;
 	color: #fff;
-	line-height: 33px;
+	line-height: 80px;
+	display: inline-block;
+	/* left: 60px; */
 }

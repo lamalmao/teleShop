@@ -8,6 +8,7 @@ const Goods = new Schema({
 		required: true
 	},
 	description: String,
+	bigDescription: String,
 	image: {
 		type: String,
 		default: 'blank_item.jpg'

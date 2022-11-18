@@ -1,9 +1,11 @@
-const { Scenes, Markup, Context } = require('telegraf');
+const { Scenes, Markup } = require('telegraf');
+const { Types } = require('mongoose');
 
 const users = require('../../models/users');
 const orders = require('../../models/orders');
 const keys = require('../keyboard');
 const messages = require('../messages');
+const goods = require('../../models/goods');
 
 const takeOrder = new Scenes.BaseScene('take_order');
 
@@ -149,9 +151,48 @@ takeOrder.action('done', async ctx => {
       }
     ).catch(_ => null);
 
+    const res = await users.updateOne({
+      telegramID: ctx.from.id,
+      'stats.id': ctx.scene.state.order.item
+    }, {
+      $inc: {
+        'stats.$.count': 1
+      }
+    });
+
+    if (res.modifiedCount !== 1) {
+      await users.updateOne({
+        telegramID: ctx.from.id,
+      }, {
+        $push: {
+          stats: {
+            id: ctx.scene.state.order.item,
+            title: ctx.scene.state.order.itemTitle,
+            count: 1
+          }
+        }
+      })
+    }
+
+    await goods.updateOne({
+      _id: Types.ObjectId(ctx.scene.state.order.item)
+    }, {
+      $inc: {
+        sells: 1
+      }
+    });
+
+    await users.updateOne({
+      telegramID: ctx.scene.state.order.clien
+    }, {
+      $inc: {
+        purchases: 1
+      }
+    });
+
     ctx.answerCbQuery('Готово, клиент уведомлен')
       .catch(_ => null);
-    ctx.scene.enter('manager_menu')
+    ctx.scene.enter('manager_menu');
   } catch (e) {
     console.log(e);
     ctx.scene.enter('manager_menu');

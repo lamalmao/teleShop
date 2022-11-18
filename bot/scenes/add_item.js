@@ -47,7 +47,7 @@ const addItem = new Scenes.WizardScene('addItem',
 
       if (ctx.updateType === 'message' && !ctx.message.photo) {
         ctx.scene.state.newItem.title = ctx.message.text.trim();
-        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите описание товара');
+        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите описание товара, которое будет на его изображении');
         await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
 
         ctx.wizard.next();
@@ -70,6 +70,29 @@ const addItem = new Scenes.WizardScene('addItem',
 
       if (ctx.updateType === 'message' && !ctx.message.photo) {
         ctx.scene.state.newItem.description = ctx.message.text.trim();
+        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите описание товара, которое будет в сообщении под карточкой товара');
+        await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
+
+        ctx.wizard.next();
+      }
+    } catch (e) {
+      ctx.reply(`Ошибка: ${e.message}`)
+        .then(msg => {
+          setTimeout(_ => ctx.telegram.deleteMessage(ctx.from.id, msg.message_id)
+            .catch(_ => null));
+        }, 5000)
+        .catch(_ => null);
+      ctx.scene.enter('goods', { menu: ctx.scene.state.menu });
+      console.log(e);
+    }
+  },
+  async ctx => {
+    try {
+      ctx.deleteMessage().catch(_ => null);
+      const message = ctx.scene.state.menu.message_id;
+
+      if (ctx.updateType === 'message' && !ctx.message.photo) {
+        ctx.scene.state.newItem.bigDescription = ctx.message.text.trim();
         await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Укажите цену товара');
         await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
 

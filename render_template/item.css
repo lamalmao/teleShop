@@ -49,7 +49,7 @@ body {
 
 .item-description {
 	display: block;
-	font-size: 29px;
+	font-size: 34px;
 	margin-left: 5%;
 	/*color: #bbb;*/
 	text-align: justify;
@@ -61,7 +61,7 @@ body {
 	top: 610px;
 	left: 50%;
 	/* width: 550px; */
-	height: 80px;
+	height: 90px;
 	padding: 5px 10px;
 	background-color: #212121;
 	border-radius: 12px;
@@ -72,9 +72,9 @@ body {
 
 .item-cost {
 	text-align: center;
-	font-size: 48px;
+	font-size: 54px;
 	color: #e7e8ea;
-	line-height: 75px;
+	line-height: 85px;
 }
 
 .old-cost {
@@ -82,7 +82,7 @@ body {
 	text-decoration-color: #fff;
 	text-decoration-thickness: 250;
 	color: #aaa;
-	font-size: 33px;
+	font-size: 37px;
 	text-align: left;
 	position: relative;
 	display: ruby-text;
@@ -92,9 +92,9 @@ body {
 
 .item-discount {
 	position: static;
-	font-size: 48px;
+	font-size: 52px;
 	text-align: right;
 	color: #fff;
-	line-height: 75px;
+	line-height: 80px;
 	display: inline-block;
 }

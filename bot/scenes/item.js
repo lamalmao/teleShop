@@ -23,10 +23,12 @@ item.enterHandler = async function(ctx) {
         media: {
           source: path.join(images, targetItem.bigImage)
         }
-      }, {
-        caption: targetItem.title,
-        reply_markup: keyboard.reply_markup
       });
+      await ctx.telegram.editMessageCaption(ctx.from.id, ctx.callbackQuery.message.message_id, undefined, 
+        `${targetItem.title}\n\n${targetItem.bigDescription}`, 
+        {
+          reply_markup: keyboard.reply_markup
+        });
     } else ctx.answerCbQuery('На данный момент товар недоступен').catch(_ => null);
 
     ctx.scene.leave();

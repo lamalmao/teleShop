@@ -110,3 +110,5 @@ files/*/*
 !files/images/blank_**
 
 .vscode
+
+credentials.json

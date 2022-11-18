@@ -24,7 +24,7 @@ ordersList.enterHandler = async function(ctx) {
         ctx.from.id,
         ctx.callbackQuery.message.message_id,
         undefined,
-        'Выберите проект',
+        'Выберите заказ',
         {
           reply_markup: keyboard.reply_markup
         }

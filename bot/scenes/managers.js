@@ -7,7 +7,7 @@ const ManageUsers = new Scenes.BaseScene('managers');
 ManageUsers.enterHandler = async ctx => {
   try {
     const AdminMenuMessageId = ctx.scene.state.menu.message_id,
-      userId = ctx.scene.state.menu.chat.id;
+      userId = ctx.from.id;
 
     await ctx.editMessageText('Меню управления менеджерами', AdminMenuMessageId);
     await ctx.editMessageReplyMarkup(keys.ManagersMenu.keyboard.reply_markup, AdminMenuMessageId);

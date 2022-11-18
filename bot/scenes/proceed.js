@@ -260,9 +260,9 @@ proceed.on('message',
             parse_mode: 'HTML'
           }
         );
+        ctx.scene.leave();
       }
 
-      ctx.scene.leave();
     } catch (e) {
       console.log(e);
       ctx.scene.enter('start', { menu: ctx.scene.state.message });

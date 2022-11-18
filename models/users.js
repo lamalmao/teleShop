@@ -40,6 +40,16 @@ const User = new Schema({
   refills: {
     type: Number,
     default: 0
+  },
+  stats: {
+    type: [
+      {
+        id: String,
+        title: String,
+        count: Number
+      }
+    ],
+    default: []
   }
 });
 
