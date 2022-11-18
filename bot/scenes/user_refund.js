@@ -103,7 +103,10 @@ const userRefund = new Scenes.WizardScene('user_refund',
             ctx.from.id,
             ctx.scene.state.message.message_id,
             undefined,
-            ctx.scene.state.msg + '\n\nОшибка: неверный формат выбранного кошелька'
+            ctx.scene.state.msg + '\n\nОшибка: неверный формат выбранного кошелька',
+            {
+              parse_mode: 'HTML'
+            }
           )
         }
       }

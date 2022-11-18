@@ -25,5 +25,15 @@ module.exports = {
 		type: 'string',
 		default: 'localhost',
 		required: true
+	},
+	spreadsheet_id: {
+		type: 'string',
+		default: '0000000000000000000000000000',
+		required: true
+	},
+	sheets_update_interval: {
+		type: 'number',
+		default: 60,
+		required: true
 	}
 }
