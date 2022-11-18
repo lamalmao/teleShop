@@ -9,10 +9,26 @@ const messages = require('./messages');
 function CreateBot(token) {
   const bot = new Telegraf(token);
 
+  global.suspend = false;
+
   bot.use(session());
   bot.use(stage.middleware());
 
   bot.start(ctx => ctx.scene.enter('start'));
+  bot.command('switch', async ctx => {
+    try {
+      const user = await users.findOne({
+        telegramID: ctx.from.id
+      }, 'role');
+
+      if (user && user.role === 'admin') {
+        global.suspend = !global.suspend;
+        await ctx.reply(`Продажи ${global.suspend ? 'приостановлены' : 'возобновлены'}.\n/switch для того чтобы ${global.suspend ? 'возобновить' : 'приостановить'}`);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  });
 
   bot.on('callback_query', (ctx, next) => {
     console.log(ctx.callbackQuery.data);
@@ -21,7 +37,6 @@ function CreateBot(token) {
   });
 
   bot.action('profile', ctx => ctx.scene.enter('profile', { menu: ctx.callbackQuery.message }));
-
   bot.action('shop', ctx => ctx.scene.enter('shop'));
 
   bot.action([keys.Menu.buttons.questions, keys.Menu.buttons.guarantees, keys.Menu.buttons.comments, keys.Menu.buttons.support], async ctx => {

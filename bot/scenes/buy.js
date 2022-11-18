@@ -9,6 +9,13 @@ const buy = new Scenes.BaseScene('buy');
 
 buy.enterHandler = async function(ctx) {
   try {
+    if (global.suspend) {
+      ctx.answerCbQuery('Продажи временно приостановлены, попробуйте позже')
+        .catch(_ => null);
+      ctx.scene.leave();
+      return;
+    }
+
     const itemID = /\w+$/.exec(ctx.callbackQuery.data)[0];
 
     const item = await goods.findOne({
