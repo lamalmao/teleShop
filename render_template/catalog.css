@@ -57,7 +57,7 @@ body {
 
 .item-cost-container {
 	margin-top: 60%;
-	margin-left: 35%;
+	margin-left: 45%;
 	height: 100px;
 	padding: 0 10px;
 	background-color: #212121;
@@ -82,14 +82,14 @@ body {
 	font-size: 40px;
 	text-align: left;
 	position: relative;
-	bottom: 30px;
-	margin-right: 5px;
+	bottom: 40px;
+	margin-right: 7px;
 	/* display: inline-block; */
 }
 
 .item-discount {
 	position: relative;
-	font-size: 50px;
+	font-size: 45px;
 	text-align: right;
 	color: #fff;
 	line-height: 120px;
