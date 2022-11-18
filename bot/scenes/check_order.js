@@ -121,7 +121,7 @@ checkOrders.hears(/\d+/, async ctx => {
 });
 
 checkOrders.action(keys.BackMenu.buttons, ctx => ctx.scene.enter('admin', {
-  menu: ctx.callbackQuery.message.message_id
+  menu: ctx.callbackQuery.message
 }));
 
 module.exports = checkOrders;
