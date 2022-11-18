@@ -52,13 +52,13 @@ body {
 	margin-left: 10%;
 	color: #fff;
 	max-height: 30px;
-	font-size: 48px;
+	font-size: 54px;
 }
 
 .item-cost-container {
 	margin-top: 60%;
 	margin-left: 28%;
-	height: 80px;
+	height: 100px;
 	padding: 0 10px;
 	background-color: #212121;
 	border-radius: 12px;
@@ -70,8 +70,8 @@ body {
 .item-cost {
 	text-align: center;
 	color: #e7e8ea;
-	line-height: 80px;
-	font-size: 40px;
+	line-height: 100px;
+	font-size: 50px;
 }
 
 .old-cost {
@@ -79,7 +79,7 @@ body {
 	text-decoration-color: #fff;
 	text-decoration-thickness: 150;
 	color: #aaa;
-	font-size: 35px;
+	font-size: 40px;
 	text-align: left;
 	position: relative;
 	bottom: 30px;
@@ -89,10 +89,10 @@ body {
 
 .item-discount {
 	position: relative;
-	font-size: 45px;
+	font-size: 50px;
 	text-align: right;
 	color: #fff;
-	line-height: 100px;
+	line-height: 120px;
 	display: inline-block;
 	/* left: 60px; */
 }
