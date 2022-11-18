@@ -57,14 +57,14 @@ body {
 
 .item-cost-container {
 	margin-top: 60%;
-	margin-left: 45%;
-	height: 100px;
+	margin-left: 30%;
+	height: 90px;
 	padding: 0 10px;
 	background-color: #212121;
 	border-radius: 12px;
 	box-sizing: border-box;
 	width: fit-content;
-	min-width: 250px;
+	min-width: 300px;
 }
 
 .item-cost {
@@ -82,7 +82,7 @@ body {
 	font-size: 40px;
 	text-align: left;
 	position: relative;
-	bottom: 40px;
+	bottom: 35px;
 	margin-right: 7px;
 	/* display: inline-block; */
 }
