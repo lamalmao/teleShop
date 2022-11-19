@@ -74,7 +74,7 @@ refunds.action(/proceed_refund#\d+/, async ctx => {
       const keyboard = [
         [
           Markup.button.callback('Выполнен', `approve#${orderID}`),
-          Markup.button.callback('Отклонить', `decline#${orderID}`)
+          Markup.button.callback('Отменить', `decline#${orderID}`)
         ],
         [ Markup.button.url('Связаться с пользователем', `tg://user?id=${order.client}`) ],
         [ Markup.button.callback('Обновить', `proceed_refund#${orderID}`) ],
@@ -108,7 +108,7 @@ refunds.action(/(approve|decline)#\d+/, async ctx => {
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      `Подтвердите действие - "${ctx.scene.state.action === 'approve' ? 'возврат выполнен' : 'отклонить возврат'}"`,
+      `Подтвердите действие - "${ctx.scene.state.action === 'approve' ? 'возврат выполнен' : 'отменить возврат и вернуть заказ к выполнению'}"`,
       {
         reply_markup: keys.YesNoMenu.keyboard.reply_markup
       }
@@ -133,19 +133,34 @@ refunds.action(keys.YesNoMenu.buttons.yes, async ctx => {
     });
     
     if (order) {
-      const status = ctx.scene.state.action === 'approve' ? 'approved' : 'rejected';
+      const refundStatus = ctx.scene.state.action === 'approve' ? 'approved' : 'rejected',
+        status = ctx.scene.state.action === 'approve' ? 'refund' : 'untaken';
 
-      await orders.updateOne({
-        orderID: ctx.scene.state.orderID
-      }, {
-        $set: {
-          refundStatus: status
-        }
-      });
+      if (status === 'refund') {
+        await orders.updateOne({
+          orderID: ctx.scene.state.orderID
+        }, {
+          $set: {
+            refundStatus: status
+          }
+        });
+      } else {
+        await orders.updateOne({
+          orderID: ctx.scene.state.orderID
+        }, {
+          $set: {
+            status: 'untaken',
+          },
+          $unset: {
+            refundStatus: '',
+            refundData: ''
+          }
+        });
+      }
 
       ctx.telegram.sendMessage(
         order.client,
-        `Возврат денег за заказ <code>${order.orderID}</code> был <b>${status === 'approved' ? 'выполнен' : 'отклонен'}</b>`,
+        `Возврат денег за заказ <code>${order.orderID}</code> был <b>${status === 'approved' ? 'выполнен' : 'отменен'}</b>`,
         {
           parse_mode: 'HTMl'
         }
