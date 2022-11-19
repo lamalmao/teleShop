@@ -10,7 +10,15 @@ const buy = new Scenes.BaseScene('buy');
 buy.enterHandler = async function(ctx) {
   try {
     if (global.suspend) {
-      ctx.answerCbQuery('Продажи временно приостановлены, попробуйте позже')
+      ctx.reply('Продажи временно приостановлены, попробуйте позже')
+        .then(msg => {
+          setTimeout(() => {
+            ctx.telegram.deleteMessage(
+              ctx.from.id,
+              msg.message_id
+            ).catch(_ => null);
+          }, 1500);
+        })
         .catch(_ => null);
       ctx.scene.leave();
       return;
