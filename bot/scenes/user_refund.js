@@ -7,7 +7,10 @@ const messages = require('../messages');
 const userRefund = new Scenes.WizardScene('user_refund',
   async ctx => {
     try {
-      const orderID = /\d+/.exec(ctx.callbackQuery.data)[0];
+      const orderID = ctx.scene.state.refundID ? ctx.scene.state.refundID : /\d+/.exec(ctx.callbackQuery.data)[0];
+
+      console.log(orderID);
+
       const order = await orders.findOne({
         orderID: orderID,
         client: ctx.from.id,
@@ -56,7 +59,10 @@ const userRefund = new Scenes.WizardScene('user_refund',
             undefined,
             msg,
             {
-              parse_mode: 'HTML'
+              parse_mode: 'HTML',
+              reply_markup: Markup.inlineKeyboard([
+                [ Markup.button.callback('Назад', 'back') ]
+              ]).reply_markup
             }
           );
 
@@ -88,11 +94,11 @@ const userRefund = new Scenes.WizardScene('user_refund',
             ctx.from.id,
             ctx.scene.state.message.message_id,
             undefined,
-            `Все верно?\n\n<i>${ctx.scene.state.target === 'qiwi' ? 'QIWI' : 'Банковская карта'} <b>${ctx.scene.state.wallet}</b></i>`,
+            `<b>Все верно?</b>\n\n<b>${ctx.scene.state.target === 'qiwi' ? 'QIWI' : 'Банковская карта'}</b> ${ctx.scene.state.wallet}\n\nВнимательно проверьте данные для возврат средств!`,
             {
               reply_markup: Markup.inlineKeyboard([
                 [ Markup.button.callback('Да', 'refund_success') ],
-                [ Markup.button.callback('Нет', `refund_data#${ctx.scene.state.refundID}`) ]
+                [ Markup.button.callback('Нет', 'back') ]
               ]).reply_markup,
               parse_mode: 'HTML'
             }
@@ -109,6 +115,11 @@ const userRefund = new Scenes.WizardScene('user_refund',
             }
           )
         }
+      } else if (ctx.updateType === 'callback_query' && ctx.callbackQuery.data === 'back') {
+        console.log('LEMME IN')
+        ctx.scene.reenter({
+          refundID: ctx.scene.state.refundID
+        });
       }
     } catch (e) {
       console.log(e);
@@ -135,12 +146,23 @@ const userRefund = new Scenes.WizardScene('user_refund',
           'Ожидайте возврат на указанные реквизиты'
         );
         ctx.scene.leave();
+      } else if (ctx.updateType === 'callback_query' && ctx.callbackQuery.data === 'back') {
+        ctx.scene.reenter({
+          refundID: ctx.scene.state.userRefund
+        });
       }
     } catch (e) {
       console.log(e)
     }
   }
 );
+
+userRefund.action('no', ctx => {
+  console.log('reenter');
+  ctx.scene.enter('user_refund', {
+    refundID: ctx.scene.state.refundID
+  });
+});
 
 userRefund.on('message', (ctx, next) => {
   ctx.deleteMessage()

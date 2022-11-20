@@ -114,7 +114,7 @@ proceed.action('next1', async ctx => {
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      messages.purchase_proceed.instructions[2],
+      messages.purchase_proceed.instructions[1],
       {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback('Привязал, что дальше?', 'next2')],
@@ -132,14 +132,17 @@ proceed.action('next1', async ctx => {
 
 proceed.action('next2', async ctx => {
   try {
+    const xboxExtra = ctx.scene.state.item.platform === 'xbox' ? `\n\n${messages.purchase_proceed.xbox_extra}` : '';
+    const caption = messages.purchase_proceed.instructions[2];
+
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      messages.purchase_proceed.instructions[2],
+      caption + xboxExtra,
       {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback('Зачем логин / пароль?', 'next3')],
+          [Markup.button.callback('Зачем почта / пароль', 'next3')],
           [Markup.button.callback('Назад', `next1`)]
         ]).reply_markup,
         parse_mode: 'HTML'
@@ -177,12 +180,13 @@ proceed.action('next3', async ctx => {
 proceed.action('setmail', async ctx => {
   try {
     ctx.scene.state.target = 'login';
-    
+    const xboxExtra = ctx.scene.state.item.platform === 'xbox' ? `\n\n${messages.purchase_proceed.xbox_extra}` : '';
+
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      messages.purchase_proceed.login,
+      messages.purchase_proceed.login + xboxExtra,
       {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback('Назад', `next3`)]
@@ -209,6 +213,7 @@ proceed.on('message',
     try {
       if (ctx.scene.state.target === 'login') {
         const data = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.exec(ctx.message.text);
+        const xboxExtra = ctx.scene.state.item.platform === 'xbox' ? `\n\n${messages.purchase_proceed.xbox_extra}` : '';
 
         if (data) {
           ctx.scene.state.item.data.login = data[0];
@@ -218,7 +223,7 @@ proceed.on('message',
             ctx.from.id,
             ctx.scene.state.message.message_id,
             undefined,
-            messages.purchase_proceed.password,
+            messages.purchase_proceed.password + xboxExtra,
             {
               reply_markup: Markup.inlineKeyboard([
                 [Markup.button.callback('Назад', `next3`)]

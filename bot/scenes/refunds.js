@@ -160,7 +160,7 @@ refunds.action(keys.YesNoMenu.buttons.yes, async ctx => {
 
       ctx.telegram.sendMessage(
         order.client,
-        `Возврат денег за заказ <code>${order.orderID}</code> был <b>${status === 'approved' ? 'выполнен' : 'отменен'}</b>`,
+        `Возврат денег за заказ <b>${order.itemTitle}</b><code>${order.orderID}</code> был ${ctx.scene.state.action === 'approve' ? 'выполнен' : 'отменен'}`,
         {
           parse_mode: 'HTMl'
         }

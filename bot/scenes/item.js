@@ -2,6 +2,7 @@ const { Scenes, Markup } = require('telegraf');
 const path = require('path');
 
 const goods = require('../../models/goods');
+const messages = require('../messages');
 
 const images = path.join(process.cwd(), 'files', 'images');
 
@@ -25,9 +26,10 @@ item.enterHandler = async function(ctx) {
         }
       });
       await ctx.telegram.editMessageCaption(ctx.from.id, ctx.callbackQuery.message.message_id, undefined, 
-        `${targetItem.title}\n\n${targetItem.bigDescription}`, 
+        `<b>Товар:</b> ${targetItem.title}\n<b>Цена:</b> ${targetItem.getPrice()} ₽\n\n<b>Описание:</b> ${targetItem.bigDescription}\n\n${messages.item_extra}`, 
         {
-          reply_markup: keyboard.reply_markup
+          reply_markup: keyboard.reply_markup,
+          parse_mode: 'HTML'
         });
     } else ctx.answerCbQuery('На данный момент товар недоступен').catch(_ => null);
 

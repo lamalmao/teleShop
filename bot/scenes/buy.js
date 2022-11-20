@@ -58,7 +58,7 @@ buy.enterHandler = async function(ctx) {
           ctx.from.id,
           ctx.callbackQuery.message.message_id,
           undefined,
-          `Вы уверены, что хотите приобрести <b>${item.title}</b> за <b>${item.getPrice()}</b> руб.?`,
+          `Вы хотите приобрести <b>${item.title}</b> за <b>${item.getPrice()}</b> ₽, верно?`,
           {
             parse_mode: 'HTML',
             reply_markup: Markup.inlineKeyboard([

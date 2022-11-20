@@ -56,7 +56,8 @@ takeOrder.enterHandler = async function(ctx) {
         if (order.status === 'processing') {
           keyboard.push(
             [ Markup.button.callback('Заказ выполнен', 'order_done') ],
-            [ Markup.button.callback('Оформить возврат', 'order_refund') ]
+            [ Markup.button.callback('Оформить возврат', 'order_refund') ],
+            [ Markup.button.callback('Отказаться от выполнения', 'order_reject') ]
           )
         }
         keyboard.push([Markup.button.callback('Назад', 'manager_menu')]);
@@ -200,6 +201,45 @@ takeOrder.action('done', async ctx => {
   }
 });
 
+takeOrder.action('order_reject', async ctx => {
+  try {
+    await ctx.telegram.editMessageText(
+      ctx.from.id,
+      ctx.callbackQuery.message.message_id,
+      undefined,
+      `Вы хотите отказаться от заказа: ${ctx.scene.state.order.orderID}?`,
+      {
+        reply_markup: Markup.inlineKeyboard([
+          [ Markup.button.callback('Да', 'reject') ],
+          [ Markup.button.callback('Нет', `manager_take#${ctx.scene.state.order.orderID}`) ]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+      }
+    );
+  } catch (e) {
+    console.log(e);
+    ctx.scene.enter('orders_list');
+  }
+});
+
+takeOrder.action('reject', async ctx => {
+  try {
+    await orders.updateOne({
+      orderID: ctx.scene.state.order.orderID
+    }, {
+      $set: {
+        status: 'untaken',
+        manager: 0
+      }
+    });
+
+    ctx.scene.enter('orders_list');
+  } catch (e) {
+    console.log(e);
+    ctx.scene.enter('orders_list');
+  }
+});
+
 takeOrder.action('order_refund', async ctx => {
   try {
     await ctx.telegram.editMessageText(
@@ -234,7 +274,7 @@ takeOrder.action('refund', async ctx => {
 
     ctx.telegram.sendMessage(
       ctx.scene.state.order.client,
-      messages.order_refund.format(ctx.scene.state.order.orderID),
+      messages.order_refund.format(ctx.scene.state.order.orderID, ctx.scene.state.order.itemTitle),
       {
         reply_markup: Markup.inlineKeyboard([
           [ Markup.button.callback('Указать данные', `refund_data#${ctx.scene.state.order.orderID}`) ]

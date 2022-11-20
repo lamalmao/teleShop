@@ -12,9 +12,9 @@ const MenuButtons = {
 }
 
 const MenuKeyboard = Markup.inlineKeyboard([
-  [cb('Магазин', MenuButtons.shop), cb('Профиль', MenuButtons.profile)],
-  [cb('FAQ', MenuButtons.questions), cb('Гарантии', MenuButtons.guarantees)],
-  [cb('Отзывы', MenuButtons.comments), cb('Поддержка', MenuButtons.support)]
+  [cb('Магазин 🛒', MenuButtons.shop), cb('Профиль 👤', MenuButtons.profile)],
+  [cb('FAQ ❓', MenuButtons.questions), cb('Гарантии 🔰', MenuButtons.guarantees)],
+  [cb('Отзывы ⭐', MenuButtons.comments), cb('Поддержка 🙋', MenuButtons.support)]
 ]);
 
 const AdminButtons = {
@@ -86,8 +86,8 @@ const ProfileMenuButtons = {
 };
 
 const ProfileMenuKeyboard = Markup.inlineKeyboard([
-  [cb('Пополнить баланс', ProfileMenuButtons.refill)],
-  [cb('История баланса', ProfileMenuButtons.story)],
+  [cb('Пополнить баланс 💰', ProfileMenuButtons.refill)],
+  [cb('История баланса 🔎', ProfileMenuButtons.story)],
   [cb('Назад', BackButton)]
 ]);
 
