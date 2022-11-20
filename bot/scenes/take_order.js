@@ -148,7 +148,7 @@ takeOrder.action('done', async ctx => {
 
     ctx.telegram.sendMessage(
       ctx.scene.state.order.client,
-      messages.order_done.format(ctx.scene.state.order.orderID),
+      messages.order_done.format(ctx.scene.state.order.orderID, ctx.scene.state.order.itemTitle),
       {
         parse_mode: 'HTML'
       }
