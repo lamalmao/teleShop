@@ -141,7 +141,7 @@ refunds.action(keys.YesNoMenu.buttons.yes, async ctx => {
           orderID: ctx.scene.state.orderID
         }, {
           $set: {
-            refundStatus: status,
+            refundStatus: 'approved',
             data: {
               login: '',
               password: ''
@@ -154,6 +154,7 @@ refunds.action(keys.YesNoMenu.buttons.yes, async ctx => {
         }, {
           $set: {
             status: 'untaken',
+            manager: 0
           },
           $unset: {
             refundStatus: '',
