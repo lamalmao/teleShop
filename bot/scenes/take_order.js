@@ -150,7 +150,8 @@ takeOrder.action('done', async ctx => {
       ctx.scene.state.order.client,
       messages.order_done.format(ctx.scene.state.order.orderID, ctx.scene.state.order.itemTitle),
       {
-        parse_mode: 'HTML'
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
       }
     ).catch(_ => null);
 
