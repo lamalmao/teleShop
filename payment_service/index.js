@@ -48,7 +48,7 @@ function createPaymentProvider(bot) {
         payment.save().catch(_ => null);
         user.save().catch(_ => null);
 
-        bot.telegram.editMessageCaption(user.telegramID, payment.payment_message, undefined, `Ваш баланс пополнен на ${payment.amount} рублей`)
+        bot.telegram.editMessageCaption(user.telegramID, payment.payment_message, undefined, `Ваш баланс пополнен на ${payment.amount} ₽`)
           .catch(_ => null);
       }
     } catch (e) {
