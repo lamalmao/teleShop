@@ -65,7 +65,7 @@ takeOrder.enterHandler = async function(ctx) {
         keyboard = Markup.inlineKeyboard(keyboard);
 
         const data = order.data.login ? `<i>Логин:</i> <code>${order.data.login}</code>\n<i>Пароль:</i> <code>${order.data.password}</code>` : '[ДАННЫЕ УДАЛЕНЫ]';
-        const msg = `Заказ <code>${order.orderID}</code>\n\n<i>Клиент:</i> <a href="tg://user?id=${order.client}">ссылка</a>\n<i>Товар:</i> ${order.itemTitle}\n<i>Статус:</i> ${statuses.get(order.status)}\n<i>Дата:</i> ${new Date(order.date).toLocaleString('ru-RU')}\n\n<b>Данные для выполнения</b>\n\n<i>Платформа:</i> ${platforms.get(order.platform)}\n${data}`;
+        const msg = `Заказ <code>${order.orderID}</code>\n\n<i>Клиент:</i> <code>tg://user?id=${order.client}</code>\n<i>Товар:</i> ${order.itemTitle}\n<i>Статус:</i> ${statuses.get(order.status)}\n<i>Дата:</i> ${new Date(order.date).toLocaleString('ru-RU')}\n\n<b>Данные для выполнения</b>\n\n<i>Платформа:</i> ${platforms.get(order.platform)}\n${data}`;
 
         ctx.scene.state.order = order;
 

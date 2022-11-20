@@ -22,6 +22,12 @@ profile.enterHandler = async function(ctx) {
   }
 };
 
+profile.command('start', ctx => {
+  ctx.scene.enter('start', {
+    menu: ctx.scene.state.menu
+  });
+});
+
 profile.action(keys.BackMenu.buttons, ctx => {
   if (!ctx.scene.state.action) ctx.scene.enter('start', { menu: ctx.scene.state.menu });
   else ctx.scene.enter('profile', { menu: ctx.scene.state.menu });

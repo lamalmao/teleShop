@@ -15,6 +15,7 @@ function CreateBot(token) {
   bot.use(stage.middleware());
 
   bot.start(ctx => ctx.scene.enter('start'));
+
   bot.command('switch', async ctx => {
     try {
       const user = await users.findOne({
