@@ -141,7 +141,11 @@ refunds.action(keys.YesNoMenu.buttons.yes, async ctx => {
           orderID: ctx.scene.state.orderID
         }, {
           $set: {
-            refundStatus: status
+            refundStatus: status,
+            data: {
+              login: '',
+              password: ''
+            }
           }
         });
       } else {
