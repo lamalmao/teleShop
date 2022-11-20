@@ -4,9 +4,9 @@ const path = require('path');
 
 const categories = require('../../models/categories');
 const goods = require('../../models/goods');
+const messages = require('../messages');
 
 const images = path.join(process.cwd(), 'files', 'images');
-
 const subCategory = new Scenes.BaseScene('subCategory');
 
 subCategory.enterHandler = async function(ctx) {
@@ -39,11 +39,18 @@ subCategory.enterHandler = async function(ctx) {
       media: {
         source: path.join(images, category.image)
       }
-    }, {
-      caption: `<b>${category.title}</b>\n\n${category.description}`,
-      parse_mode: 'HTML',
-      reply_markup: Markup.inlineKeyboard(keyboard).reply_markup
     });
+
+    await ctx.telegram.editMessageCaption(
+      ctx.from.id,
+      ctx.callbackQuery.message.message_id,
+      undefined,
+      `<b>${category.title}</b>\n\n${category.description}\n\n${messages.category_extra}`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: Markup.inlineKeyboard(keyboard).reply_markup
+      }
+    )
 
     ctx.scene.leave();
   } catch (e) {
