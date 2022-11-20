@@ -145,7 +145,8 @@ refunds.action(keys.YesNoMenu.buttons.yes, async ctx => {
             data: {
               login: '',
               password: ''
-            }
+            },
+            date: new Date()
           }
         });
       } else {

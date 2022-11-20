@@ -143,6 +143,7 @@ takeOrder.action('done', async ctx => {
       login: '',
       password: ''
     };
+    ctx.scene.state.order.date = new Date();
     await ctx.scene.state.order.save();
 
     ctx.telegram.sendMessage(
