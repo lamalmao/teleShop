@@ -45,12 +45,13 @@ buy.enterHandler = async function(ctx) {
           ctx.from.id,
           ctx.callbackQuery.message.message_id,
           undefined,
-          `На вашем счету не хватает ${Math.abs(dif)} руб. для покупки "${item.title}"`,
+          `На вашем счету не хватает <b>${Math.abs(dif)} ₽</b> для покупки "${item.title}"`,
           {
             reply_markup: Markup.inlineKeyboard([
               [Markup.button.callback('Пополнить баланс', `ref#${Math.abs(dif)}`)],
               [Markup.button.callback('Назад', `item#${itemID}`)]
-            ]).reply_markup
+            ]).reply_markup,
+            parse_mode: 'HTML'
           }
         );
       } else {
