@@ -45,7 +45,7 @@ subCategory.enterHandler = async function(ctx) {
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      `<b>${category.title}</b>\n\n${category.description}\n\n${messages.category_extra}`,
+      messages.category_extra,
       {
         parse_mode: 'HTML',
         reply_markup: Markup.inlineKeyboard(keyboard).reply_markup
