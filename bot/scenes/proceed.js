@@ -213,7 +213,11 @@ proceed.on('message',
   async (ctx, next) => {
     try {
       if (ctx.scene.state.target === 'login') {
-        const data = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.exec(ctx.message.text);
+        const mail = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.exec(ctx.message.text);
+        const number = /\d+/.exec(ctx.message.text.replace(/\ \-\+\(\)/g), '');
+
+        const data = mail ? mail : number;
+
         const xboxExtra = ctx.scene.state.item.platform === 'xbox' ? `\n\n${messages.purchase_proceed.xbox_extra}` : '';
 
         if (data) {
