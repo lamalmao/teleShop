@@ -26,18 +26,18 @@ const AdminButtons = {
   exit: 'exit'
 };
 
-const AdminKeyboard = Markup.inlineKeyboard([
-  [cb('Категории', AdminButtons.categories), cb('Товары', AdminButtons.goods)],
-  [cb('Менеджеры', AdminButtons.managers)],
-  [cb('Заказы', AdminButtons.sales), cb('Возвраты', AdminButtons.refunds)],
-  [cb('Выйти из панели администратора', AdminButtons.exit)]
-]);
-
 const ManagersButtons = {
   managersList: 'managers_list',
   addManager: 'add_manager',
   back: 'back'
 };
+
+const AdminKeyboard = Markup.inlineKeyboard([
+  [cb('Категории', AdminButtons.categories), cb('Товары', AdminButtons.goods)],
+  [cb('Менеджеры', AdminButtons.managers), cb('Статистика', 'showManagers')],
+  [cb('Заказы', AdminButtons.sales), cb('Возвраты', AdminButtons.refunds)],
+  [cb('Выйти из панели администратора', AdminButtons.exit)]
+]);
 
 const ManagersKeyboard = Markup.inlineKeyboard([
   [cb('Менеджеры', ManagersButtons.managersList), cb('Добавить менеджера', ManagersButtons.addManager)],
