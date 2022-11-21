@@ -35,5 +35,10 @@ module.exports = {
 		type: 'number',
 		default: 60,
 		required: true
+	},
+	manager_id: {
+		type: 'number',
+		default: 0,
+		required: true
 	}
-}
+};

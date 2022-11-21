@@ -32,5 +32,6 @@ const orderData = require('./order_data');
 const refunds = require('./refunds');
 const checkOrders = require('./check_order');
 const managersInfo = require('./managers_info');
+const sendContact = require('./send_contact');
 
-module.exports = new Scenes.Stage([start, admin, managers, addManager, showManagers, categoriesManage, createCategory, showCategories, editCategory, goodsManage, addItem, showGoods, manageItem, profile, pay, paymentsStory, shop, mainCategory, subCategory, item, buy, acceptPurchase, proceed, managerMenu, ordersList, takeOrder, userRefund, currentOrders, orderData, refunds, checkOrders, managersInfo]);
+module.exports = new Scenes.Stage([start, admin, managers, addManager, showManagers, categoriesManage, createCategory, showCategories, editCategory, goodsManage, addItem, showGoods, manageItem, profile, pay, paymentsStory, shop, mainCategory, subCategory, item, buy, acceptPurchase, proceed, managerMenu, ordersList, takeOrder, userRefund, currentOrders, orderData, refunds, checkOrders, managersInfo, sendContact]);

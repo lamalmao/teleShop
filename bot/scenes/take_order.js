@@ -52,7 +52,7 @@ takeOrder.enterHandler = async function(ctx) {
         }
       
         let keyboard = [
-          [  Markup.button.url('Связаться с пользователем', `tg://user?id=${order.client}`) ]
+          [  Markup.button.callback('Связаться с пользователем', `req_contact#${order.client}`) ]
           // [  Markup.button.url('Связаться с пользователем', `get_user#${order.client}#${order.orderID}`) ]
         ];
         if (order.status === 'processing') {
@@ -291,6 +291,29 @@ takeOrder.action('refund', async ctx => {
       .catch(_ => null);
 
     ctx.scene.enter('orders_list');
+  } catch (e) {
+    console.log(e);
+    ctx.scene.enter('manager_menu');
+  }
+});
+
+takeOrder.action(/req_contact#\d+/, async ctx => {
+  try {
+    const user = Number(/\d+/.exec(ctx.callbackQuery.data)[0]);
+    ctx.telegram.sendMessage(user, `Нам необходимо связаться с вами по поводу заказа <b>${ctx.scene.state.order.itemTitle}</b> - <code>${ctx.scene.state.order.orderID}</code>\n\nПожалуйста нажмите на кнопку под сообщением и следуйте инструкциям`, {
+      parse_mode: 'HTML',
+      reply_markup: Markup.inlineKeyboard([
+        [ Markup.button.callback('Продолжить', `res_contact#${ctx.from.id}#${ctx.scene.state.order.orderID}`) ]
+      ]).reply_markup
+    }).catch(err => console.log(err));
+    ctx.reply('Пользователь уведомлен, ожидайте его контакт')
+      .then(msg => {
+        setTimeout(_ => {
+          ctx.telegram.deleteMessage(msg.from.id, msg.message_id)
+            .catch(_ => null);
+        }, 1500);    
+      })
+      .catch(_ => null);
   } catch (e) {
     console.log(e);
     ctx.scene.enter('manager_menu');

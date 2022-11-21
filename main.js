@@ -18,7 +18,7 @@ const settings = preset();
 
 global.paymentToken = settings.anypay_token;
 global.projectID = settings.anypay_project_id;
-
+global.managerID = settings.manager_id;
 
 // Подключение к базе данных
 mongoose.connect(settings.base_link);
