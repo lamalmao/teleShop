@@ -80,7 +80,7 @@ refunds.action(/proceed_refund#\d+/, async ctx => {
         [ Markup.button.callback('Обновить', `proceed_refund#${orderID}`) ],
         [ Markup.button.callback('Назад', keys.AdminMenu.buttons.refunds) ]
       ];
-      const data = order.refundData ? `<code>${order.refundData}</code>` : '<b>пользователь еще не предоставил данные</b>'
+      const data = order.refundData ? beautyData(order.refundData) : '<b>пользователь еще не предоставил данные</b>'
       const msg = `Заказ <code>${order.orderID}</code>\n\n<i>Товар:</i> ${order.itemTitle}\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> ${new Date(order.date).toLocaleString('ru-RU')}\n\n<i>Информация для возврата средств:\n</i> ${data}`;
 
       await ctx.telegram.editMessageText(
@@ -188,6 +188,12 @@ refunds.action(keys.YesNoMenu.buttons.yes, async ctx => {
     });
   }
 });
+
+function beautyData(data) {
+  const number = /\d+/.exec(data)[0];
+
+  return data.replace(/\d+/, `<code>${number}</code>`);
+}
 
 refunds.action(keys.AdminMenu.buttons.refunds, async ctx => {
   ctx.scene.enter(keys.AdminMenu.buttons.refunds);
