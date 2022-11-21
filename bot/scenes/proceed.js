@@ -3,6 +3,7 @@ const crypto = require('crypto');
 
 const goods = require('../../models/goods.js');
 const orders = require('../../models/orders.js');
+const escape = require('escape-html');
 
 const back = require('../keyboard').BackMenu;
 const messages = require('../messages');
@@ -253,8 +254,8 @@ proceed.on('message',
           undefined,
           messages.purchase_proceed.checkout.format(
             ctx.scene.state.item.itemTitle,
-            ctx.scene.state.item.data.login,
-            ctx.scene.state.item.data.password,
+            escape(ctx.scene.state.item.data.login),
+            escape(ctx.scene.state.item.data.password),
             ctx.scene.state.item.amount
           ),
           {

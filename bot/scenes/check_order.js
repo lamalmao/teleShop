@@ -1,4 +1,5 @@
 const { Scenes, Markup } = require('telegraf');
+const escape = require('escape-html');
 
 const users = require('../../models/users');
 const orders = require('../../models/orders');
@@ -84,7 +85,7 @@ checkOrders.hears(/\d+/, async ctx => {
         }
       ).catch(_ => null);
     } else {
-      const data = order.data.login ? `<i>Логин:</i> <code>${order.data.login}</code>\n<i>Пароль:</i> <code>${order.data.password}</code>` : '[ДАННЫЕ УДАЛЕНЫ]'
+      const data = order.data.login ? `<i>Логин:</i> <code>${escape(order.data.login)}</code>\n<i>Пароль:</i> <code>${escape(order.data.password)}</code>` : '[ДАННЫЕ УДАЛЕНЫ]'
 
       const client = await users.findOne({
           telegramID: order.client
