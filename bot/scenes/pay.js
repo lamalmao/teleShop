@@ -1,9 +1,11 @@
 const { Scenes, Markup } = require('telegraf');
 const crypto = require('crypto');
+const path = require('path');
 
 const payments = require('../../models/payments');
 const messages = require('../messages');
 const pay = new Scenes.BaseScene('pay');
+const refillImage = path.join(process.cwd(), 'files', 'images', 'blank_refill.jpg');
 
 pay.enterHandler = async function(ctx) {
   try {
@@ -15,6 +17,18 @@ pay.enterHandler = async function(ctx) {
     });
 
     const payUrl = payment.genUrl();
+
+    await ctx.telegram.editMessageMedia(
+      ctx.from.id,
+      ctx.scene.state.menu.message_id,
+      undefined,
+      {
+        type: 'photo',
+        media: {
+          source: refillImage
+        }
+      }
+    );
 
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
