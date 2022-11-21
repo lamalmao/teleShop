@@ -108,6 +108,7 @@ settings.json
 
 files/*/*
 !files/images/blank_**
+!files/blanks/**.txt
 
 .vscode
 
