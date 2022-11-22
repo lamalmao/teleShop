@@ -10,7 +10,7 @@ const messages = require('../messages');
 
 const platforms = Markup.inlineKeyboard([
   [Markup.button.callback('PC Windows / macOS', 'pc'), Markup.button.callback('Playstation 4/5', 'ps')],
-  [Markup.button.callback('XBox', 'xbox'), Markup.button.callback('Nintendo', 'nintendo')],
+  [Markup.button.callback('Xbox', 'xbox'), Markup.button.callback('Nintendo', 'nintendo')],
   [Markup.button.callback('Android', 'android')],
   [Markup.button.callback('Назад', back.buttons)]
 ]);
@@ -111,11 +111,13 @@ proceed.action('help', async ctx => {
 
 proceed.action('next1', async ctx => {
   try {
+    const xboxExtra = ctx.scene.state.item.platform === 'xbox' ? `\n\n${messages.purchase_proceed.xbox_extra}` : '';
+
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      messages.purchase_proceed.instructions[1],
+      messages.purchase_proceed.instructions[1] + xboxExtra,
       {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback('Привязал, что дальше?', 'next2')],
@@ -133,14 +135,14 @@ proceed.action('next1', async ctx => {
 
 proceed.action('next2', async ctx => {
   try {
-    const xboxExtra = ctx.scene.state.item.platform === 'xbox' ? `\n\n${messages.purchase_proceed.xbox_extra}` : '';
+    // const xboxExtra = ctx.scene.state.item.platform === 'xbox' ? `\n\n${messages.purchase_proceed.xbox_extra}` : '';
     const caption = messages.purchase_proceed.instructions[2];
 
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      caption + xboxExtra,
+      caption,
       {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback('Зачем почта / пароль', 'next3')],

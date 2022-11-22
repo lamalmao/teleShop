@@ -5,6 +5,9 @@ const users = require('../models/users');
 const payments = require('../models/payments');
 const keys = require('./keyboard');
 const messages = require('./messages');
+const path = require('path');
+
+const images = path.join(process.cwd(), 'files', 'images');
 
 function CreateBot(token) {
   const bot = new Telegraf(token);
@@ -42,6 +45,18 @@ function CreateBot(token) {
 
   bot.action([keys.Menu.buttons.questions, keys.Menu.buttons.guarantees, keys.Menu.buttons.comments, keys.Menu.buttons.support], async ctx => {
     try {
+      await ctx.telegram.editMessageMedia(
+        ctx.from.id,
+        ctx.callbackQuery.message.message_id,
+        undefined,
+        {
+          type: 'photo',
+          media: {
+            source: path.join(images, `blank_${ctx.callbackQuery.data}.jpg`)
+          }
+        }
+      )
+
       await ctx.telegram.editMessageCaption(ctx.from.id, ctx.callbackQuery.message.message_id, undefined, messages[ctx.callbackQuery.data], {
         parse_mode: 'HTML',
         reply_markup: keys.BackMenu.keyboard.reply_markup
@@ -91,10 +106,21 @@ function CreateBot(token) {
   bot.action(/refund_data#\d+/, ctx => ctx.scene.enter('user_refund'));
   bot.action(/res_contact#\d+#\d+/, ctx => ctx.scene.enter('send_contact'));
 
-  bot.action(keys.BackMenu.buttons, ctx => {
-    ctx.editMessageCaption('Главное меню', {
-      reply_markup: keys.Menu.keyboard.reply_markup
-    }).catch(_ => null);
+  bot.action(keys.BackMenu.buttons, async ctx => {
+    try {
+      await ctx.editMessageMedia({
+        type: 'photo',
+        media: {
+          source: path.join(images, 'blank_logo.jpg')
+        }
+      });
+  
+      await ctx.editMessageCaption('Главное меню', {
+        reply_markup: keys.Menu.keyboard.reply_markup
+      });
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   bot.command('admin', ctx => ctx.scene.enter('admin'));

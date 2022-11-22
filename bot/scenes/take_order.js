@@ -1,6 +1,7 @@
 const { Scenes, Markup } = require('telegraf');
 const { Types } = require('mongoose');
 const escape = require('escape-html');
+const path = require('path');
 
 const users = require('../../models/users');
 const orders = require('../../models/orders');
@@ -10,6 +11,8 @@ const keys = require('../keyboard');
 const messages = require('../messages');
 
 const takeOrder = new Scenes.BaseScene('take_order');
+
+const images = path.join(process.cwd(), 'files', 'images');
 
 const statuses = new Map();
 statuses.set('untaken', 'не занят');
@@ -40,6 +43,10 @@ takeOrder.enterHandler = async function(ctx) {
         ]
       });
 
+      const client = await users.findOne({
+        telegramID: order.client
+      }, 'username');
+
       if (!order) {
         ctx.answerCbQuery('Заказ не найден или занят')
           .catch(_ => null);
@@ -52,13 +59,15 @@ takeOrder.enterHandler = async function(ctx) {
         }
       
         let keyboard = [
-          [  Markup.button.callback('Связаться с пользователем', `req_contact#${order.client}`) ]
+          [ Markup.button.url('Профиль клиента', `tg://user?id=${order.client}`) ],
+          [  Markup.button.callback('Связаться с клиентом', `req_contact#${order.client}`) ]
           // [  Markup.button.url('Связаться с пользователем', `get_user#${order.client}#${order.orderID}`) ]
         ];
         if (order.status === 'processing') {
           keyboard.push(
             [ Markup.button.callback('Заказ выполнен', 'order_done') ],
             [ Markup.button.callback('Оформить возврат', 'order_refund') ],
+            [ Markup.button.callback('Отменить заказ', 'order_cancel') ],
             [ Markup.button.callback('Отказаться от выполнения', 'order_reject') ]
           )
         }
@@ -67,7 +76,7 @@ takeOrder.enterHandler = async function(ctx) {
         keyboard = Markup.inlineKeyboard(keyboard);
 
         const data = order.data.login ? `<i>Логин:</i> <code>${escape(order.data.login)}</code>\n<i>Пароль:</i> <code>${escape(order.data.password)}</code>` : '[ДАННЫЕ УДАЛЕНЫ]';
-        const msg = `Заказ <code>${order.orderID}</code>\n\n<i>Клиент:</i> <code>tg://user?id=${order.client}</code>\n<i>Товар:</i> ${order.itemTitle}\n<i>Статус:</i> ${statuses.get(order.status)}\n<i>Дата:</i> ${new Date(order.date).toLocaleString('ru-RU')}\n\n<b>Данные для выполнения</b>\n\n<i>Платформа:</i> ${platforms.get(order.platform)}\n${data}`;
+        const msg = `Заказ <code>${order.orderID}</code>\n\n<i>Клиент:</i> <a href="tg://user?id=${order.client}">${client.username}</a>\n<i>Товар:</i> ${order.itemTitle}\n<i>Статус:</i> ${statuses.get(order.status)}\n<i>Дата:</i> ${new Date(order.date).toLocaleString('ru-RU')}\n\n<b>Данные для выполнения</b>\n\n<i>Платформа:</i> ${platforms.get(order.platform)}\n${data}`;
 
         ctx.scene.state.order = order;
 
@@ -189,7 +198,7 @@ takeOrder.action('done', async ctx => {
     });
 
     await users.updateOne({
-      telegramID: ctx.scene.state.order.clien
+      telegramID: ctx.scene.state.order.client
     }, {
       $inc: {
         purchases: 1
@@ -314,6 +323,73 @@ takeOrder.action(/req_contact#\d+/, async ctx => {
         }, 1500);    
       })
       .catch(_ => null);
+  } catch (e) {
+    console.log(e);
+    ctx.scene.enter('manager_menu');
+  }
+});
+
+takeOrder.action('order_cancel', async ctx => {
+  try {
+    await ctx.telegram.editMessageText(
+      ctx.from.id,
+      ctx.callbackQuery.message.message_id,
+      undefined,
+      `Отменить заказ <code>${ctx.scene.state.order.orderID}</code>\n<b>${ctx.scene.state.order.itemTitle}</b>?`,
+      {
+        reply_markup: Markup.inlineKeyboard([
+          [ Markup.button.callback('Да', 'cancel_accept') ],
+          [ Markup.button.callback('Нет', `manager_take#${ctx.scene.state.order.orderID}`) ]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+      }
+    );
+  } catch (e) {
+    console.log(e);
+    ctx.scene.enter('manager_menu');
+  }
+});
+
+takeOrder.action('cancel_accept', async ctx => {
+  try {
+    await orders.updateOne({
+      orderID: ctx.scene.state.order.orderID
+    }, {
+      $set: {
+        status: 'canceled',
+        data: {
+          login: '',
+          password: ''
+        }
+      }
+    });
+
+    await users.updateOne({
+      telegramID: ctx.scene.state.order.client
+    }, {
+      $inc: {
+        balance: ctx.scene.state.order.amount
+      }
+    });
+
+    ctx.telegram.sendPhoto(
+      ctx.scene.state.order.client,
+      {
+        source: path.join(images, 'blank_logo.jpg')
+      }, 
+      {
+        caption: `Заказ <code>${ctx.scene.state.order.orderID}</code> - <b>${ctx.scene.state.order.itemTitle}</b> был отменен\n<b>${ctx.scene.state.order.amount}</b> рублей были возвращены на Ваш баланс`,
+        parse_mode: 'HTML',
+        reply_markup: Markup.inlineKeyboard([
+          [ Markup.button.callback('Профиль', keys.Menu.buttons.profile) ]
+        ]).reply_markup
+      }
+    ).catch(_ => null);
+
+    ctx.answerCbQuery('Заказ был отменен, деньги возвращены пользователю')
+      .catch(_ => null);
+    
+    ctx.scene.enter('manager_menu');
   } catch (e) {
     console.log(e);
     ctx.scene.enter('manager_menu');

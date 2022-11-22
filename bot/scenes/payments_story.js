@@ -1,9 +1,12 @@
 const { Scenes, Markup } = require('telegraf');
+const path = require('path');
 
 const users = require('../../models/users');
 const payments = require('../../models/payments');
 const orders = require('../../models/orders');
 const keys = require('../keyboard');
+
+const storyImage = path.join(process.cwd(), 'files', 'images', 'blank_history.jpg');
 
 const paymentsStory = new Scenes.BaseScene('paymentsStory');
 
@@ -21,6 +24,18 @@ paymentsStory.enterHandler = async function(ctx) {
 
     let msg, keyboard = [];
     const story = refills.concat(ordersList); 
+
+    await ctx.telegram.editMessageMedia(
+      ctx.from.id,
+      ctx.scene.state.menu.message_id,
+      undefined,
+      {
+        type: 'photo',
+        media: {
+          source: storyImage
+        }
+      }
+    );
 
     if (story.length === 0) {
       msg = 'Вы еще не совершали платежей'
@@ -72,6 +87,7 @@ paymentsStory.action(/payment#\d+/, async ctx => {
     });
 
     if (!payment) throw new Error('Платеж не найден');
+
 
     await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, `Платеж <code>${payment.transactionID}</code>\n\nДата: <b>${new Date(payment.date).toLocaleString()} по МСК</b>\nСумма: <b>${payment.amount} руб.</b>`, {
       parse_mode: 'HTML'

@@ -14,7 +14,11 @@ managerMenu.enterHandler = async function(ctx, next) {
 
     if (user.role === 'manager' || user.role === 'admin') {
       const work = await orders.find({
-        manager: ctx.from.id
+        manager: ctx.from.id,
+        paid: true,
+        status: {
+          $ne: 'canceled'
+        }
       }, '_id status');
 
       const stats = genStats(work);
@@ -27,9 +31,13 @@ managerMenu.enterHandler = async function(ctx, next) {
       let msg = `<b>Меню менеджера</b> <code>${ctx.from.id}</code>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${stats.processing} = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${stats.refund} = ${Number.isNaN(refundP) ? 0 : refundP}%\n\n<b>Статистика по последним заказам</b>\n`;
 
       if (user.stats.length > 0) {
+        let summary = 0;
         for (let stat of user.stats) {
-          msg += `<i>${stat.title}</i>: ${stat.count}\n`
+          msg += `<i>${stat.title}</i>: ${stat.count}\n`;
+          summary += stat.count
         }
+        msg += `<b>Всего:</b> ${summary}`;
+
       } else msg += '<i>Заказов нет</i>'
 
       if (!ctx.callbackQuery) {

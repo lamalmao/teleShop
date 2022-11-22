@@ -1,8 +1,13 @@
 const { Scenes } = require('telegraf');
+const path = require('path');
 
 const messages = require('../messages');
 const users = require('../../models/users');
 const keys = require('../keyboard');
+
+
+const profileImage = path.join(process.cwd(), 'files', 'images', 'blank_profile.jpg');
+const refillImage = path.join(process.cwd(), 'files', 'images', 'blank_refill.jpg');
 
 const profile = new Scenes.BaseScene('profile');
 
@@ -11,6 +16,18 @@ profile.enterHandler = async function(ctx) {
     const user = await users.findOne({
       telegramID: ctx.from.id
     });
+
+    await ctx.telegram.editMessageMedia(
+      ctx.from.id,
+      ctx.scene.state.menu.message_id,
+      undefined,
+      {
+        type: 'photo',
+        media: {
+          source: profileImage
+        }
+      }
+    );
 
     await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, messages.profile.main.format(ctx.from.id, user.balance, user.purchases, user.refills, ctx.botInfo.username), {
       parse_mode: 'HTML'
@@ -35,6 +52,18 @@ profile.action(keys.BackMenu.buttons, ctx => {
 
 profile.action(keys.ProfileMenu.buttons.refill, async ctx => {
   try {
+    await ctx.telegram.editMessageMedia(
+      ctx.from.id,
+      ctx.scene.state.menu.message_id,
+      undefined,
+      {
+        type: 'photo',
+        media: {
+          source: refillImage
+        }
+      }
+    )
+
     await ctx.telegram.editMessageCaption(ctx.from.id, ctx.scene.state.menu.message_id, undefined, messages.payment.create);
     await ctx.telegram.editMessageReplyMarkup(ctx.from.id, ctx.scene.state.menu.message_id, undefined, keys.BackMenu.keyboard.reply_markup);
 

@@ -7,6 +7,7 @@ statuses.set('untaken', 'ожидает');
 statuses.set('processing', 'в работе');
 statuses.set('done', 'выполнен');
 statuses.set('refund', 'оформлен возврат');
+statuses.set('canceled', 'отменен');
 
 const platforms = new Map();
 platforms.set('pc', 'PC / macOS');
@@ -31,6 +32,12 @@ const colors = {
     red: 0.59,
     green: 0.79,
     blue: 0.8,
+    alpha: 1
+  },
+  canceled: {
+    red: 0.51,
+    green: 0.31,
+    blue: 0.3,
     alpha: 1
   },
   processing: {

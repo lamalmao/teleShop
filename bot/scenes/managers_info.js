@@ -80,9 +80,12 @@ managersInfo.action(/manager#\d+/, async ctx => {
       
       let msg = `<b>Статистика менеджера</b> ${user.telegramID}:<a href="tg://user?id=${user.telegramID}">${user.username}</a>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${stats.processing} = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${stats.refund} = ${Number.isNaN(refundP) ? 0 : refundP}%\n\n<b>Статистика по последним заказам</b>\n`;
 
+      let summary = 0;
       for (let stat of user.stats) {
-        msg += `<i>${stat.title}</i>: ${stat.count}\n`
+        msg += `<i>${stat.title}</i>: ${stat.count}\n`;
+        summary += stat.count;
       } 
+      if (summary > 0) msg += `<b>Всего:</b> ${summary}\n`;
 
       let inWork = '';
       for (let order of works) {

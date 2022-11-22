@@ -17,7 +17,7 @@ const Order = new Schema({
   status: {
     type: String,
     required: true,
-    enum: ['untaken', 'processing', 'done', 'refund'],
+    enum: ['untaken', 'processing', 'done', 'refund', 'canceled'],
     default: 'untaken'
   },
   paid: {
