@@ -59,8 +59,10 @@ takeOrder.enterHandler = async function(ctx) {
         }
       
         let keyboard = [
-          [ Markup.button.url('Профиль клиента', `tg://user?id=${order.client}`) ],
-          [  Markup.button.callback('Связаться с клиентом', `req_contact#${order.client}`) ]
+          [ 
+            Markup.button.url('Профиль клиента', `tg://user?id=${order.client}`),
+            Markup.button.callback('Связаться с клиентом', `req_contact#${order.client}`) 
+          ],
           // [  Markup.button.url('Связаться с пользователем', `get_user#${order.client}#${order.orderID}`) ]
         ];
         if (order.status === 'processing') {

@@ -1,4 +1,5 @@
 const { Markup, Scenes } = require('telegraf');
+const orders = require('../../models/orders');
 
 const sendContact = new Scenes.BaseScene('send_contact');
 
@@ -34,16 +35,22 @@ sendContact.enterHandler = async function(ctx) {
 
 sendContact.on('contact', async ctx => {
   try {
+    const order = await orders.findOne({
+      orderID: Number(ctx.scene.state.orderID)
+    }, 'itemTitle');
+
+    const msg = `Заказ ${ctx.scene.state.orderID} - ${order.itemTitle}`;
+
     ctx.telegram.sendContact(
       ctx.scene.state.manager,
       ctx.message.contact.phone_number,
-      `Заказ ${ctx.scene.state.orderID}`
+      msg
     ).catch(_ => null);
 
     ctx.telegram.sendContact(
       global.managerID,
       ctx.message.contact.phone_number,
-      `Заказ ${ctx.scene.state.orderID}`
+      msg
     ).catch(_ => null);
     
     await ctx.reply('Спасибо!\nОжидайте сообщения от менеджера', {
