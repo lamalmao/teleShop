@@ -12,6 +12,7 @@ statuses.set('untaken', 'ожидает');
 statuses.set('processing', 'в работе');
 statuses.set('done', 'выполнен');
 statuses.set('refund', 'оформлен возврат');
+statuses.set('canceled', 'отменен');
 
 const platforms = new Map();
 platforms.set('pc', 'PC / macOS');
