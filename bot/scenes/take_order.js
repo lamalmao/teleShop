@@ -142,8 +142,15 @@ takeOrder.action('get_profile', async ctx => {
         [ Markup.button.callback('Удалить сообщение', 'kill') ]
       ]).reply_markup
     }).catch(_ => {
-      thisCTX.answerCbQuery('Профиль пользователя закрыт')
-        .catch(_ => null)
+      thisCTX.reply(`Профиль пользователя закрыт, запросите его контакт`)
+        .then(msg => {
+          setTimeout(_ => {
+            thisCTX.telegram.deleteMessage(
+              thisCTX.from.id,
+              msg.message_id
+            ).catch(_ => null)
+          }, 2000);
+        }).catch(_ => null);
     }).then(_ => thisCTX.answerCbQuery().catch(_ => null));
 
   } catch (e) {
