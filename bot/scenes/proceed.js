@@ -216,7 +216,7 @@ proceed.on('message',
     try {
       if (ctx.scene.state.target === 'login') {
         const mail = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.exec(ctx.message.text);
-        const number = /\d+/.exec(ctx.message.text.replace(/\ \-\+\(\)/g), '');
+        const number = /\d{7,}/.exec(ctx.message.text.replace(/\ \-\+\(\)/g), '');
 
         const data = mail ? mail : number;
 

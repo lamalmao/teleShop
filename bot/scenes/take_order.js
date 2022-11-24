@@ -60,7 +60,7 @@ takeOrder.enterHandler = async function(ctx) {
       
         let keyboard = [
           [ 
-            Markup.button.url('Профиль клиента', `tg://user?id=${order.client}`),
+            Markup.button.callback('Профиль клиента', `get_profile`),
             Markup.button.callback('Связаться с клиентом', `req_contact#${order.client}`) 
           ],
           // [  Markup.button.url('Связаться с пользователем', `get_user#${order.client}#${order.orderID}`) ]
@@ -126,6 +126,37 @@ takeOrder.on('callback_query', async (ctx, next) => {
     console.log(e);
     ctx.scene.leave();
   }
+});
+
+takeOrder.action('get_profile', async ctx => {
+  try {
+    const user = await users.findOne({
+      telegramID: ctx.scene.state.order.client
+    }, 'username');
+
+    const thisCTX = ctx;
+
+    ctx.reply(`Профиль пользователя: ${user.username}`, {
+      reply_markup: Markup.inlineKeyboard([
+        [ Markup.button.url('Профиль', `tg://user?id=${ctx.scene.state.order.client}`) ],
+        [ Markup.button.callback('Удалить сообщение', 'kill') ]
+      ]).reply_markup
+    }).catch(_ => {
+      thisCTX.answerCbQuery('Профиль пользователя закрыт')
+        .catch(_ => null)
+    }).then(_ => thisCTX.answerCbQuery().catch(_ => null));
+
+  } catch (e) {
+    console.log(err);
+    ctx.scene.leave();
+  }
+});
+
+takeOrder.action('kill', ctx => {
+  ctx.telegram.deleteMessage(
+    ctx.from.id,
+    ctx.callbackQuery.message.message_id
+  ).catch(_ => null);
 });
 
 takeOrder.action('order_done', async ctx => {
