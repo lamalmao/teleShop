@@ -247,10 +247,10 @@ proceed.on('message',
   },
   async ctx => {
     try {
-      const data = /[a-zA-Z0-9\!\@\#\$\%\^\[\]\\\/\:\"\'\?\.\`\~\,\*\-\+\)\(\&\;\<\>\_\=\ ]{8,}/.exec(ctx.message.text);
+      const data = ctx.message.text.trim();
 
       if (data) {
-        ctx.scene.state.item.data.password = data[0];
+        ctx.scene.state.item.data.password = data;
         console.log(ctx.scene.state.item.data);     
         await ctx.scene.state.item.save();
 
