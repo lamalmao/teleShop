@@ -7,6 +7,12 @@ const Goods = new Schema({
 		type: String,
 		required: true
 	},
+	itemType: {
+		type: String,
+		required: true,
+		default: 'manual',
+		enum: ['manual', 'auto'];
+	},
 	description: String,
 	bigDescription: String,
 	image: {
