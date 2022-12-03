@@ -1,4 +1,8 @@
 const { mongoose } = require('mongoose');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const nodeRSA = require('node-rsa');
 
 const preset = require('./preset');
 const CreateBot = require('./bot');
@@ -19,13 +23,48 @@ const settings = preset();
 global.paymentToken = settings.anypay_token;
 global.projectID = settings.anypay_project_id;
 global.managerID = settings.manager_id;
+global.games = ['fortnite', 'brawlstars'];
+
+const keyFileDirectory = path.join(process.cwd(), 'key');
+const keyFileLocation = path.join(keyFileDirectory, 'key.pem');
+var keyGenerated = false;
+
+if (!fs.existsSync(keyFileLocation)) {
+	if (!fs.existsSync(keyFileDirectory)) fs.mkdirSync(keyFileDirectory);
+
+	const key = new nodeRSA();
+	const keys = key.generateKeyPair(4096);
+
+	fs.writeFileSync(
+		path.join(keyFileLocation),
+		keys.exportKey('pkcs8-pem')
+	);
+
+	console.log('Ключи шифрования были сгенерированы');
+	keyGenerated = true;
+} else console.log('Ключи шифрования найдены');
 
 // Подключение к базе данных
 mongoose.connect(settings.base_link);
 
-// Инициализация и запуск бота
+// Инициализация бота
 const bot = CreateBot(settings.bot_token);
+
+// Генерация ключей шифрования
+if (keyGenerated) {
+	bot.telegram.sendDocument(
+		settings.owner_id,
+		{
+			source: path.join(keyFileLocation)
+		}, {
+			caption: `${new Date().toLocaleString('ru-RU')}\nСгенерированы новые ключи шифрования для доставляемых товаров`
+		}
+	);
+}
+
+// Запуск бота
 bot.launch();
+console.log('Бот запущен')
 
 // Запуск обработчика платежей
 const paymentWorker = createPaymentProvider(bot);
@@ -34,4 +73,6 @@ paymentWorker.listen({
   port: 3000
 }, _ => console.log('Обработчик платежей запущен'));
 
+
+// Запуск отрисовки таблиц
 runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);

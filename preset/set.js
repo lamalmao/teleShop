@@ -40,5 +40,10 @@ module.exports = {
 		type: 'number',
 		default: 0,
 		required: true
+	},
+	owner_id: {
+		type: 'number',
+		default: 0,
+		required: true
 	}
 };

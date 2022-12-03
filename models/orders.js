@@ -17,7 +17,7 @@ const Order = new Schema({
   status: {
     type: String,
     required: true,
-    enum: ['untaken', 'processing', 'done', 'refund', 'canceled'],
+    enum: ['untaken', 'processing', 'done', 'refund', 'canceled', 'delivered'],
     default: 'untaken'
   },
   paid: {
@@ -47,6 +47,11 @@ const Order = new Schema({
   data: {
     login: String,
     password: String
+  },
+  game: {
+    type: String,
+    enum: global.games,
+    required: true
   },
   refundData: String,
   refundStatus: {

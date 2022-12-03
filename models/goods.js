@@ -11,7 +11,12 @@ const Goods = new Schema({
 		type: String,
 		required: true,
 		default: 'manual',
-		enum: ['manual', 'auto'];
+		enum: ['manual', 'auto']
+	},
+	game: {
+		type: String,
+		required: true,
+		enum: global.games
 	},
 	description: String,
 	bigDescription: String,
@@ -28,6 +33,7 @@ const Goods = new Schema({
 		required: true,
 		min: [0.1, 'Цена не может быть равной нулю или ниже']
 	},
+	extra: String,
 	sells: {
 		type: Number,
 		required: true,

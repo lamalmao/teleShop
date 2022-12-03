@@ -5,6 +5,7 @@ const crypto = require('crypto');
 
 const goods = require('../../models/goods');
 const categories = require('../../models/categories');
+const { delivery, parseFile } = require('../../models/delivery');
 
 const itemMenu = require('../item_menu');
 const keys = require('../keyboard');
@@ -48,7 +49,7 @@ manageItem.action('cancel', ctx => {
   ctx.scene.state.validation = undefined;
   ctx.scene.state.action = undefined;
 
-  ctx.scene.reenter('manageItem', { menu: ctx.scene.state.menu, category: ctx.scene.state.category });
+  ctx.scene.enter('manageItem', { menu: ctx.scene.state.menu, category: ctx.scene.state.category });
 });
 
 manageItem.action(keys.BackMenu.buttons, ctx => {
@@ -60,6 +61,7 @@ manageItem.action(/new#\S+/i, async ctx => {
     ctx.scene.state.target = undefined;
     ctx.scene.state.validation = undefined;
     ctx.scene.state.action = undefined;
+    ctx.scene.state.csv = false;
 
     const targetCategory = /[a-zA-Z0-9]+$/.exec(ctx.callbackQuery.data)[0];
     const oldCategory = ctx.scene.state.item.category;
@@ -165,6 +167,81 @@ manageItem.action([ keys.YesNoMenu.buttons.yes, keys.YesNoMenu.buttons.no ], asy
     ctx.scene.enter('showGoods', { menu: ctx.scene.state.menu, category: ctx.scene.state.category });
   }
 });
+
+manageItem.action('loadKeys', async ctx => {
+  try {
+    ctx.scene.state.csv = true;
+
+    await ctx.telegram.editMessageCaption(
+      ctx.from.id,
+      ctx.callbackQuery.message.message_id,
+      undefined,
+      'Отправьте <b>.csv</b> файл с ключами, которые будут загружены.\nКлючи должны храниться в колонке <b>"keys"</b>',
+      {
+        reply_markup: Markup.inlineKeyboard([
+          Markup.button.url('Пример', 'https://file.io/1nod5wZfm8Cp'),
+          Markup.button.callback('Назад', 'cancel')
+        ]).reply_markup,
+        parse_mode: 'HTML'
+      }
+    );
+  } catch (e) {
+    console.log(e);
+    ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
+    ctx.telegram.deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id).catch(_ => null);
+    ctx.scene.enter('showGoods', { menu: ctx.scene.state.menu, category: ctx.scene.state.category });
+  }
+});
+
+manageItem.on('document',
+  async (ctx, next) => {
+    ctx.deleteMessage().catch(_ => null);
+    if (ctx.scene.state.csv && ctx.message.document.mime_type === 'text/csv') next();
+  },
+  async ctx => {
+    try {
+      const link = await ctx.telegram.getFileLink(
+        ctx.message.document.file_id
+      );
+
+      const localctx = ctx;
+      ctx.scene.state.csv = false;
+
+      axios({
+        method: 'get',
+        url: link.href,
+        responseType: 'stream'
+      }).then(res => {
+        parseFile(res.data, ctx.scene.state.item)
+          .on('done', result => {
+            localctx.reply(
+              `Готово!\nУспешно загружено: ${result.done}\nОшибок: ${result.failed}`,
+            ).then(msg => {
+              setTimeout(function() {
+                localctx.telegram.deleteMessage(localctx.from.id, msg.message_id)
+                  .catch(_ => null);
+              }, 5000);
+            }).catch(_ => null);
+          })
+          .on('error', err => {
+            localctx.reply(`Что-то пошло не так:\n<code>${err.message}</code>`, {
+              parse_mode: 'HTML'
+            }).catch(_ => null);
+          });
+      });
+
+      ctx.scene.enter('manageItem', {
+        menu: ctx.scene.state.menu,
+        item: ctx.scene.state.item
+      });
+    } catch (e) {
+      console.log(e);
+      ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
+      ctx.telegram.deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id).catch(_ => null);
+      ctx.scene.enter('showGoods', { menu: ctx.scene.state.menu, category: ctx.scene.state.category });
+    }
+  }
+);
 
 manageItem.on('callback_query', 
   async (ctx, next) => {
@@ -416,5 +493,6 @@ manageItem.on('message', async ctx => {
     });
   }
 });
+
 
 module.exports = manageItem;

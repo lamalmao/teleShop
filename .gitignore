@@ -113,3 +113,6 @@ files/*/*
 .vscode
 
 credentials.json
+
+key.pem
+*.csv

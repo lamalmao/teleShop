@@ -2,6 +2,7 @@ const { Markup } = require("telegraf");
 
 const categories = require("../models/categories");
 const orders = require('../models/orders');
+const { delivery } = require('../models/delivery');
 const keys = require('./keyboard');
 
 const cb = Markup.button.callback;
@@ -15,11 +16,22 @@ async function genItemMessage(item, isAdmin) {
   let message = `${item.title}\n\n${item.bigDescription}\n\nЦена: ${price} руб.`;
 
   if (isAdmin) {
-    message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}`;
+    message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}\nИгра: ${item.game}\nДоставляется сразу при покупке: ${item.itemType === 'auto' ? 'Да' : 'Нет'}`;
+
+    if (item.itemType === 'auto') {
+      const keysCount = await delivery.countDocuments({
+        item: item._id,
+        delivered: false,
+        accessable: true
+      });
+
+      message += '\nАктивных ключей: ' + keysCount;
+    }
 
     const category = await categories.findById(item.category, 'title');
     if (category) message += `\n\nНаходится в категории "${category.title}"`;
     else message += '\n\nНе находится в категории, чтобы он отображался в магазине необходимо его поместить в существующую категорию';
+
 
     let stats = await orders.find({
       date: {
@@ -70,6 +82,7 @@ function genItemKeyboard(item, isAdmin) {
     [ cb('Изменить видимость', 'hiddenSwitch') ],
     [ cb('Изменить цену', 'changePrice') ],
     [ cb('Изменить скидку', 'changeDiscount') ],
+    [ cb('Загрузить ключи', 'loadKeys', item.itemType !== 'auto') ],
     [ cb('Удалить', 'delete'), cb('Переместить', 'move') ]
   );
 
