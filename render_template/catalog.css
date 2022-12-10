@@ -42,6 +42,7 @@ body {
 	vertical-align: top;
 	width: 340px;
 	height: inherit;
+	font-size: 500%;
 	color: #6c8499;
 }
 
@@ -53,7 +54,6 @@ body {
 	font-size: 60% !important;
 	color: #fff;
 	max-height: 30px;
-	font-size: 54px;
 }
 
 .item-cost-container {
