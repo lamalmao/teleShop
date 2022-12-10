@@ -63,7 +63,7 @@ buy.enterHandler = async function(ctx) {
           {
             parse_mode: 'HTML',
             reply_markup: Markup.inlineKeyboard([
-              [ Markup.button.callback('Да', `proceed#${itemID}`) ],
+              [ Markup.button.callback('Да', item.game === 'fortnite' ? 'proceed#' : 'supercell_proceed#' + item._id) ],
               [ Markup.button.callback('Нет', `item#${itemID}`) ]
             ]).reply_markup
           }

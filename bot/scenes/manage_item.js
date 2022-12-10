@@ -1,4 +1,4 @@
-const { Scenes, Markup, Input } = require('telegraf');
+const { Scenes, Markup } = require('telegraf');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');

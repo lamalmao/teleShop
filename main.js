@@ -75,4 +75,4 @@ paymentWorker.listen({
 
 
 // Запуск отрисовки таблиц
-runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
+// runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);

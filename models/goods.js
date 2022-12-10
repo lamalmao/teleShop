@@ -54,7 +54,12 @@ const Goods = new Schema({
 		type: Boolean,
 		required: true,
 		default: false
-	}
+	},
+	extra: {
+		message: String,
+		options: [String]
+	},
+	isVBucks: Boolean
 });
 
 async function checkCategoryExistence(category) {

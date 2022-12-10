@@ -100,7 +100,8 @@ function CreateBot(token) {
       amount: amount
     });
   });
-  bot.action(/proceed#\w+/, ctx => ctx.scene.enter('proceed'))
+  bot.action(/supercell_proceed#\w+/, ctx => ctx.scene.enter('supercell_proceed'));
+  bot.action(/proceed#\w+/, ctx => ctx.scene.enter('proceed'));
   bot.action(/accept#\d+/, ctx => ctx.scene.enter('accept_purchase'));
   bot.action(/order#\d+/, ctx => ctx.scene.enter('order_data'));
   bot.action(/refund_data#\d+/, ctx => ctx.scene.enter('user_refund'));

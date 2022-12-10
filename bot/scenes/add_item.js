@@ -204,9 +204,22 @@ const addItem = new Scenes.WizardScene('addItem',
         const cb = ctx.callbackQuery.data;
         if (cb !== keys.BackMenu.buttons) {
           ctx.scene.state.newItem.itemType = cb;
+          var msg, jump = 4, key;
 
-          const msg = 'Загрузите обложку товара';
-          const keyboard = keys.BackMenu.keyboard;
+          if (ctx.scene.state.newItem.game === 'brawlstars' && ctx.scene.state.newItem.itemType === 'manual') {
+            msg = 'Добавить дополнительный вопрос?\nЕсли да, то напишите его, иначе нажмите на "Далее"';
+            key = Markup.inlineKeyboard([
+                [ Markup.button.callback('Далее', 'skip_extra') ]
+              ]);
+            jump = 2;
+          } else if (ctx.scene.state.newItem.game === 'fortnite') {
+            msg = 'Товар является варбаксами?';
+            key = keys.YesNoMenu.keyboard;
+            jump = 1;
+          } else {
+            msg = 'Загрузите обложку товара';
+            key = keys.BackMenu.keyboard;
+          }
 
           await ctx.telegram.editMessageText(
             ctx.from.id,
@@ -214,12 +227,122 @@ const addItem = new Scenes.WizardScene('addItem',
             undefined,
             msg,
             {
-              reply_markup: keyboard.reply_markup
+              reply_markup: key.reply_markup
             }
           );
-          ctx.wizard.next();
+          ctx.wizard.selectStep(ctx.wizard.cursor + jump);
         }
     } else ctx.deleteMessage().catch(_ => null);
+    } catch (e) {
+      ctx.reply(`Ошибка: ${e.message}`)
+        .then(msg => {
+          setTimeout(_ => ctx.telegram.deleteMessage(ctx.from.id, msg.message_id)
+            .catch(_ => null));
+        }, 5000)
+        .catch(_ => null);
+      ctx.scene.enter('goods', { menu: ctx.scene.state.menu });
+      console.log(e);
+    }
+  },
+  async ctx => {
+    try {
+      if (ctx.updateType === 'callback_query') {
+        ctx.scene.state.newItem.isVBucks = ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes;
+
+        await ctx.telegram.editMessageText(
+          ctx.from.id,
+          ctx.scene.state.menu.message_id,
+          undefined,
+          'Отправьте обложку',
+          {
+            reply_markup: keys.BackMenu.keyboard.reply_markup
+          }
+        );
+
+        ctx.wizard.selectStep(ctx.wizard.cursor + 3);
+      }
+    } catch (e) {
+      ctx.reply(`Ошибка: ${e.message}`)
+        .then(msg => {
+          setTimeout(_ => ctx.telegram.deleteMessage(ctx.from.id, msg.message_id)
+            .catch(_ => null));
+        }, 5000)
+        .catch(_ => null);
+      ctx.scene.enter('goods', { menu: ctx.scene.state.menu });
+      console.log(e);
+    }
+  },
+  async ctx => {
+    try {
+      var msg = 'Загрузите обложку товара',
+        jump = 2,
+        next = false;
+      if (ctx.updateType === 'message') {
+        ctx.deleteMessage().catch();
+        msg = 'Перечислите варианты ответа списком, как на примере ниже:<i>\n\nВариант 1\nВариант 2\nВариант 3\nВариант 4</i>';
+        const extraMessage = ctx.message.text;
+        ctx.scene.state.newItem.extra.message = extraMessage;
+        jump = 1;
+
+        await ctx.telegram.editMessageText(
+          ctx.from.id,
+          ctx.scene.state.menu.message_id,
+          undefined,
+          msg,
+          {
+            parse_mode: 'HTML'
+          }
+        );
+
+        next = true;
+      } else if (ctx.updateType === 'callback_query') {
+        if (ctx.callbackQuery.data === 'skip_extra') {
+          await ctx.telegram.editMessageText(
+            ctx.from.id,
+            ctx.scene.state.menu.message_id,
+            undefined,
+            msg,
+            {
+              reply_markup: keys.BackMenu.keyboard.reply_markup
+            }
+          );
+          next = true;
+        }
+      }
+
+      if (next) ctx.wizard.selectStep(ctx.wizard.cursor + jump);
+    } catch (e) {
+      ctx.reply(`Ошибка: ${e.message}`)
+        .then(msg => {
+          setTimeout(_ => ctx.telegram.deleteMessage(ctx.from.id, msg.message_id)
+            .catch(_ => null));
+        }, 5000)
+        .catch(_ => null);
+      ctx.scene.enter('goods', { menu: ctx.scene.state.menu });
+      console.log(e);
+    }
+  },
+  async ctx => {
+    try {
+      if (ctx.updateType === 'message') {
+        ctx.deleteMessage().catch();
+
+        const extraOptions = ctx.message.text.split('\n');
+        ctx.scene.state.newItem.extra.options = extraOptions;
+
+        const msg = 'Загрузите обложку';
+        await ctx.telegram.editMessageText(
+          ctx.from.id,
+          ctx.scene.state.menu.message_id,
+          undefined,
+          msg,
+          {
+            reply_markup: keys.BackMenu.keyboard.reply_markup
+          }
+        );
+
+        ctx.wizard.next();
+      }
     } catch (e) {
       ctx.reply(`Ошибка: ${e.message}`)
         .then(msg => {

@@ -2,8 +2,7 @@ const { Schema, Types, model } = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const nodeRSA = require('node-rsa');
-const CSVParser = require('csv-parser');
-const { finished } = require('stream');
+const CSVParser = require('csv-parser');  
 
 const keysDirectoryLocation = path.join(process.cwd(), 'key', 'key.pem');
 const key = new nodeRSA(

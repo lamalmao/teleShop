@@ -57,6 +57,10 @@ const Order = new Schema({
   refundStatus: {
     type: String,
     enum: ['rejected', 'approved', 'waiting']
+  },
+  extra: {
+    message: String,
+    choice: String
   }
 });
 
