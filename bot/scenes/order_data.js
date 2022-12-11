@@ -1,8 +1,7 @@
 const { Scenes, Markup } = require('telegraf');
 
-const users = require('../../models/users');
 const orders = require('../../models/orders');
-const keys = require('../keyboard');
+const escapeHTML = require('escape-html');
 
 const statuses = new Map();
 statuses.set('untaken', 'ожидает');
@@ -29,7 +28,7 @@ orderData.enterHandler = async function(ctx) {
     });
 
     if (order) {
-      const msg = `<b>Заказ</b> <code>${order.orderID}</code>\n\n<i>Товар:</i> <b>${order.itemTitle}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString()}</b>\n\n<i>Статус:</i> <b>${statuses.get(order.status)}</b>\n<i>Платформа:</i> <b>${platforms.get(order.platform)}</b>`;
+      const msg = escapeHTML(`<b>Заказ</b> <code>${order.orderID}</code>\n\n<i>Товар:</i> <b>${order.itemTitle}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString()}</b>\n\n<i>Статус:</i> <b>${statuses.get(order.status)}</b>\n<i>Платформа:</i> <b>${platforms.get(order.platform)}</b>`);
 
       await ctx.telegram.editMessageCaption(
         ctx.from.id,

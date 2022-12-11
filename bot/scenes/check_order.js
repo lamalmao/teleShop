@@ -95,7 +95,7 @@ checkOrders.hears(/\d+/, async ctx => {
           telegramID: order.manager
         }, 'username');
 
-      let msg = `<b>Заказ</b> <code>${order.orderID}</code>\n\n<i>Клиент:</i> <a href="tg://user?id=${order.client}">${client.username}</a>\n<i>Менеджер:</i> ${order.manager !== 0 ? '<a href="tg://user?id=' + order.manager + '">' + manager.username + '</a>' : '<b>заказ не в работе</b>'}\n<i>Статус</i>: <b>${statuses.get(order.status)}</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString('ru-RU')}</b>\n\n<i>Товар:</i> <b>${order.itemTitle}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n\n<i>Платформа:</i> <b>${platforms.get(order.platform)}</b>\n<b>Данные для выполнения заказа:</b>\n${data}`;
+      let msg = `<b>Заказ</b> <code>${order.orderID}</code>\n\n<i>Клиент:</i> <a href="tg://user?id=${order.client}">${escape(client.username)}</a>\n<i>Менеджер:</i> ${order.manager !== 0 ? '<a href="tg://user?id=' + order.manager + '">' + manager.username + '</a>' : '<b>заказ не в работе</b>'}\n<i>Статус</i>: <b>${statuses.get(order.status)}</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString('ru-RU')}</b>\n\n<i>Товар:</i> <b>${order.itemTitle}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n\n<i>Платформа:</i> <b>${platforms.get(order.platform)}</b>\n<b>Данные для выполнения заказа:</b>\n${data}`;
 
       if (order.refundStatus) {
         msg += `\n\n<i>Возврат:</i> <b>${refundStatuses.get(order.refundStatus)}</b>\nДанные для возврата: <b>${order.refundData ? order.refundData : 'пользователь еще не предоставил данные'}</b>`

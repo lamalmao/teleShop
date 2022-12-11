@@ -11,7 +11,6 @@ const keys = require('../keyboard');
 const sellProceed = new Scenes.BaseScene('supercell_proceed');
 
 sellProceed.enterHandler = async function(ctx) {
-  console.log('hello there');
   try {
     if (global.suspend) {
       ctx.reply('Продажи временно приостановлены, попробуйте позже')
@@ -119,7 +118,7 @@ sellProceed.on('message',
   },
   async (ctx, next) => {
     try {
-      if (ctx.scene.state.item.extra) {
+      if (ctx.scene.state.item.extra.message) {
         let keyboard = [];
         for (let button of ctx.scene.state.item.extra.options) {
           keyboard.push([
@@ -137,7 +136,10 @@ sellProceed.on('message',
           }
         );
         ctx.scene.state.extra = true;
-      } else next();
+      } else {
+        console.log('lul');
+        checkout(ctx);
+      }
     } catch (e) {
       console.log(e);
       ctx.scene.enter('shop', {
@@ -147,6 +149,7 @@ sellProceed.on('message',
   },
   async ctx => {
     try {
+      console.log('wtf');
       checkout(ctx);
     } catch (e) {
       console.log(e);
@@ -159,7 +162,7 @@ sellProceed.on('message',
 
 sellProceed.action(/extra#+/, async ctx => {
   try {
-    const choice = /\w+$/.exec(ctx.callbackQuery.data)[0];
+    const choice = /[^#]+$/.exec(ctx.callbackQuery.data)[0];
 
     ctx.scene.state.order.extra.choice = choice;
     ctx.scene.state.order.extra.message = ctx.scene.state.item.extra.message;
@@ -178,7 +181,7 @@ async function checkout(ctx) {
   try {
     var msg = messages.supercell_checkout.format(ctx.scene.state.order.itemTitle, ctx.scene.state.order.amount, ctx.scene.state.order.data.login);
 
-    if (ctx.scene.state.order.extra) {
+    if (ctx.scene.state.item.extra.message) {
       msg += '\n\n' + messages.supercell_extra_checkout.format(ctx.scene.state.order.extra.message, ctx.scene.state.order.extra.choice);
     }
 

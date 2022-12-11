@@ -1,9 +1,11 @@
 const { Scenes, Markup } = require('telegraf');
 const { Types } = require('mongoose');
+const crypto = require('crypto');
 
 const goods = require('../../models/goods');
 const users = require('../../models/users');
 const keys = require('../keyboard');
+const orders = require('../../models/orders');
 
 const buy = new Scenes.BaseScene('buy');
 
@@ -55,6 +57,23 @@ buy.enterHandler = async function(ctx) {
           }
         );
       } else {
+        let button;
+        if (item.itemType === 'manual') {
+          button = (item.game === 'fortnite' ? 'proceed#' : 'supercell_proceed#') + item._id
+        } else {
+          const orderID = await genUniqueID();
+          const order = await orders.create({
+            orderID,
+            client: ctx.from.id,
+            item: item._id,
+            itemTitle: item.title,
+            amount: item.getPrice(),
+            game: item.game
+          });
+
+          button = 'accept#' + orderID;
+        }
+
         await ctx.telegram.editMessageCaption(
           ctx.from.id,
           ctx.callbackQuery.message.message_id,
@@ -63,7 +82,7 @@ buy.enterHandler = async function(ctx) {
           {
             parse_mode: 'HTML',
             reply_markup: Markup.inlineKeyboard([
-              [ Markup.button.callback('Да', item.game === 'fortnite' ? 'proceed#' : 'supercell_proceed#' + item._id) ],
+              [ Markup.button.callback('Да', button) ],
               [ Markup.button.callback('Нет', `item#${itemID}`) ]
             ]).reply_markup
           }
@@ -77,6 +96,16 @@ buy.enterHandler = async function(ctx) {
       .catch(_ => null);
     ctx.scene.enter('shop');
   }
+}
+
+async function genUniqueID() {
+  const id = crypto.randomInt(100000, 999999);
+  const check = await orders.findOne({
+    orderID: id
+  }, '_id');
+
+  if (check) return await genUniqueID();
+  else return id;
 }
 
 module.exports = buy;

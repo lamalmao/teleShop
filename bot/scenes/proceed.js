@@ -29,6 +29,7 @@ proceed.enterHandler = async function(ctx) {
       item: targetItem._id,
       itemTitle: targetItem.title,
       amount: targetItem.getPrice(),
+      game: 'fortnite',
       data: {
         login: '',
         password: ''

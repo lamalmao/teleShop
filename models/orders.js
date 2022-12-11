@@ -61,6 +61,14 @@ const Order = new Schema({
   extra: {
     message: String,
     choice: String
+  },
+  titleFontSize: {
+    type: Number,
+    default: 54
+  },
+  descriptionFontSize: {
+    type: Number,
+    default: 30
   }
 });
 

@@ -23,6 +23,7 @@ const settings = preset();
 global.paymentToken = settings.anypay_token;
 global.projectID = settings.anypay_project_id;
 global.managerID = settings.manager_id;
+global.ownerID = settings.owner_id;
 global.games = ['fortnite', 'brawlstars'];
 
 const keyFileDirectory = path.join(process.cwd(), 'key');
