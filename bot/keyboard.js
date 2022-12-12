@@ -36,6 +36,7 @@ const AdminKeyboard = Markup.inlineKeyboard([
   [cb('Категории', AdminButtons.categories), cb('Товары', AdminButtons.goods)],
   [cb('Менеджеры', AdminButtons.managers), cb('Статистика', 'showManagers')],
   [cb('Заказы', AdminButtons.sales), cb('Возвраты', AdminButtons.refunds)],
+  [cb('Пользователи', 'get_user_data')],
   [cb('Выйти из панели администратора', AdminButtons.exit)]
 ]);
 

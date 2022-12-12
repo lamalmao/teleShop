@@ -106,6 +106,7 @@ function CreateBot(token) {
   bot.action(/order#\d+/, ctx => ctx.scene.enter('order_data'));
   bot.action(/refund_data#\d+/, ctx => ctx.scene.enter('user_refund'));
   bot.action(/res_contact#\d+#\d+/, ctx => ctx.scene.enter('send_contact'));
+  bot.action(/send_code#\d+/, ctx => ctx.scene.enter('send_auth_code'));
 
   bot.action(keys.BackMenu.buttons, async ctx => {
     try {
@@ -126,7 +127,30 @@ function CreateBot(token) {
 
   bot.command('admin', ctx => ctx.scene.enter('admin'));
   bot.command('manager', ctx => ctx.scene.enter('manager_menu'));
+  bot.action('online_alert', async ctx => {
+    try {
+      await users.updateOne({
+        telegramID: ctx.from.id
+      }, {
+        $set: {
+          onlineUntil: new Date(Date.now() + 15 * 60 * 1000)
+        }
+      });
+
+      const curCtx = ctx;
+      ctx.reply('Ваш статус обновлен')
+        .then(msg => {
+          setTimeout(function() {
+            curCtx.telegram.deleteMessage(curCtx.from.id, msg.message_id).catch();
+          }, 3000);
+        })
+        .catch();
+    } catch (e) {
+      console.log(e);
+    }
+  });
   bot.action('manager_menu', ctx => ctx.scene.enter('manager_menu'));
+  bot.action('catch_order', ctx => ctx.scene.enter('catch_order'));
   bot.action(keys.ManagerWorkMenu.buttons.active, ctx => ctx.scene.enter('current_orders'));
   bot.action(keys.ManagerWorkMenu.buttons.list, ctx => ctx.scene.enter('orders_list'));
   bot.action(keys.ManagerWorkMenu.buttons.back, ctx => ctx.deleteMessage().catch(_ => null));

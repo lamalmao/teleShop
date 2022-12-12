@@ -34,5 +34,10 @@ const checkOrders = require('./check_order');
 const managersInfo = require('./managers_info');
 const sendContact = require('./send_contact');
 const supercellProceed = require('./supercell_proceed');
+const sendAuthCode = require('./send_auth_code');
+const changeExtra = require('./change_extra');
+const catchOrder = require('./catch_order');
+const getUserData = require('./get_user_data');
+const manageUser = require('./manage_user');
 
-module.exports = new Scenes.Stage([start, admin, managers, addManager, showManagers, categoriesManage, createCategory, showCategories, editCategory, goodsManage, addItem, showGoods, manageItem, profile, pay, paymentsStory, shop, mainCategory, subCategory, item, buy, acceptPurchase, proceed, managerMenu, ordersList, takeOrder, userRefund, currentOrders, orderData, refunds, checkOrders, managersInfo, sendContact, supercellProceed]);
+module.exports = new Scenes.Stage([start, admin, managers, addManager, showManagers, categoriesManage, createCategory, showCategories, editCategory, goodsManage, addItem, showGoods, manageItem, profile, pay, paymentsStory, shop, mainCategory, subCategory, item, buy, acceptPurchase, proceed, managerMenu, ordersList, takeOrder, userRefund, currentOrders, orderData, refunds, checkOrders, managersInfo, sendContact, supercellProceed, sendAuthCode, changeExtra, catchOrder, getUserData, manageUser]);

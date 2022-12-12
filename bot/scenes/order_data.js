@@ -28,7 +28,8 @@ orderData.enterHandler = async function(ctx) {
     });
 
     if (order) {
-      const msg = escapeHTML(`<b>Заказ</b> <code>${order.orderID}</code>\n\n<i>Товар:</i> <b>${order.itemTitle}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString()}</b>\n\n<i>Статус:</i> <b>${statuses.get(order.status)}</b>\n<i>Платформа:</i> <b>${platforms.get(order.platform)}</b>`);
+      let platform = order.platform ? platforms.get(order.platform) : '-';
+      let msg = `<b>Заказ</b> <code>${order.orderID}</code>\n\n<i>Товар:</i> <b>${escapeHTML(order.itemTitle)}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString()}</b>\n\n<i>Статус:</i> <b>${statuses.get(order.status)}</b>\n<i>Платформа:</i> <b>${platform}</b>`;
 
       await ctx.telegram.editMessageCaption(
         ctx.from.id,

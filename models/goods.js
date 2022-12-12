@@ -59,7 +59,15 @@ const Goods = new Schema({
 		message: String,
 		options: [String]
 	},
-	isVBucks: Boolean
+	isVBucks: Boolean,
+	descriptionFontSize: {
+    type: Number,
+    default: 30
+  },
+	titleFontSize: {
+    type: Number,
+    default: 54
+  }
 });
 
 async function checkCategoryExistence(category) {

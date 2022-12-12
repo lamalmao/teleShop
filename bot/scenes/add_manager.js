@@ -32,7 +32,7 @@ const addManager = new Scenes.WizardScene('addManager',
         } else {
           let targetUser = await users.findOne({
             telegramID: Number(id)
-          }, 'username role');
+          }, 'username role game telegramID');
 
           if (!targetUser) {
             await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите id пользователя, которого хотите сделать менеджером\n\nДанного пользователя нет в базе данных');
@@ -42,11 +42,45 @@ const addManager = new Scenes.WizardScene('addManager',
             await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
           } else {
             ctx.scene.state.target = targetUser;
-            await ctx.telegram.editMessageText(ctx.from.id, message, undefined, `Вы точно хотите сделать пользователя ${targetUser.username}:${id} менеджером?`);
-            await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.YesNoMenu.keyboard.reply_markup);
+
+            let gamesKeys = [];
+            for (let game of global.games) {
+              gamesKeys.push([
+                Markup.button.callback(game, game)
+              ]);
+            }
+            gamesKeys.push([
+              Markup.button.callback('Назад', keys.BackMenu.buttons)
+            ]);
+
+            await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Заказы по какой игре менеджер будет выполнять?', {
+              reply_markup: Markup.inlineKeyboard(gamesKeys).reply_markup
+            });
             await ctx.wizard.next();
           }
         }
+      }
+    } catch (e) {
+      await ctx.scene.enter('managers', ctx.scene.state);
+      console.log(e);
+    }
+  },
+  async ctx => {
+    try {
+      if (ctx.updateType === 'callback_query') {
+        ctx.scene.state.target.game = ctx.callbackQuery.data;
+
+        await ctx.telegram.editMessageText(
+          ctx.from.id,
+          ctx.scene.state.menu.message_id,
+          undefined,
+          `Вы точно хотите сделать пользователя ${ctx.scene.state.target.username}:${ctx.scene.state.target.telegramID} менеджером?`,
+          {
+            reply_markup: keys.YesNoMenu.keyboard.reply_markup
+          }
+        );
+
+        ctx.wizard.next();
       }
     } catch (e) {
       await ctx.scene.enter('managers', ctx.scene.state);

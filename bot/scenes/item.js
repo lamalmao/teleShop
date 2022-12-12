@@ -26,7 +26,7 @@ item.enterHandler = async function(ctx) {
         }
       });
       await ctx.telegram.editMessageCaption(ctx.from.id, ctx.callbackQuery.message.message_id, undefined, 
-        `<b>Товар:</b> ${targetItem.title}\n<b>Цена:</b> ${targetItem.getPrice()} ₽\n\n<b>Описание:</b> ${targetItem.bigDescription}\n\n${messages.item_extra}`, 
+        `<b>Товар:</b> ${targetItem.title}\n<b>Цена:</b> ${targetItem.getPrice()} ₽\n\n<b>Описание:</b> ${targetItem.bigDescription}${targetItem.isVBucks ? ('\n\n' + messages.item_extra) : ''}`, 
         {
           reply_markup: keyboard.reply_markup,
           parse_mode: 'HTML'

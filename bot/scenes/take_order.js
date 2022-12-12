@@ -35,12 +35,17 @@ takeOrder.enterHandler = async function(ctx) {
 
     if (user.role === 'admin' || user.role === 'manager') {
       const orderID = ctx.scene.state.orderID ? ctx.scene.state.orderID : /\d+/.exec(ctx.callbackQuery.data)[0];
-      const order = await orders.findOne({
-        orderID: orderID,
+
+      let queryPart = ctx.scene.state.interception ? undefined : {
         $or: [
           { status: 'untaken' },
           { manager: ctx.from.id }
         ]
+      };
+
+      const order = await orders.findOne({
+        orderID: orderID,
+        queryPart
       });
 
       const client = await users.findOne({
@@ -52,7 +57,7 @@ takeOrder.enterHandler = async function(ctx) {
           .catch(_ => null);
         ctx.scene.enter('orders_list');
       } else {
-        if (order.status === 'untaken') {
+        if (order.status !== 'done' && order.status !== 'refund' && order.status !== 'canceled' && order.status !== 'delivered') {
           order.status = 'processing';
           order.manager = ctx.from.id;
           await order.save();
@@ -70,6 +75,7 @@ takeOrder.enterHandler = async function(ctx) {
             [ Markup.button.callback('Заказ выполнен', 'order_done') ],
             [ Markup.button.callback('Оформить возврат', 'order_refund') ],
             [ Markup.button.callback('Отменить заказ', 'order_cancel') ],
+            [ Markup.button.callback('Запросить код', 'request_code') ],
             [ Markup.button.callback('Отказаться от выполнения', 'order_reject') ]
           )
         }
@@ -158,6 +164,37 @@ takeOrder.action('get_profile', async ctx => {
     ctx.scene.leave();
   }
 });
+
+takeOrder.action('request_code', async ctx => {
+  try {
+    const curCtx = ctx;
+
+    const target = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(ctx.scene.state.order.data.login) ? 'вашу почту' : 'ваш телефон'
+
+    ctx.telegram.sendMessage(
+      ctx.scene.state.order.client,
+      `На ${target}, которые вы указали при оформлении заказа, должен прийти код авторизации, если вы получили его, нажмите далее и следуйте инструкциям`,
+      {
+        reply_markup: Markup.inlineKeyboard([
+          [ Markup.button.callback('Далее', `send_code#${ctx.scene.state.order.orderID}`) ]
+        ]).reply_markup
+      }
+    ).catch(_ => {
+      curCtx.reply('Не получилось отправить сообщение пользователю')
+        .then(msg => {
+          setTimeout(function() {
+            curCtx.telegram.deleteMessage(curCtx.from.id, msg.message_id).catch();
+          }, 3500);
+        })
+        .catch();
+    });
+
+    ctx.answerCbQuery('Запрос пользователю отправлен').catch();
+  } catch (e) {
+    console.log(e);
+    ctx.scene.enter('manager_menu');
+  }
+})
 
 takeOrder.action('kill', ctx => {
   ctx.telegram.deleteMessage(

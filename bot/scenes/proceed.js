@@ -234,7 +234,8 @@ proceed.on('message',
             messages.purchase_proceed.password + xboxExtra,
             {
               reply_markup: Markup.inlineKeyboard([
-                [Markup.button.callback('Назад', `next3`)]
+                [ Markup.button.callback('Вход по коду', 'auth_by_code') ],
+                [ Markup.button.callback('Назад', `next3`) ]
               ]).reply_markup,
               parse_mode: 'HTML'
             }
@@ -282,6 +283,38 @@ proceed.on('message',
     }
   }
 );
+
+proceed.action('auth_by_code', async ctx => {
+  try {
+    if (ctx.scene.state.target === 'password') {
+      ctx.scene.state.item.data.password = 'Вход по коду'; 
+      await ctx.scene.state.item.save();
+
+      await ctx.telegram.editMessageCaption(
+        ctx.from.id,
+        ctx.scene.state.message.message_id,
+        undefined,
+        messages.purchase_proceed.checkout.format(
+          ctx.scene.state.item.itemTitle,
+          escape(ctx.scene.state.item.data.login),
+          escape(ctx.scene.state.item.data.password),
+          ctx.scene.state.item.amount
+        ),
+        {
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('Верно', `accept#${ctx.scene.state.item.orderID}`)],
+            [Markup.button.callback('Назад', `proceed#${ctx.scene.state.item.item}`)]
+          ]).reply_markup,
+          parse_mode: 'HTML'
+        }
+      );
+      ctx.scene.leave();
+    }
+  } catch (e) {
+    console.log(e);
+    ctx.scene.enter('start', { menu: ctx.scene.state.message });
+  }
+})
 
 module.exports = proceed;
 

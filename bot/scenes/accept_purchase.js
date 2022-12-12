@@ -45,7 +45,10 @@ acceptPurchase.enterHandler = async function(ctx) {
             undefined,
             messages.buy_success.format(order.orderID),
             {
-              parse_mode: 'HTML'
+              parse_mode: 'HTML',
+              reply_markup: Markup.inlineKeyboard([
+                [ Markup.button.callback('Я в сети', 'online_alert') ]
+              ]).reply_markup
             }
           );
         } else {
@@ -80,9 +83,10 @@ acceptPurchase.enterHandler = async function(ctx) {
               ctx.from.id,
               ctx.callbackQuery.message.message_id,
               undefined,
-              `Заказ <code>${order.orderID}</code> <b>${order.itemTitle}</b>\n\nКлюч: <code>${key.value}</code>`,
+              `Заказ <code>${order.orderID}</code> <b>${order.itemTitle}</b>\n\nВаш ключ: <code>${key.value}</code>\nЧтобы активировать ключ перейдите на <a href="https://www.epicgames.com/fortnite/ru/redeem/">сайт Epic Games</a>`,
               {
-                parse_mode: 'HTML'
+                parse_mode: 'HTML',
+                disable_web_page_preview: true
               }
             );
           }
@@ -90,17 +94,19 @@ acceptPurchase.enterHandler = async function(ctx) {
 
         const curCtx = ctx;
         const title = order.itemTitle;
-        delivery.countDocuments({
-          item: order.item,
-          delivered: false,
-          accessable: true
-        }, (err, count) => {
-          if (err) return;
-
-          if (count === 0) {
-            curCtx.telegram.sendMessage(global.ownerID, `Ключи для товара ${title} закончились`).catch();
-          }
-        });
+        if (item.itemType === 'auto') {
+          delivery.countDocuments({
+            item: order.item,
+            delivered: false,
+            accessable: true
+          }, (err, count) => {
+            if (err) return;
+  
+            if (count === 0) {
+              curCtx.telegram.sendMessage(global.ownerID, `Ключи для товара ${title} закончились`).catch();
+            }
+          });
+        }
 
         ctx.scene.enter('start');
       }

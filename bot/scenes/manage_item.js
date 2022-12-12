@@ -56,6 +56,14 @@ manageItem.action(keys.BackMenu.buttons, ctx => {
   ctx.scene.enter('showGoods', { menu: ctx.scene.state.menu, category: ctx.scene.state.category });
 });
 
+manageItem.action('changeExtra', ctx => {
+  ctx.scene.enter('change_extra', {
+    menu: ctx.scene.state.menu,
+    category: ctx.scene.state.category,
+    item: ctx.scene.state.item
+  });
+})
+
 manageItem.action(/new#\S+/i, async ctx => {
   try {
     ctx.scene.state.target = undefined;
@@ -147,11 +155,23 @@ manageItem.action([ keys.YesNoMenu.buttons.yes, keys.YesNoMenu.buttons.no ], asy
             });
           }
           break;
-      }
+        case 'isVBucks':
+          if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes) {
+            ctx.scene.state.item.isVBucks = !ctx.scene.state.item.isVBucks;
+            await ctx.scene.state.item.save();
+          }
+          
+          ctx.scene.enter('manageItem', {
+            menu: ctx.scene.state.menu,
+            item: ctx.scene.state.item,
+            category: ctx.scene.state.category
+          });
+          break;
 
       ctx.scene.state.target = undefined;
       ctx.scene.state.validation = undefined;
       ctx.scene.state.action = undefined;
+      }
     } else {
       ctx.scene.enter('manageItem', {
         menu: ctx.scene.state.menu,
@@ -179,7 +199,7 @@ manageItem.action('loadKeys', async ctx => {
       'Отправьте <b>.csv</b> файл с ключами, которые будут загружены.\nКлючи должны храниться в колонке <b>"keys"</b>',
       {
         reply_markup: Markup.inlineKeyboard([
-          Markup.button.url('Пример', 'https://file.io/1nod5wZfm8Cp'),
+          Markup.button.url('Пример', 'https://docs.google.com/spreadsheets/d/1ZP3rAY7a87Db1a-wXMRkxRdTURGVlE1XJ-uIfhsma-s/edit?usp=sharing'),
           Markup.button.callback('Назад', 'cancel')
         ]).reply_markup,
         parse_mode: 'HTML'
@@ -284,6 +304,17 @@ manageItem.on('callback_query',
             msg = 'Вы уверены';
             keyboard = keys.YesNoMenu.keyboard;
             target = 'delete';
+            break;
+          case 'switchIsVBucks':
+            msg = 'Вы уверены?';
+            target = 'isVBucks';
+            keyboard = keys.YesNoMenu.keyboard;
+            break;
+          case 'changeFonts':
+            msg = 'Введите через пробел новые размеры шрифта заголова и описания на карточке товара';
+            target = 'fonts';
+            validation = 'fonts';
+            keysboard = keys.BackMenu.keyboard;
             break;
           case 'move':
             target = 'category';
@@ -449,9 +480,18 @@ manageItem.on('message', async ctx => {
           newValue = Number(newValue);
           if (Number.isNaN(newValue)) throw new Error('Значение должно быть числом');  
           else if (newValue < 0 || newValue > 100) throw new Error('Скидка должна быть в промежутке от 0 до 100%');
+          break;
+        case 'fonts':
+          const values = /(\d+)\s+(\d+)/.exec(newValue);
+          if (!values) throw new Error('Введите два числа через пробел');
+          const itemTitleFont = Number(values[1]);
+          const itemDescriptionFont = Number(values[2]);
+          ctx.scene.state.item.titleFontSize = itemTitleFont;
+          ctx.scene.state.item.descriptionFontSize = itemDescriptionFont;
+          break;
       }
 
-      ctx.scene.state.item[ctx.scene.state.target] = newValue;
+      if (ctx.scene.state.validation !== 'fonts') ctx.scene.state.item[ctx.scene.state.target] = newValue;
       await ctx.scene.state.item.save();
 
       if (needToRender) {

@@ -10,15 +10,21 @@ ordersList.enterHandler = async function(ctx) {
   try {
     const user = await users.findOne({
       telegramID: ctx.from.id
-    }, '_id role');
+    }, '_id role game');
+
+    var dbRequest = {
+      status: 'untaken',
+      paid: true
+    };
+
+    if (user.role === 'manager') {
+      dbRequest.game = user.game
+    }
 
     if (user.role === 'admin' || user.role === 'manager') {
-      const active = await orders.find({
-        status: 'untaken',
-        paid: true
-      }, 'orderID itemTitle');
+      const active = await orders.find(dbRequest, 'orderID itemTitle client');
 
-      const keyboard = genOrdersKeyboard(active);
+      const keyboard = await genOrdersKeyboard(active);
 
       await ctx.telegram.editMessageText(
         ctx.from.id,
@@ -40,18 +46,29 @@ ordersList.enterHandler = async function(ctx) {
   }
 };
 
-function genOrdersKeyboard(orders) {
+async function genOrdersKeyboard(orders) {
   let keyboard = [],
     counter = 0;
 
   keyboard.push([
     Markup.button.callback('Обновить', keys.ManagerWorkMenu.buttons.list),
     Markup.button.callback('Назад', 'manager_menu')
+  ], [
+    Markup.button.callback('Взять заказ по номеру', 'catch_order')
   ]);
 
   for (order of orders) {
+    const userOnline = await users.findOne({
+      telegramID: order.client
+    }, 'onlineUntil');
+
+    let status = '🔴';
+    if (userOnline && userOnline.onlineUntil) {
+      status = userOnline.onlineUntil.getTime() >= new Date().getTime() ? '🟢' : '🔴';
+    }
+
     keyboard.push(
-      [ Markup.button.callback(`${order.orderID}: "${order.itemTitle}"`, `manager_take#${order.orderID}`) ]
+      [ Markup.button.callback(`${status} ${order.orderID}: "${order.itemTitle}"`, `manager_take#${order.orderID}`) ]
     );
     counter++;
     if (counter >= 48) break;

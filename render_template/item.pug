@@ -14,11 +14,12 @@ html
         var base64Image = new Buffer.from(image).toString('base64')
         var dataURI = 'data:image/jpeg;base64,' + base64Image
         var description = item.description.replace(/\n/gm, '<br>')
+        var fontSize = 'font-size: ' + item.descriptionFontSize + 'px !important'
       img.item-image.item-data(src=dataURI)
       .item-data
         .item-info
           p.item-title= item.title
-          p.item-description !{description}
+          p.item-description(style= fontSize) !{description}
         .item-cost-container
           - var isDiscount = item.discount > 0
           if !isDiscount

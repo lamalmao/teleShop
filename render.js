@@ -20,7 +20,7 @@ async function renderShopPage(categoryId) {
 	const categoryGoods = await goods.find({
 		category: categoryId,
 		hidden: false
-	}, 'title image price discount');
+	}, 'title image price discount titleFontSize');
 	if (!categoryGoods) throw new Error('В данной категории нет товаров');
 
 	const result = render({

@@ -54,7 +54,8 @@ const User = new Schema({
       }
     ],
     default: []
-  }
+  },
+  onlineUntil: Date
 });
 
 const users = model('users', User);

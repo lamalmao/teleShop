@@ -14,9 +14,10 @@ html
 					var image = fs.readFileSync(root + '/files/images/' + item.image)
 					var base64Image = new Buffer.from(image).toString('base64')
 					var dataURI = 'data:image/jpeg;base64,' + base64Image
+					var fontSize = 'font-size: ' + item.titleFontSize + 'px !important'
 				img.item-pic.item-data(src=dataURI)
 				.item-about.item-data
-					p.item-title= item.title
+					p.item-title(style= fontSize)= item.title
 					.item-cost-container
 						- var isDiscount = item.discount > 0
 						if !isDiscount

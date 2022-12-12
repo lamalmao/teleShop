@@ -93,7 +93,7 @@ const addItem = new Scenes.WizardScene('addItem',
 
       if (ctx.updateType === 'message' && !ctx.message.photo) {
         ctx.scene.state.newItem.bigDescription = ctx.message.text.trim();
-        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Укажите цену товара');
+        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите через пробел размеры шрифт названия товара в изображении категории и размер шрифта описания в его картчке.\n\nСтандратный размер шрифта для названия 54, для описания 30');
         await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
 
         ctx.wizard.next();
@@ -111,8 +111,53 @@ const addItem = new Scenes.WizardScene('addItem',
   },
   async ctx => {
     try {
+      if (ctx.updateType === 'message') {
+        ctx.deleteMessage().catch();
+
+        fonts = /(\d+)+\s+(\d+)/.exec(ctx.message.text);
+        if (!fonts) {
+          const curCtx = ctx;
+          ctx.reply('Введите два числа через пробел')
+            .then(msg => {
+              setTimeout(function() {
+                curCtx.telegram.deleteMessage(curCtx.from.id, msg.message_id).catch();
+              }, 2000);
+            })
+            .catch();
+          return;
+        }
+
+        const titleFontSize = Number(fonts[1]);
+        const descriptionFontSize = Number(fonts[2]);
+
+        ctx.scene.state.newItem.titleFontSize = titleFontSize;
+        ctx.scene.state.newItem.descriptionFontSize = descriptionFontSize;
+
+        await ctx.telegram.editMessageText(
+          ctx.from.id,
+          ctx.scene.state.menu.message_id,
+          undefined,
+          'Укажите цену товара',
+          {
+            reply_markup: keys.BackMenu.keyboard.reply_markup
+          }
+        );
+        ctx.wizard.next();
+      }
+    } catch (e) {
+      ctx.reply(`Ошибка: ${e.message}`)
+        .then(msg => {
+          setTimeout(_ => ctx.telegram.deleteMessage(ctx.from.id, msg.message_id)
+            .catch(_ => null));
+        }, 5000)
+        .catch(_ => null);
+      ctx.scene.enter('goods', { menu: ctx.scene.state.menu });
+      console.log(e);
+    }
+  },
+  async ctx => {
+    try {
       ctx.deleteMessage().catch(_ => null);
-      const message = ctx.scene.state.menu.message_id;
 
       if (ctx.updateType === 'message' && !ctx.message.photo) {
         let price = Number(ctx.message.text.trim()),
