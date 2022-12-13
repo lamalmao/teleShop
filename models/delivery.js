@@ -2,12 +2,7 @@ const { Schema, Types, model } = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const nodeRSA = require('node-rsa');
-const CSVParser = require('csv-parser');  
-
-const keysDirectoryLocation = path.join(process.cwd(), 'key', 'key.pem');
-const key = new nodeRSA(
-  fs.readFileSync(keysDirectoryLocation).toString('utf-8')
-);
+const CSVParser = require('csv-parser');
 
 const Delivery = new Schema({
   item: {
@@ -36,11 +31,11 @@ const Delivery = new Schema({
 });
 
 function setValue(value) {
-  return key.encrypt(value, 'base64');
+  return global.key.encrypt(value, 'base64');
 }
 
 function getValue(value) {
-  return key.decrypt(value).toString('utf-8');
+  return global.key.decrypt(value).toString('utf-8');
 }
 
 function parseTableToBase(file, item) {

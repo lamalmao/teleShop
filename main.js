@@ -1,7 +1,6 @@
 const { mongoose } = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const nodeRSA = require('node-rsa');
 
 const preset = require('./preset');
@@ -44,6 +43,12 @@ if (!fs.existsSync(keyFileLocation)) {
 	console.log('Ключи шифрования были сгенерированы');
 	keyGenerated = true;
 } else console.log('Ключи шифрования найдены');
+
+const keysDirectoryLocation = path.join(process.cwd(), 'key', 'key.pem');
+global.key = new nodeRSA(
+  fs.readFileSync(keysDirectoryLocation).toString('utf-8')
+);
+
 
 // Подключение к базе данных
 mongoose.connect(settings.base_link);
