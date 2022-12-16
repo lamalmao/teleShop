@@ -83,7 +83,7 @@ function genItemKeyboard(item, isAdmin) {
     [ cb('Изменить цену', 'changePrice') ],
     [ cb('Изменить скидку', 'changeDiscount') ],
     [ cb('Загрузить ключи', 'loadKeys', item.itemType !== 'auto') ],
-    [ cb('Варбаксы?', 'switchIsVBucks', item.game !== 'fortnite') ],
+    [ cb('В-Баксы?', 'switchIsVBucks', item.game !== 'fortnite') ],
     [ cb('Изменить размеры шрифтов', 'changeFonts') ],
     [ cb('Изменить/добавить дополнительный вопрос', 'changeExtra', item.game !== 'brawlstars') ],
     [ cb('Удалить', 'delete'), cb('Переместить', 'move') ]

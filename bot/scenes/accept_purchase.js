@@ -29,6 +29,7 @@ acceptPurchase.enterHandler = async function(ctx) {
       } else {
         user.balance -= order.amount;
         user.purchases++;
+        user.onlineUntil = new Date(Date.now() + 15 * 60 * 1000);
         user.save().catch(_ => null);
 
         order.paid = true;

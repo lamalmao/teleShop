@@ -37,11 +37,17 @@ mainCategory.enterHandler = async function(ctx) {
       media: {
         source: path.join(images, category.image)
       }
-    }, {
-      caption: `<b>${category.title}</b>\n\n${category.description}`,
-      parse_mode: 'HTML',
-      reply_markup:Markup.inlineKeyboard(keyboard).reply_markup
     });
+
+    await ctx.telegram.editMessageCaption(
+      ctx.from.id,
+      ctx.callbackQuery.message.message_id,
+      undefined,
+      category.description,
+      {
+        reply_markup: Markup.inlineKeyboard(keyboard).reply_markup
+      }
+    );
 
     ctx.scene.leave();
   } catch (e) {

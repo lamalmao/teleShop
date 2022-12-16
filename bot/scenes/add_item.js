@@ -258,7 +258,7 @@ const addItem = new Scenes.WizardScene('addItem',
               ]);
             jump = 2;
           } else if (ctx.scene.state.newItem.game === 'fortnite') {
-            msg = 'Товар является варбаксами?';
+            msg = 'Товар является В-Баксами?';
             key = keys.YesNoMenu.keyboard;
             jump = 1;
           } else {

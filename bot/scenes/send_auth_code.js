@@ -21,7 +21,7 @@ sendCode.enterHandler = async function(ctx) {
       return;
     }
 
-    await ctx.telegram.editMessageText(ctx.from.id, ctx.callbackQuery.message.message_id, undefined, 'Введите полученный на указанную почту или телефон код');
+    await ctx.telegram.editMessageText(ctx.from.id, ctx.callbackQuery.message.message_id, undefined, 'Введите полученный код');
     ctx.scene.state.waitingForCode = true;
     ctx.scene.state.order = order;
     ctx.scene.state.menu = ctx.callbackQuery.message;
