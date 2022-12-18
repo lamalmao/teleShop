@@ -279,11 +279,11 @@ manageItem.on('callback_query',
             target = 'title';
             break;
           case 'editDescription':
-            msg = 'Введите новое описание';
+            msg = 'Введите новое описание\n\n"-" для пустого описания';
             target = 'description';
             break;
           case 'editBigDescription':
-            msg = 'Введите новое описание:'
+            msg = 'Введите новое описание\n\n"-" для пустого описания'
             target = 'bigDescription';
             break;
           case 'changePrice':
@@ -470,6 +470,9 @@ manageItem.on('message', async ctx => {
       let newValue = ctx.message.text.trim();
 
       if (ctx.scene.state.target === 'bigDescription') needToRender = false;
+      if (ctx.scene.state.target === 'description' || ctx.scene.state.target === 'bigDescription') {
+        newValue = newValue === '-' ? '' : newValue;
+      }
 
       switch (ctx.scene.state.validation) {
         case 'number':

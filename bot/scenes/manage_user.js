@@ -54,12 +54,12 @@ manageUser.enterHandler = async function(ctx) {
     ];
 
     const refills = await payments.find({
-      user: ctx.from.id,
+      user: target.telegramID,
       status: 'paid'
     });
 
     const ordersList = await orders.find({
-      client: ctx.from.id,
+      client: target.telegramID,
       paid: true
     });
 

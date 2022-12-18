@@ -41,10 +41,6 @@ const User = new Schema({
     type: Number,
     default: 0
   },
-  game: {
-    type: String,
-    enum: global.games
-  },
   stats: {
     type: [
       {

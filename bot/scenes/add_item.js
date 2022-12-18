@@ -47,7 +47,7 @@ const addItem = new Scenes.WizardScene('addItem',
 
       if (ctx.updateType === 'message' && !ctx.message.photo) {
         ctx.scene.state.newItem.title = ctx.message.text.trim();
-        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите описание товара, которое будет на его изображении');
+        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите описание товара, которое будет на его изображении\n\n"-" для пустого описания');
         await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
 
         ctx.wizard.next();
@@ -69,8 +69,8 @@ const addItem = new Scenes.WizardScene('addItem',
       const message = ctx.scene.state.menu.message_id;
 
       if (ctx.updateType === 'message' && !ctx.message.photo) {
-        ctx.scene.state.newItem.description = ctx.message.text.trim();
-        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите описание товара, которое будет в сообщении под карточкой товара');
+        ctx.scene.state.newItem.description = ctx.message.text.trim() === '-' ? '' : ctx.message.text;
+        await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите описание товара, которое будет в сообщении под карточкой товара\n\n"-" для пустого описания');
         await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
 
         ctx.wizard.next();
@@ -92,7 +92,7 @@ const addItem = new Scenes.WizardScene('addItem',
       const message = ctx.scene.state.menu.message_id;
 
       if (ctx.updateType === 'message' && !ctx.message.photo) {
-        ctx.scene.state.newItem.bigDescription = ctx.message.text.trim();
+        ctx.scene.state.newItem.bigDescription = ctx.message.text.trim() === '-' ? '' : ctx.message.text;
         await ctx.telegram.editMessageText(ctx.from.id, message, undefined, 'Введите через пробел размеры шрифт названия товара в изображении категории и размер шрифта описания в его картчке.\n\nСтандратный размер шрифта для названия 54, для описания 30');
         await ctx.telegram.editMessageReplyMarkup(ctx.from.id, message, undefined, keys.BackMenu.keyboard.reply_markup);
 
