@@ -51,7 +51,11 @@ const User = new Schema({
     ],
     default: []
   },
-  onlineUntil: Date
+  onlineUntil: Date,
+  game: {
+    type: String,
+    enum: global.games
+  }
 });
 
 const users = model('users', User);

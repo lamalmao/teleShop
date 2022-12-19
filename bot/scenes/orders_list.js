@@ -8,9 +8,9 @@ const ordersList = new Scenes.BaseScene('orders_list');
 
 ordersList.enterHandler = async function(ctx) {
   try {
-    const user = await users.findOne({
+    let user = await users.findOne({
       telegramID: ctx.from.id
-    }, '_id role game');
+    });
 
     var dbRequest = {
       status: 'untaken',
@@ -18,8 +18,11 @@ ordersList.enterHandler = async function(ctx) {
     };
 
     if (user.role === 'manager') {
-      dbRequest.game = user.game
+      console.log('setting game');
+      dbRequest.game = user.game;
     }
+
+    console.log(dbRequest);
 
     if (user.role === 'admin' || user.role === 'manager') {
       const active = await orders.find(dbRequest, 'orderID itemTitle client');
