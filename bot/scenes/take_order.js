@@ -83,7 +83,7 @@ takeOrder.enterHandler = async function(ctx) {
  
         keyboard = Markup.inlineKeyboard(keyboard);
 
-        const data = order.data.login ? `<i>Логин (почта):</i> <code>${escape(order.data.login)}</code>\n<i>Пароль:</i> <code>${escape(order.data.password)}</code>` : '[ДАННЫЕ УДАЛЕНЫ]';
+        const data = (order.data.login || order.data.password) ? `<i>Логин (почта):</i> <code>${escape(order.data.login)}</code>\n<i>Пароль:</i> <code>${escape(order.data.password)}</code>` : '[ДАННЫЕ УДАЛЕНЫ]';
         let msg = `Заказ <code>${order.orderID}</code>\n\n<i>Клиент:</i> <a href="tg://user?id=${order.client}">${escape(client.username)}</a>\n<i>Товар:</i> ${order.itemTitle}\n<i>Игра</i>: <b>${order.game}</b>\n<i>Статус:</i> ${statuses.get(order.status)}\n<i>Дата:</i> ${new Date(order.date).toLocaleString('ru-RU')}\n\n<b>Данные для выполнения</b>\n\n<i>Платформа:</i> ${platforms.get(order.platform)}\n${data}`;
 
         if (order.extra.message ) {

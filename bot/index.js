@@ -100,6 +100,8 @@ function CreateBot(token) {
       amount: amount
     });
   });
+
+  bot.action(/genshin_proceed#\w+/, ctx => ctx.scene.enter('genshin_proceed'));
   bot.action(/supercell_proceed#\w+/, ctx => ctx.scene.enter('supercell_proceed'));
   bot.action(/proceed#\w+/, ctx => ctx.scene.enter('proceed'));
   bot.action(/accept#\d+/, ctx => ctx.scene.enter('accept_purchase'));

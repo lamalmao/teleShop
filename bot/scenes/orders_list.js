@@ -53,13 +53,6 @@ async function genOrdersKeyboard(orders) {
   let keyboard = [],
     counter = 0;
 
-  keyboard.push([
-    Markup.button.callback('Обновить', keys.ManagerWorkMenu.buttons.list),
-    Markup.button.callback('Назад', 'manager_menu')
-  ], [
-    Markup.button.callback('Взять заказ по номеру', 'catch_order')
-  ]);
-
   for (order of orders) {
     const userOnline = await users.findOne({
       telegramID: order.client
@@ -76,6 +69,14 @@ async function genOrdersKeyboard(orders) {
     counter++;
     if (counter >= 48) break;
   }
+
+  keyboard.push([
+    Markup.button.callback('Обновить', keys.ManagerWorkMenu.buttons.list),
+    Markup.button.callback('Назад', 'manager_menu')
+  ], [
+    Markup.button.callback('Взять заказ по номеру', 'catch_order')
+  ]);
+  
   return Markup.inlineKeyboard(keyboard);
 }
 

@@ -23,7 +23,7 @@ global.paymentToken = settings.anypay_token;
 global.projectID = settings.anypay_project_id;
 global.managerID = settings.manager_id;
 global.ownerID = settings.owner_id;
-global.games = ['fortnite', 'brawlstars'];
+global.games = ['fortnite', 'brawlstars', 'genshin'];
 
 const keyFileDirectory = path.join(process.cwd(), 'key');
 const keyFileLocation = path.join(keyFileDirectory, 'key.pem');

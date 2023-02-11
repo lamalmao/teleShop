@@ -59,7 +59,16 @@ buy.enterHandler = async function(ctx) {
       } else {
         let button;
         if (item.itemType === 'manual') {
-          button = (item.game === 'fortnite' ? 'proceed#' : 'supercell_proceed#') + item._id
+          if (item.game === 'fortnite') {
+            button = 'proceed#';
+          } else if (item.game === 'brawlstars') {
+            button = 'supercell_proceed#';
+          } else if (item.game === 'genshin') {
+            button = 'genshin_proceed#';
+          }
+          // button = (item.game === 'fortnite' ? 'proceed#' : 'supercell_proceed#') + item._id;
+
+          button += item._id;
         } else {
           const orderID = await genUniqueID();
           const order = await orders.create({
