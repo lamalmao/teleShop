@@ -39,12 +39,14 @@ acceptPurchase.enterHandler = async function(ctx) {
 
         const item = await goods.findById(order.item, 'itemType');
 
-        if (item.itemType === 'manual') {
+        if (item.itemType === 'manual' || item.itemType === 'manualSkipProceed') {
+          const msg = item.itemType === 'manual' ? messages.buy_success.format(order.orderID) : messages.buy_skip_proceed_process.format(order.orderID);
+
           await ctx.telegram.editMessageCaption(
             ctx.from.id,
             ctx.callbackQuery.message.message_id,
             undefined,
-            messages.buy_success.format(order.orderID),
+            msg,
             {
               parse_mode: 'HTML',
               reply_markup: Markup.inlineKeyboard([

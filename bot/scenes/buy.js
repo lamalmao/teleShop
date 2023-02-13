@@ -71,7 +71,7 @@ buy.enterHandler = async function(ctx) {
           button += item._id;
         } else {
           const orderID = await genUniqueID();
-          const order = await orders.create({
+          await orders.create({
             orderID,
             client: ctx.from.id,
             item: item._id,

@@ -11,7 +11,7 @@ const Goods = new Schema({
 		type: String,
 		required: true,
 		default: 'manual',
-		enum: ['manual', 'auto']
+		enum: ['manual', 'auto', 'manualSkipProceed']
 	},
 	game: {
 		type: String,

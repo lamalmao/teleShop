@@ -213,10 +213,11 @@ const addItem = new Scenes.WizardScene('addItem',
         if (cb !== keys.BackMenu.buttons) {
           ctx.scene.state.newItem.game = cb;
 
-          const msg = 'Заказ выполянется менеджером или доставляется сразу покупателю?';
+          const msg = 'Заказ выполянется менеджером, доставляется покупателю или выполняется менеджером без передачи логина и пароля через бота?';
           const keyboard = Markup.inlineKeyboard([
             [ Markup.button.callback('Выполняется менеджером', 'manual') ],
             [ Markup.button.callback('Доставляется покупателю', 'auto') ],
+            [ Markup.button.callback('Менеджером без передачи через бота', 'manualSkipProceed') ],
             [ Markup.button.callback('Назад', keys.BackMenu.buttons) ]
           ]);
 
@@ -257,7 +258,7 @@ const addItem = new Scenes.WizardScene('addItem',
                 [ Markup.button.callback('Далее', 'skip_extra') ]
               ]);
             jump = 2;
-          } else if (ctx.scene.state.newItem.game === 'fortnite') {
+          } else if (ctx.scene.state.newItem.game === 'fortnite' && ctx.scene.state.newItem.itemType !== 'manualSkipProceed') {
             msg = 'Товар является В-Баксами?';
             key = keys.YesNoMenu.keyboard;
             jump = 1;
