@@ -168,7 +168,7 @@ function CreateBot(token) {
       if (user) clean();
   });
 
-  bot.command('drop-stats', 
+  bot.command('drop', 
     async ctx => {
       try {
         const user = await users.findOne({
