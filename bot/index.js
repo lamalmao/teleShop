@@ -170,19 +170,25 @@ function CreateBot(token) {
 
   bot.command('drop-stats', 
     async ctx => {
-      const user = await users.findOne({
-        telegramID: ctx.from.id,
-        role: 'admin'
-      }, 'role');
-
-      if (user) {
-        await users.updateOne({
-          telegramID: ctx.from.id
-        }, {
-          $set: {
-            stats: []
-          }
-        });
+      try {
+        const user = await users.findOne({
+          telegramID: ctx.from.id,
+          role: 'admin'
+        }, 'role');
+  
+        if (user) {
+          await users.updateOne({
+            telegramID: ctx.from.id
+          }, {
+            $set: {
+              stats: []
+            }
+          });
+  
+          ctx.reply('Статистика сброшена');
+        }
+      } catch (e) {
+        console.log(e);
       }
     }
   );
