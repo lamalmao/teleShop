@@ -168,6 +168,25 @@ function CreateBot(token) {
       if (user) clean();
   });
 
+  bot.command('drop-stats', 
+    async ctx => {
+      const user = await users.findOne({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      }, 'role');
+
+      if (user) {
+        await users.updateOne({
+          telegramID: ctx.from.id
+        }, {
+          $set: {
+            stats: []
+          }
+        });
+      }
+    }
+  );
+
   // bot.on('message', ctx => ctx.scene.enter('start'));
 
   return bot;
