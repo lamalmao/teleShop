@@ -38,9 +38,10 @@ function createPaymentProvider(bot) {
 
       if (req.body.status === "paid") {
         payment.status = "paid";
+
         payment.transactionID = Number(req.body.transaction_id);
 
-        if (Number.isNaN(payment.transactionID)) {
+        if (Number.isNaN(payment.transactionID) || !payment.transactionID) {
           payment.transactionID = 0;
         }
 
