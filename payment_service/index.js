@@ -40,6 +40,10 @@ function createPaymentProvider(bot) {
         payment.status = "paid";
         payment.transactionID = Number(req.body.transaction_id);
 
+        if (Number.isNaN(payment.transactionID)) {
+          payment.transactionID = 0;
+        }
+
         const user = await users.findOne(
           {
             telegramID: payment.user,
