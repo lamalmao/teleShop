@@ -184,10 +184,10 @@ function CreateBot(token) {
           setTimeout(function () {
             curCtx.telegram
               .deleteMessage(curCtx.from.id, msg.message_id)
-              .catch();
+              .catch((_) => null);
           }, 3000);
         })
-        .catch();
+        .catch((_) => null);
     } catch (e) {
       console.log(e);
     }

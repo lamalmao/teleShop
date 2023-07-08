@@ -1,75 +1,85 @@
-const { Scenes, Markup } = require('telegraf');
+const { Scenes, Markup } = require("telegraf");
 
-const users = require('../../models/users');
-const orders = require('../../models/orders');
-const keys = require('../keyboard');
+const users = require("../../models/users");
+const orders = require("../../models/orders");
+const keys = require("../keyboard");
 
-const managersInfo = new Scenes.BaseScene('showManagers');
+const managersInfo = new Scenes.BaseScene("showManagers");
 
-managersInfo.enterHandler = async function(ctx) {
+managersInfo.enterHandler = async function (ctx) {
   try {
-    const user = await users.findOne({
-      telegramID: ctx.from.id
-    }, 'role');
+    const user = await users.findOne(
+      {
+        telegramID: ctx.from.id,
+      },
+      "role"
+    );
 
-    if (user.role === 'admin') {
-      const managers = await users.find({
-        role: 'manager'
-      }, 'telegramID username');
-      
-      let keyboard = [
-        [ Markup.button.callback('Назад', keys.BackMenu.buttons) ]
-      ];
+    if (user.role === "admin") {
+      const managers = await users.find(
+        {
+          role: "manager",
+        },
+        "telegramID username"
+      );
+
+      let keyboard = [[Markup.button.callback("Назад", keys.BackMenu.buttons)]];
 
       for (let manager of managers) {
         keyboard.push([
-          Markup.button.callback(`${manager.username}:${manager.telegramID}`, `manager#${manager.telegramID}`)
+          Markup.button.callback(
+            `${manager.username}:${manager.telegramID}`,
+            `manager#${manager.telegramID}`
+          ),
         ]);
       }
 
-      ctx.telegram.editMessageText(
-        ctx.from.id,
-        ctx.callbackQuery.message.message_id,
-        undefined,
-        'Список менеджеров',
-        {
-          reply_markup: Markup.inlineKeyboard(keyboard).reply_markup
-        }
-      ).catch(_ => null);
+      ctx.telegram
+        .editMessageText(
+          ctx.from.id,
+          ctx.callbackQuery.message.message_id,
+          undefined,
+          "Список менеджеров",
+          {
+            reply_markup: Markup.inlineKeyboard(keyboard).reply_markup,
+          }
+        )
+        .catch((_) => null);
     } else {
-      ctx.telegram.deleteMessage(
-        ctx.from.id,
-        ctx.callbackQuery.message.message_id
-      ).catch(_ => null);
-      ctx.answerCbQuery('У вас нет прав')
-        .catch(_ => null);
+      ctx.telegram
+        .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
+        .catch((_) => null);
+      ctx.answerCbQuery("У вас нет прав").catch((_) => null);
       ctx.scene.leave();
     }
   } catch (e) {
     console.log(e);
-    ctx.scene.enter('admin', {
-      menu: ctx.callbackQuery.message
+    ctx.scene.enter("admin", {
+      menu: ctx.callbackQuery.message,
     });
   }
 };
 
-managersInfo.action(keys.BackMenu.buttons, ctx => {
-  ctx.scene.enter('admin', {
-    menu: ctx.callbackQuery.message
+managersInfo.action(keys.BackMenu.buttons, (ctx) => {
+  ctx.scene.enter("admin", {
+    menu: ctx.callbackQuery.message,
   });
 });
 
-managersInfo.action(/manager#\d+/, async ctx => {
+managersInfo.action(/manager#\d+/, async (ctx) => {
   try {
     const userID = /\d+/.exec(ctx.callbackQuery.data)[0];
     const user = await users.findOne({
-      telegramID: userID
+      telegramID: userID,
     });
 
     if (user) {
-      const works = await orders.find({
-        manager: user.telegramID
-      }, 'status itemTitle orderID');
+      const works = await orders.find(
+        {
+          manager: user.telegramID,
+        },
+        "status itemTitle orderID"
+      );
 
       const stats = genStats(works);
       const sum = stats.done + stats.processing + stats.refund;
@@ -77,52 +87,75 @@ managersInfo.action(/manager#\d+/, async ctx => {
       const doneP = ((stats.done / sum) * 100).toFixed(2);
       const processingP = ((stats.processing / sum) * 100).toFixed(2);
       const refundP = ((stats.refund / sum) * 100).toFixed(2);
-      
-      let msg = `<b>Статистика менеджера</b> ${user.telegramID}:<a href="tg://user?id=${user.telegramID}">${user.username}</a>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${stats.processing} = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${stats.refund} = ${Number.isNaN(refundP) ? 0 : refundP}%\n\n<b>Статистика по последним заказам</b>\n`;
+
+      let msg = `<b>Статистика менеджера</b> ${
+        user.telegramID
+      }:<a href="tg://user?id=${user.telegramID}">${
+        user.username
+      }</a>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${
+        stats.done
+      } = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${
+        stats.processing
+      } = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${
+        stats.refund
+      } = ${
+        Number.isNaN(refundP) ? 0 : refundP
+      }%\n\n<b>Статистика по последним заказам</b>\n`;
 
       let summary = 0;
       for (let stat of user.stats) {
         msg += `<i>${stat.title}</i>: ${stat.count}\n`;
         summary += stat.count;
-      } 
+      }
       if (summary > 0) msg += `<b>Всего:</b> ${summary}\n`;
 
-      let inWork = '';
+      let inWork = "";
       for (let order of works) {
-        if (order.status === 'processing') {
+        if (order.status === "processing") {
           inWork += `\n<code>${order.orderID}</code>: "${order.itemTitle}"`;
         }
       }
-      msg += '\n<b>Активные заказы</b>'
-      msg += inWork !== '' ? inWork : '\n<i>Активных заказов нет</i>';
+      msg += "\n<b>Активные заказы</b>";
+      msg += inWork !== "" ? inWork : "\n<i>Активных заказов нет</i>";
 
-      ctx.telegram.editMessageText(
-        ctx.from.id,
-        ctx.callbackQuery.message.message_id,
-        undefined,
-        msg,
-        {
-          reply_markup: Markup.inlineKeyboard([
-            [ Markup.button.callback('Удалить из менеджеров', `delete#${user.telegramID}`) ],
-            [ Markup.button.callback('Сбросить статистику', `drop#${user.telegramID}`) ],
-            [ Markup.button.callback('Назад', 'prev') ]
-          ]).reply_markup,
-          parse_mode: 'HTML'
-        }
-      ).catch(_ => null);
+      ctx.telegram
+        .editMessageText(
+          ctx.from.id,
+          ctx.callbackQuery.message.message_id,
+          undefined,
+          msg,
+          {
+            reply_markup: Markup.inlineKeyboard([
+              [
+                Markup.button.callback(
+                  "Удалить из менеджеров",
+                  `delete#${user.telegramID}`
+                ),
+              ],
+              [
+                Markup.button.callback(
+                  "Сбросить статистику",
+                  `drop#${user.telegramID}`
+                ),
+              ],
+              [Markup.button.callback("Назад", "prev")],
+            ]).reply_markup,
+            parse_mode: "HTML",
+          }
+        )
+        .catch((_) => null);
     }
-    
   } catch (e) {
     console.log(e);
     ctx.scene.reenter();
   }
 });
 
-managersInfo.action(/delete#\d+/, async ctx => {
+managersInfo.action(/delete#\d+/, async (ctx) => {
   try {
     const userID = /\d+/.exec(ctx.callbackQuery.data)[0];
     const user = await users.findOne({
-      telegramID: userID
+      telegramID: userID,
     });
 
     if (user) {
@@ -135,15 +168,14 @@ managersInfo.action(/delete#\d+/, async ctx => {
         `Вы хотите убрать у пользователя <code>${userID}</code> роль менеджера?`,
         {
           reply_markup: Markup.inlineKeyboard([
-            [ Markup.button.callback('Да', keys.YesNoMenu.buttons.yes) ],
-            [ Markup.button.callback('Нет', `manager#${userID}`) ]
+            [Markup.button.callback("Да", keys.YesNoMenu.buttons.yes)],
+            [Markup.button.callback("Нет", `manager#${userID}`)],
           ]).reply_markup,
-          parse_mode: 'HTML'
+          parse_mode: "HTML",
         }
       );
     } else {
-      ctx.answerCbQuery('Пользователь не найден')
-        .catch(_ => null);
+      ctx.answerCbQuery("Пользователь не найден").catch((_) => null);
       ctx.scene.reenter();
     }
   } catch (e) {
@@ -152,16 +184,18 @@ managersInfo.action(/delete#\d+/, async ctx => {
   }
 });
 
-managersInfo.action(/drop#\d+/, async ctx => {
+managersInfo.action(/drop#\d+/, async (ctx) => {
   try {
     const userID = /\d+/.exec(ctx.callbackQuery.data)[0];
-    const user = await users.findOne({
-      telegramID: userID
-    }, 'username');
+    const user = await users.findOne(
+      {
+        telegramID: userID,
+      },
+      "username"
+    );
 
     if (!user) {
-      ctx.answerCbQuery('Пользователь не найден')
-        .catch(_ => null);
+      ctx.answerCbQuery("Пользователь не найден").catch((_) => null);
       ctx.scene.reenter();
     } else {
       ctx.scene.state.target = userID;
@@ -172,10 +206,10 @@ managersInfo.action(/drop#\d+/, async ctx => {
         `Вы точно хотите сбросить статистику менеджера <a href="tg://user?id=${userID}">${user.username}</a>?`,
         {
           reply_markup: Markup.inlineKeyboard([
-            [ Markup.button.callback('Да', 'drop') ],
-            [ Markup.button.callback('Нет', `manager#${userID}`) ]
+            [Markup.button.callback("Да", "drop")],
+            [Markup.button.callback("Нет", `manager#${userID}`)],
           ]).reply_markup,
-          parse_mode: 'HTML'
+          parse_mode: "HTML",
         }
       );
     }
@@ -185,25 +219,33 @@ managersInfo.action(/drop#\d+/, async ctx => {
   }
 });
 
-managersInfo.action('drop', async ctx => {
+managersInfo.action("drop", async (ctx) => {
   try {
-    await users.updateOne({
-      telegramID: ctx.scene.state.target
-    }, {
-      $set: {
-        stats: []
+    await users.updateOne(
+      {
+        telegramID: ctx.scene.state.target,
+      },
+      {
+        $set: {
+          stats: [],
+        },
       }
-    });
+    );
 
     await ctx.telegram.editMessageText(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      'Готово',
+      "Готово",
       {
         reply_markup: Markup.inlineKeyboard([
-          [ Markup.button.callback('Назад', `manager#${ctx.scene.state.target}`) ]
-        ]).reply_markup
+          [
+            Markup.button.callback(
+              "Назад",
+              `manager#${ctx.scene.state.target}`
+            ),
+          ],
+        ]).reply_markup,
       }
     );
   } catch (e) {
@@ -212,18 +254,20 @@ managersInfo.action('drop', async ctx => {
   }
 });
 
-managersInfo.action(keys.YesNoMenu.buttons.yes, async ctx => {
+managersInfo.action(keys.YesNoMenu.buttons.yes, async (ctx) => {
   try {
-    await users.updateOne({
-      telegramID: ctx.scene.state.user
-    }, {
-      $set: {
-        role: 'client'
+    await users.updateOne(
+      {
+        telegramID: ctx.scene.state.user,
+      },
+      {
+        $set: {
+          role: "client",
+        },
       }
-    });
+    );
 
-    ctx.answerCbQuery('Готово')
-      .catch();
+    ctx.answerCbQuery("Готово").catch((_) => null);
 
     ctx.scene.reenter();
   } catch (e) {
@@ -232,13 +276,13 @@ managersInfo.action(keys.YesNoMenu.buttons.yes, async ctx => {
   }
 });
 
-managersInfo.action('prev', ctx => ctx.scene.reenter());
+managersInfo.action("prev", (ctx) => ctx.scene.reenter());
 
 function genStats(works) {
   let result = {
     processing: 0,
     done: 0,
-    refund: 0
+    refund: 0,
   };
 
   for (let order of works) result[order.status]++;
