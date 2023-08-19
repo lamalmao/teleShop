@@ -43,4 +43,6 @@ function genTemplate() {
 	return JSON.stringify(settings, null, '\t');
 }
 
+console.log(initSettings);
+
 module.exports = initSettings;
