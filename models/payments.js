@@ -37,8 +37,8 @@ Payment.methods.genUrl = function() {
 Payment.methods.createLavaPayment = async function() {
   try {
     const body = {
-      sum: amount,
-      orderId: id,
+      sum: this.amount,
+      orderId: this.paymentID,
       shopId: global.lava_project_id
     };
 
