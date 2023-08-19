@@ -9,7 +9,7 @@ const lavaCheck = new Scenes.BaseScene('lava-check');
 const checkLavaPayment = async (paymentID) => {
   try {
     const body = {
-      shopId: global.lavaIprojectId,
+      shopId: global.lavaProjectId,
       orderId: paymentID
     }
 
