@@ -16,7 +16,8 @@ pay.enterHandler = async function(ctx) {
       payment_message: ctx.scene.state.menu.message_id
     });
 
-    const payUrl = payment.genUrl();
+    const anyPayUrl = payment.genUrl();
+    const lavaUrl = await payment.createLavaPayment();
 
     await ctx.telegram.editMessageMedia(
       ctx.from.id,
@@ -37,7 +38,9 @@ pay.enterHandler = async function(ctx) {
       messages.payment.provided.format(ctx.scene.state.amount),
       {
         reply_markup: Markup.inlineKeyboard([
-          [ Markup.button.url('Оплатить', payUrl) ]
+          [ Markup.button.url('Оплатить через AnyPay', anyPayUrl) ],
+          [Markup.button.url('Оплатить через Lava', lavaUrl, lavaUrl === null)],
+          [Markup.button.callback('Проверить платёж', 'lava-check#' + payment.paymentID, lavaUrl === null)]
         ]).reply_markup,
         parse_mode: 'HTML'
       }

@@ -8,6 +8,9 @@ const allowedIPs = [
   "185.162.128.39",
   "185.162.128.88",
   "127.0.0.1",
+  "94.154.189.246",
+  "45.149.129.248",
+  "45.95.28.52",
 ];
 
 function createPaymentProvider(bot) {
@@ -28,18 +31,23 @@ function createPaymentProvider(bot) {
     try {
       var msg = "OK";
 
+      const paymentID = req.body.pay_id ? req.body.pay_id : req.body.order_id;
+
       const payment = await payments.findOne({
-        paymentID: Number(req.body.pay_id),
+        paymentID: Number(paymentID),
         status: "waiting",
       });
       if (!payment) throw new Error("Payment not found");
 
       console.log(req.body);
 
-      if (req.body.status === "paid") {
+      if (req.body.status === "paid" || req.body.status === "success") {
         payment.status = "paid";
-
-        payment.transactionID = Number(req.body.transaction_id);
+        payment.transactionID = Number(
+          req.body.transaction_id
+            ? req.body.transaction_id
+            : req.body.invoice_id
+        );
 
         if (Number.isNaN(payment.transactionID) || !payment.transactionID) {
           payment.transactionID = 0;

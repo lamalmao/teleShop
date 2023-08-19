@@ -120,6 +120,7 @@ function CreateBot(token) {
     }
   });
 
+  bot.action(/lava-check#\d+/, (ctx) => ctx.scene.enter("lava-check"));
   bot.action(/main_section#\w+/, (ctx) => ctx.scene.enter("mainCategory"));
   bot.action(/sub_section#\w+/, (ctx) => ctx.scene.enter("subCategory"));
   bot.action(/item#\w+/, (ctx) => ctx.scene.enter("item"));
