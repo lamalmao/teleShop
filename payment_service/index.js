@@ -39,8 +39,6 @@ function createPaymentProvider(bot) {
       });
       if (!payment) throw new Error("Payment not found");
 
-      console.log(req.body);
-
       if (req.body.status === "paid" || req.body.status === "success") {
         payment.status = "paid";
         payment.transactionID = Number(
