@@ -43,9 +43,12 @@ lavaCheck.enterHandler = async (ctx) => {
       throw new Error('No data');
     }
 
+
+    const paymentID = Number(data[1]);
+
     console.log(data);
     console.log(paymentID);
-    const paymentID = Number(data[1]);
+
     const payment = await payments.findOne({
       paymentID,
       status: 'waiting'
