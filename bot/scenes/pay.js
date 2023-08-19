@@ -16,8 +16,6 @@ pay.enterHandler = async function(ctx) {
       payment_message: ctx.scene.state.menu.message_id
     });
 
-    console.log(payment);
-
     const anyPayUrl = payment.genUrl();
     const lavaUrl = await payment.createLavaPayment();
 

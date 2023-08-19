@@ -39,7 +39,7 @@ Payment.methods.createLavaPayment = async function() {
     const body = {
       sum: amount,
       orderId: id,
-      shopId: projectId
+      shopId: global.lava_project_id
     };
 
     const signature = crypto
