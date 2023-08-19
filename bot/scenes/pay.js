@@ -1,7 +1,6 @@
 const { Scenes, Markup } = require('telegraf');
 const crypto = require('crypto');
 const path = require('path');
-const axios = require('axios');
 
 const payments = require('../../models/payments');
 const messages = require('../messages');
@@ -42,8 +41,8 @@ pay.enterHandler = async function(ctx) {
       {
         reply_markup: Markup.inlineKeyboard([
           [ Markup.button.url('Оплатить через AnyPay', anyPayUrl) ],
-          [Markup.button.url('Оплатить через Lava', lavaUrl ? lavaUrl : 'https://google.com', lavaUrl === null)],
-          [Markup.button.callback('Проверить платёж', 'lava-check#' + payment.paymentID, lavaUrl === null)]
+          [Markup.button.url('Оплатить через Lava', lavaUrl ? lavaUrl : 'https://google.com', !lavaUrl)],
+          [Markup.button.callback('Проверить платёж', 'lava-check#' + payment.paymentID, !lavaUrl)]
         ]).reply_markup,
         parse_mode: 'HTML'
       }
