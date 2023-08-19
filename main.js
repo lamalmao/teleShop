@@ -18,6 +18,7 @@ String.prototype.format = String.prototype.f = function(){
 
 // Загрузка настроек
 const settings = preset();
+console.log(settings);
 
 global.paymentToken = settings.anypay_token;
 global.projectID = settings.anypay_project_id;
