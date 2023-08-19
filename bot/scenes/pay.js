@@ -40,7 +40,7 @@ pay.enterHandler = async function(ctx) {
         reply_markup: Markup.inlineKeyboard([
           [ Markup.button.url('Оплатить через AnyPay', anyPayUrl) ],
           [Markup.button.url('Оплатить через Lava', lavaUrl ? lavaUrl : 'https://google.com', !lavaUrl)],
-          [Markup.button.callback('Проверить платёж', 'lava-check#' + payment.paymentID, !lavaUrl)]
+          [Markup.button.callback('Проверить платёж', 'lava-check#' + payment.paymentID, true)]
         ]).reply_markup,
         parse_mode: 'HTML'
       }
