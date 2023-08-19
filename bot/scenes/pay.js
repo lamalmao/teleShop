@@ -38,8 +38,8 @@ pay.enterHandler = async function(ctx) {
       messages.payment.provided.format(ctx.scene.state.amount),
       {
         reply_markup: Markup.inlineKeyboard([
-          [ Markup.button.url('Оплатить через AnyPay', anyPayUrl) ],
-          [Markup.button.url('Оплатить через Lava (комиссия ниже)', lavaUrl ? lavaUrl : 'https://google.com', !lavaUrl)],
+          [ Markup.button.url('AnyPay', anyPayUrl) ],
+          [Markup.button.url('Lava (комиссия ниже)', lavaUrl ? lavaUrl : 'https://google.com', !lavaUrl)],
           [Markup.button.callback('Проверить платёж', 'lava-check#' + payment.paymentID, true)]
         ]).reply_markup,
         parse_mode: 'HTML'
