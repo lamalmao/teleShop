@@ -43,7 +43,7 @@ Payment.methods.createLavaPayment = async function() {
     };
 
     const signature = crypto
-      .createHmac('sha256', global)
+      .createHmac('sha256', global.lava_token)
       .update(JSON.stringify(body))
       .digest('hex');
 
