@@ -31,6 +31,7 @@ pay.enterHandler = async function(ctx) {
       }
     );
 
+    console.log(lavaUrl);
 
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
@@ -40,7 +41,7 @@ pay.enterHandler = async function(ctx) {
       {
         reply_markup: Markup.inlineKeyboard([
           [ Markup.button.url('Оплатить через AnyPay', anyPayUrl) ],
-          [Markup.button.url('Оплатить через Lava', lavaUrl, lavaUrl === null)],
+          [Markup.button.url('Оплатить через Lava', lavaUrl ? lavaUrl : 'https://google.com', lavaUrl === null)],
           [Markup.button.callback('Проверить платёж', 'lava-check#' + payment.paymentID, lavaUrl === null)]
         ]).reply_markup,
         parse_mode: 'HTML'
