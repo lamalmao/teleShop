@@ -31,8 +31,6 @@ pay.enterHandler = async function(ctx) {
       }
     );
 
-    console.log(lavaUrl);
-
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
       ctx.scene.state.menu.message_id,

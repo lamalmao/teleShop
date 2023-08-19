@@ -71,7 +71,7 @@ lavaCheck.enterHandler = async (ctx) => {
 
     await ctx.editMessageText(`Ваш баланс пополнен на ${payment.amount} ₽`);
   } catch (error) {
-    console.log(error)
+    console.log(error.message)
   } finally {
     ctx.scene.leave();
   }
