@@ -82,8 +82,6 @@ profile.on('message', async ctx => {
     if (ctx.scene.state.action === 'refill') {
       let amount = Number(ctx.message.text.trim());
 
-      console.log(amount);
-
       if (!Number.isNaN(amount) && amount >= 100 && amount <= 10000) {
         amount = amount.toFixed(2);
         ctx.scene.state.action = undefined;
