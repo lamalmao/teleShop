@@ -127,6 +127,7 @@ function CreateBot(token) {
   bot.action(/buy#\w+/, (ctx) => ctx.scene.enter("buy"));
   bot.action(/ref#\d+/, (ctx) => {
     const amount = Number(/\d+$/.exec(ctx.callbackQuery.data)[0]);
+    console.log(amount);
     ctx.scene.enter("pay", {
       menu: ctx.callbackQuery.message,
       amount: amount,
