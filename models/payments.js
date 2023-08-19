@@ -67,7 +67,7 @@ Payment.methods.createLavaPayment = async function() {
     return data.url ? data.url : null;
   } catch (error) {
     console.log(error.message);
-    console.log(error.response.data);
+    console.log(error.response ? error.response.data : '');
   }
 }
 
