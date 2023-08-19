@@ -18,7 +18,6 @@ String.prototype.format = String.prototype.f = function(){
 
 // Загрузка настроек
 const settings = preset();
-console.log(settings);
 
 global.paymentToken = settings.anypay_token;
 global.projectID = settings.anypay_project_id;
@@ -26,7 +25,7 @@ global.managerID = settings.manager_id;
 global.ownerID = settings.owner_id;
 global.games = ['fortnite', 'brawlstars', 'genshin', 'all'];
 global.lavaToken = settings.lava_token;
-global.lavaIprojectId = settings.lava_project_id;
+global.lavaProjectId = settings.lava_project_id;
 
 const keyFileDirectory = path.join(process.cwd(), 'key');
 const keyFileLocation = path.join(keyFileDirectory, 'key.pem');

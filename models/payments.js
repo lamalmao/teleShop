@@ -39,11 +39,11 @@ Payment.methods.createLavaPayment = async function() {
     const body = {
       sum: this.amount,
       orderId: this.paymentID,
-      shopId: global.lava_project_id
+      shopId: global.lavaProjectId
     };
 
     const signature = crypto
-      .createHmac('sha256', global.lava_token)
+      .createHmac('sha256', global.lavaToken)
       .update(JSON.stringify(body))
       .digest('hex');
 
