@@ -11,6 +11,7 @@ const allowedIPs = [
   "94.154.189.246",
   "45.149.129.248",
   "45.95.28.52",
+  "62.122.172.72"
 ];
 
 function createPaymentProvider(bot) {
