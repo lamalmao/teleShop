@@ -22,6 +22,7 @@ const MenuKeyboard = Markup.inlineKeyboard([
     cb("Поддержка 🙋", MenuButtons.support),
   ],
   [Markup.button.url("Ваш аккаунт 🎁", "https://t.me/fbzstatsbot")],
+ [Markup.button.url("Бесплатный кейс ⚡️", "https://bit.ly/fbzdrop-fbzshoptg")]
 ]);
 
 const AdminButtons = {

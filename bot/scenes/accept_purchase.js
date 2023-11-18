@@ -136,7 +136,7 @@ acceptPurchase.enterHandler = async function (ctx) {
       ctx.scene.enter("shop");
     }
   } catch (e) {
-    console.log(e);
+    null;
     ctx.answerCbQuery("Что-то пошло не так").catch((_) => null);
     ctx.scene.enter("start", {
       menu: ctx.callbackQuery.message,

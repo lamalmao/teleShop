@@ -71,7 +71,7 @@ sellProceed.enterHandler = async function (ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx
       .reply(e.message)
       .then((msg) => {
@@ -118,7 +118,7 @@ sellProceed.on(
 
       next();
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.enter("shop", {
         menu: ctx.scene.state.menu,
       });
@@ -143,11 +143,11 @@ sellProceed.on(
         );
         ctx.scene.state.extra = true;
       } else {
-        console.log("lul");
+        null;
         checkout(ctx);
       }
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.enter("shop", {
         menu: ctx.scene.state.menu,
       });
@@ -155,10 +155,10 @@ sellProceed.on(
   },
   async (ctx) => {
     try {
-      console.log("wtf");
+      null;
       checkout(ctx);
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.enter("shop", {
         menu: ctx.scene.state.menu,
       });
@@ -176,7 +176,7 @@ sellProceed.action(/extra#+/, async (ctx) => {
 
     checkout(ctx);
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("shop", {
       menu: ctx.scene.state.menu,
     });
@@ -224,7 +224,7 @@ async function checkout(ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("shop", {
       menu: ctx.scene.state.menu,
     });

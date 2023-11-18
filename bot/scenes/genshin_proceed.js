@@ -73,7 +73,7 @@ sellProceed.enterHandler = async function (ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx
       .reply(e.message)
       .then((msg) => {
@@ -146,7 +146,7 @@ sellProceed.on(
         next();
       }
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.enter("shop", {
         menu: ctx.scene.state.menu,
       });
@@ -156,7 +156,7 @@ sellProceed.on(
     try {
       checkout(ctx);
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.enter("shop", {
         menu: ctx.scene.state.menu,
       });
@@ -166,7 +166,7 @@ sellProceed.on(
     try {
       checkout(ctx);
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.enter("shop", {
         menu: ctx.scene.state.menu,
       });
@@ -207,7 +207,7 @@ async function checkout(ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("shop", {
       menu: ctx.scene.state.menu,
     });

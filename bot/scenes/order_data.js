@@ -1,35 +1,42 @@
-const { Scenes, Markup } = require('telegraf');
+const { Scenes, Markup } = require("telegraf");
 
-const orders = require('../../models/orders');
-const escapeHTML = require('escape-html');
+const orders = require("../../models/orders");
+const escapeHTML = require("escape-html");
 
 const statuses = new Map();
-statuses.set('untaken', 'ожидает');
-statuses.set('processing', 'в работе');
-statuses.set('done', 'выполнен');
-statuses.set('refund', 'оформлен возврат');
-statuses.set('canceled', 'отменен');
-
+statuses.set("untaken", "ожидает");
+statuses.set("processing", "в работе");
+statuses.set("done", "выполнен");
+statuses.set("refund", "оформлен возврат");
+statuses.set("canceled", "отменен");
 
 const platforms = new Map();
-platforms.set('pc', 'PC / macOS');
-platforms.set('ps', 'Playstation 4/5');
-platforms.set('android', 'Android');
-platforms.set('nintendo', 'Nintendo');
-platforms.set('xbox', 'XBox');
+platforms.set("pc", "PC / macOS");
+platforms.set("ps", "Playstation 4/5");
+platforms.set("android", "Android");
+platforms.set("nintendo", "Nintendo");
+platforms.set("xbox", "XBox");
 
-const orderData = new Scenes.BaseScene('order_data');
+const orderData = new Scenes.BaseScene("order_data");
 
-orderData.enterHandler = async function(ctx) {
+orderData.enterHandler = async function (ctx) {
   try {
     const orderID = /\d+/.exec(ctx.callbackQuery.data)[0];
     const order = await orders.findOne({
-      orderID: orderID
+      orderID: orderID,
     });
 
     if (order) {
-      let platform = order.platform ? platforms.get(order.platform) : '-';
-      let msg = `<b>Заказ</b> <code>${order.orderID}</code>\n\n<i>Товар:</i> <b>${escapeHTML(order.itemTitle)}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString()}</b>\n\n<i>Статус:</i> <b>${statuses.get(order.status)}</b>\n<i>Платформа:</i> <b>${platform}</b>`;
+      let platform = order.platform ? platforms.get(order.platform) : "-";
+      let msg = `<b>Заказ</b> <code>${
+        order.orderID
+      }</code>\n\n<i>Товар:</i> <b>${escapeHTML(
+        order.itemTitle
+      )}</b>\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> <b>${new Date(
+        order.date
+      ).toLocaleString()}</b>\n\n<i>Статус:</i> <b>${statuses.get(
+        order.status
+      )}</b>\n<i>Платформа:</i> <b>${platform}</b>`;
 
       await ctx.telegram.editMessageCaption(
         ctx.from.id,
@@ -38,35 +45,34 @@ orderData.enterHandler = async function(ctx) {
         msg,
         {
           reply_markup: Markup.inlineKeyboard([
-            [ Markup.button.callback('Назад', 'back') ]
+            [Markup.button.callback("Назад", "back")],
           ]).reply_markup,
-          parse_mode: 'HTML'
+          parse_mode: "HTML",
         }
       );
     } else {
-      ctx.answerCbQuery('Данный заказ не найден')
-        .catch(_ => null);
-      ctx.scene.enter('paymentsStory', {
-        menu: ctx.callbackQuery.message
-      })
+      ctx.answerCbQuery("Данный заказ не найден").catch((_) => null);
+      ctx.scene.enter("paymentsStory", {
+        menu: ctx.callbackQuery.message,
+      });
     }
   } catch (e) {
-    console.log(e);
-    ctx.scene.enter('profile', {
-      menu: ctx.callbackQuery.message
+    null;
+    ctx.scene.enter("profile", {
+      menu: ctx.callbackQuery.message,
     });
   }
 };
 
-orderData.action('back', async ctx => {
+orderData.action("back", async (ctx) => {
   try {
-    ctx.scene.enter('paymentsStory', {
-      menu: ctx.callbackQuery.message
+    ctx.scene.enter("paymentsStory", {
+      menu: ctx.callbackQuery.message,
     });
   } catch (e) {
-    console.log(e);
-    ctx.scene.enter('start', {
-      menu: ctx.callbackQuery.message
+    null;
+    ctx.scene.enter("start", {
+      menu: ctx.callbackQuery.message,
     });
   }
 });

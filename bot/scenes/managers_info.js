@@ -53,7 +53,7 @@ managersInfo.enterHandler = async function (ctx) {
       ctx.scene.leave();
     }
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("admin", {
       menu: ctx.callbackQuery.message,
     });
@@ -146,7 +146,7 @@ managersInfo.action(/manager#\d+/, async (ctx) => {
         .catch((_) => null);
     }
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.reenter();
   }
 });
@@ -179,7 +179,7 @@ managersInfo.action(/delete#\d+/, async (ctx) => {
       ctx.scene.reenter();
     }
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.reenter();
   }
 });
@@ -214,7 +214,7 @@ managersInfo.action(/drop#\d+/, async (ctx) => {
       );
     }
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.reenter();
   }
 });
@@ -249,7 +249,7 @@ managersInfo.action("drop", async (ctx) => {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.reenter();
   }
 });
@@ -271,7 +271,7 @@ managersInfo.action(keys.YesNoMenu.buttons.yes, async (ctx) => {
 
     ctx.scene.reenter();
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.reenter();
   }
 });

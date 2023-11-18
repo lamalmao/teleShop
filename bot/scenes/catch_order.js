@@ -35,7 +35,7 @@ catchOrder.enterHandler = async function (ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("start");
   }
 };
@@ -84,7 +84,7 @@ catchOrder.hears(/\d+/, async (ctx) => {
         .catch((_) => null);
     }
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("start");
   }
 });
@@ -96,7 +96,7 @@ catchOrder.action("intercept", async (ctx) => {
       interception: true,
     });
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("start");
   }
 });

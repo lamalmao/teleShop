@@ -40,7 +40,7 @@ getUserData.enterHandler = async function (ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("admin", {
       menu: ctx.scene.state.menu,
     });
@@ -84,7 +84,7 @@ getUserData.hears(/\d+/, async (ctx) => {
       user: target.telegramID,
     });
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("admin", {
       menu: ctx.scene.state.menu,
     });

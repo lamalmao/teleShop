@@ -23,6 +23,6 @@
   },
   "scripts": {
     "dev": "nodemon main.js",
-    "prod": "node main.js"
+    "prod": "node main.js --max-old-space-size 6912"
   }
 }

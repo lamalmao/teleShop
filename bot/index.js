@@ -39,12 +39,12 @@ function CreateBot(token) {
         );
       }
     } catch (e) {
-      console.log(e);
+      null;
     }
   });
 
   bot.on("callback_query", (ctx, next) => {
-    // console.log(ctx.callbackQuery.data);
+    // null
     ctx.answerCbQuery().catch((_) => null);
     next();
   });
@@ -86,7 +86,7 @@ function CreateBot(token) {
           }
         );
       } catch (e) {
-        console.log(e.message);
+        null;
         ctx.telegram
           .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
           .catch((_) => null);
@@ -159,7 +159,7 @@ function CreateBot(token) {
         reply_markup: keys.Menu.keyboard.reply_markup,
       });
     } catch (e) {
-      console.log(e);
+      null;
     }
   });
 
@@ -190,7 +190,7 @@ function CreateBot(token) {
         })
         .catch((_) => null);
     } catch (e) {
-      console.log(e);
+      null;
     }
   });
   bot.action("manager_menu", (ctx) => ctx.scene.enter("manager_menu"));
@@ -243,11 +243,79 @@ function CreateBot(token) {
         ctx.reply("Статистика сброшена");
       }
     } catch (e) {
-      console.log(e);
+      null;
     }
   });
 
-  // bot.on('message', ctx => ctx.scene.enter('start'));
+  bot.command("say", async (ctx) => {
+    try {
+      const user = await users.findOne(
+        {
+          telegramID: ctx.from.id,
+        },
+        {
+          role: 1,
+        }
+      );
+
+      if (user.role !== "admin") {
+        throw new Error("No access");
+      }
+
+      ctx.scene.enter("share-message");
+    } catch (error) {
+      null;
+      ctx.reply("Нет доступа");
+    }
+  });
+
+  bot.command("stats", async (ctx) => {
+    try {
+      const user = await users.findOne(
+        {
+          telegramID: ctx.from.id,
+        },
+        {
+          role: 1,
+        }
+      );
+
+      if (user.role !== "admin") {
+        throw new Error("No access");
+      }
+
+      const allCount = await users.count({
+        role: "client",
+      });
+
+      const todayCount = await users.count({
+        role: "client",
+        join_date: {
+          $gte: new Date(Date.now() - 86400000),
+        },
+      });
+
+      const weekCount = await users.count({
+        role: "client",
+        join_date: {
+          $gte: new Date(Date.now() - 86400000 * 7),
+        },
+      });
+
+      const monthCount = await users.count({
+        role: "client",
+        join_date: {
+          $gte: new Date(Date.now() - 86400000 * 30),
+        },
+      });
+
+      await ctx.reply(
+        `Всего пользователей: ${allCount}\n\nПришло за \nсутки: ${todayCount}\nнеделю: ${weekCount}\nмесяц: ${monthCount}`
+      );
+    } catch (error) {
+      null;
+    }
+  });
 
   return bot;
 }

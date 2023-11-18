@@ -107,7 +107,10 @@ async function updateSheet(auth, spreadsheetId) {
   });
 
   const current = await orders.find({
-    paid: true
+    paid: true,
+    date: {
+      $gte: new Date(Date.now() - 5184000000)
+    }
   }, 'orderID client manager status date itemTitle amount platform refundStatus refundData'),
     updates = current.sort((one, two) => Number(one.date) > Number(two.date) ? -1 : 1);
 
@@ -190,7 +193,7 @@ async function updateSheet(auth, spreadsheetId) {
         {
           updateCells: {
             start: {
-              sheetId: 0,
+              sheetId: 872614777,
               rowIndex: 1,
               columnIndex: 0
             },
@@ -210,7 +213,7 @@ async function runUpdater(spreadsheetId, interval) {
       keyFile: 'credentials.json',
       scopes: 'https://www.googleapis.com/auth/spreadsheets'
     })
-  }), spreadsheetId, 'Orders!A1:J1');
+  }), spreadsheetId, 'OrdersPeriod!A1:J1');
   
   setInterval(async _ => {
     try {

@@ -56,7 +56,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -93,7 +93,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -131,7 +131,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -169,7 +169,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -222,7 +222,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -273,7 +273,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -321,7 +321,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -380,7 +380,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -413,7 +413,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -468,7 +468,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -504,7 +504,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -588,14 +588,14 @@ const addItem = new Scenes.WizardScene(
 
                   ctx.wizard.next();
                 } catch (e) {
-                  console.log(e.message);
+                  null;
                   ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
                 }
               }
             });
           })
           .catch((err) => {
-            console.log(err.message);
+            null;
             ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
           });
       }
@@ -611,7 +611,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   },
   async (ctx) => {
@@ -619,7 +619,7 @@ const addItem = new Scenes.WizardScene(
       ctx.deleteMessage().catch((_) => null);
 
       if (ctx.updateType == "callback_query") {
-        console.log(ctx.callbackQuery.data);
+        null;
 
         ctx.scene.state.newItem.category = ctx.callbackQuery.data;
         await ctx.scene.state.newItem.save(async (err, item) => {
@@ -649,7 +649,7 @@ const addItem = new Scenes.WizardScene(
                     );
                 });
               })
-              .catch((err) => console.log(err));
+              .catch((err) => null);
 
             regenerate
               .renderItemPage(item._id)
@@ -673,9 +673,9 @@ const addItem = new Scenes.WizardScene(
                     );
                 });
               })
-              .catch((err) => console.log(err));
+              .catch((err) => null);
           } else {
-            console.log(err.message);
+            null;
             ctx
               .answerCbQuery(
                 `Ошибка во время сохранения товара: ${err.message}`
@@ -697,7 +697,7 @@ const addItem = new Scenes.WizardScene(
         }, 5000)
         .catch((_) => null);
       ctx.scene.enter("goods", { menu: ctx.scene.state.menu });
-      console.log(e);
+      null;
     }
   }
 );

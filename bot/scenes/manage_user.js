@@ -101,7 +101,7 @@ manageUser.enterHandler = async function (ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("admin", {
       menu: ctx.scene.state.menu,
     });
@@ -132,7 +132,7 @@ manageUser.action(/user_payment#\d+/, async (ctx) => {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("admin", {
       menu: ctx.scene.state.menu,
     });
@@ -212,7 +212,7 @@ manageUser.action(/user_order#\d+/, async (ctx) => {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("admin", {
       menu: ctx.scene.state.menu,
     });
@@ -248,7 +248,7 @@ manageUser.action("change_balance", async (ctx) => {
 
     ctx.scene.state.action = "balance";
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("admin", {
       menu: ctx.scene.state.menu,
     });
@@ -283,7 +283,7 @@ manageUser.on(
         user: ctx.scene.state.user,
       });
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.enter("admin", {
         menu: ctx.scene.state.menu,
       });

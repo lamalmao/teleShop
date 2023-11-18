@@ -145,7 +145,7 @@ takeOrder.enterHandler = async function (ctx) {
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
       .catch((_) => null);
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 };
@@ -166,7 +166,7 @@ takeOrder.on("callback_query", async (ctx, next) => {
       ctx.scene.leave();
     }
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.leave();
   }
 });
@@ -208,7 +208,7 @@ takeOrder.action("get_profile", async (ctx) => {
       })
       .then((_) => thisCTX.answerCbQuery().catch((_) => null));
   } catch (e) {
-    console.log(err);
+    null;
     ctx.scene.leave();
   }
 });
@@ -254,7 +254,7 @@ takeOrder.action("request_code", async (ctx) => {
 
     ctx.answerCbQuery("Запрос пользователю отправлен").catch((_) => null);
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -286,7 +286,7 @@ takeOrder.action("order_done", async (ctx) => {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -369,7 +369,7 @@ takeOrder.action("done", async (ctx) => {
     ctx.answerCbQuery("Готово, клиент уведомлен").catch((_) => null);
     ctx.scene.enter("manager_menu");
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -395,7 +395,7 @@ takeOrder.action("order_reject", async (ctx) => {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("orders_list");
   }
 });
@@ -416,7 +416,7 @@ takeOrder.action("reject", async (ctx) => {
 
     ctx.scene.enter("orders_list");
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("orders_list");
   }
 });
@@ -442,7 +442,7 @@ takeOrder.action("order_refund", async (ctx) => {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("orders_list");
   }
 });
@@ -487,7 +487,7 @@ takeOrder.action("refund", async (ctx) => {
 
     ctx.scene.enter("orders_list");
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -511,7 +511,7 @@ takeOrder.action(/req_contact#\d+/, async (ctx) => {
           ]).reply_markup,
         }
       )
-      .catch((err) => console.log(err));
+      .catch((err) => null);
     ctx
       .reply("Пользователь уведомлен, ожидайте его контакт")
       .then((msg) => {
@@ -523,7 +523,7 @@ takeOrder.action(/req_contact#\d+/, async (ctx) => {
       })
       .catch((_) => null);
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -549,7 +549,7 @@ takeOrder.action("order_cancel", async (ctx) => {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -604,7 +604,7 @@ takeOrder.action("cancel_accept", async (ctx) => {
 
     ctx.scene.enter("manager_menu");
   } catch (e) {
-    console.log(e);
+    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -617,7 +617,7 @@ takeOrder.action("cancel_accept", async (ctx) => {
 
 //     await ctx.replyWithContact()
 //   } catch (e) {
-//     console.log(e);
+//     null
 //     ctx.scene.enter('manager_menu');
 //   }
 // })

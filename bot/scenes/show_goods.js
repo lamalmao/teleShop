@@ -1,17 +1,17 @@
-const { Scenes, Markup } = require('telegraf');
-const path = require('path');
-const { Types } = require('mongoose');
+const { Scenes, Markup } = require("telegraf");
+const path = require("path");
+const { Types } = require("mongoose");
 
 // const goodsModel = require('../../models/goods');
-const categories = require('../../models/categories');
+const categories = require("../../models/categories");
 
-const keys = require('../keyboard');
+const keys = require("../keyboard");
 // const genItemsListPages = require('../gen_pages');
-const goods = require('../../models/goods');
+const goods = require("../../models/goods");
 
-const showGoods = new Scenes.BaseScene('showGoods');
+const showGoods = new Scenes.BaseScene("showGoods");
 
-const image = path.join(process.cwd(), 'files', 'images', 'blank_logo.jpg');
+const image = path.join(process.cwd(), "files", "images", "blank_logo.jpg");
 
 // showGoods.enterHandler = async function(ctx) {
 //   try {
@@ -19,7 +19,7 @@ const image = path.join(process.cwd(), 'files', 'images', 'blank_logo.jpg');
 
 //     const goods = await goodsModel.find(undefined, '_id title');
 //     if (goods.length > 0) {
-//       ctx.scene.state.pages = genItemsListPages(goods);      
+//       ctx.scene.state.pages = genItemsListPages(goods);
 //       ctx.scene.state.page = ctx.scene.state.page < ctx.scene.state.pages.size ? ctx.scene.state.page : ctx.scene.state.page - 1;
 
 //       const menu = await ctx.replyWithPhoto({
@@ -32,36 +32,40 @@ const image = path.join(process.cwd(), 'files', 'images', 'blank_logo.jpg');
 //       ctx.scene.state.menu = menu;
 //     } else ctx.reply('Нет товаров', keys.BackMenu.keyboard);
 //   } catch (e) {
-//     console.log(e);
+//     null
 //     ctx.reply(`Что-то пошло не так`)
 //       .then(msg => ctx.scene.enter('goods', { menu: msg }))
 //       .catch(_ => null);
 //   }
 // };
 
-showGoods.enterHandler = async function(ctx) {
+showGoods.enterHandler = async function (ctx) {
   try {
-    ctx.telegram.deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
-      .catch(_ => null);
+    ctx.telegram
+      .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
+      .catch((_) => null);
 
     let keyboard, msg;
 
     if (!ctx.scene.state.category) {
-      const subCategories = await categories.find({
-        type: 'sub'
-      }, '_id title');
+      const subCategories = await categories.find(
+        {
+          type: "sub",
+        },
+        "_id title"
+      );
 
       keyboard = [];
 
       for (let category of subCategories) {
-        keyboard.push(
-          [ Markup.button.callback(category.title, `category#${category._id}`) ]
-        );
+        keyboard.push([
+          Markup.button.callback(category.title, `category#${category._id}`),
+        ]);
       }
 
-      keyboard.push([ Markup.button.callback('Назад', keys.BackMenu.buttons) ])
+      keyboard.push([Markup.button.callback("Назад", keys.BackMenu.buttons)]);
 
-      msg = 'Категории';
+      msg = "Категории";
       keyboard = Markup.inlineKeyboard(keyboard);
     } else {
       ctx.scene.state.itemsCategory = ctx.scene.state.category;
@@ -72,21 +76,25 @@ showGoods.enterHandler = async function(ctx) {
     }
 
     ctx.scene.state.category = null;
-    await ctx.replyWithPhoto({
-      source: image
-    }, {
-      caption: 'Категории',
-      reply_markup: keyboard.reply_markup
-    });
+    await ctx.replyWithPhoto(
+      {
+        source: image,
+      },
+      {
+        caption: "Категории",
+        reply_markup: keyboard.reply_markup,
+      }
+    );
   } catch (e) {
-    console.log(e);
-    ctx.reply(`Что-то пошло не так`)
-      .then(msg => ctx.scene.enter('goods', { menu: msg }))
-      .catch(_ => null);
-  }  
+    null;
+    ctx
+      .reply(`Что-то пошло не так`)
+      .then((msg) => ctx.scene.enter("goods", { menu: msg }))
+      .catch((_) => null);
+  }
 };
 
-showGoods.action(/category#\w+/, async ctx => {
+showGoods.action(/category#\w+/, async (ctx) => {
   try {
     const categoryID = /\w+$/.exec(ctx.callbackQuery.data)[0];
     ctx.scene.state.itemsCategory = categoryID;
@@ -99,26 +107,29 @@ showGoods.action(/category#\w+/, async ctx => {
       undefined,
       data[0],
       {
-        reply_markup: data[1].reply_markup
+        reply_markup: data[1].reply_markup,
       }
     );
   } catch (e) {
-    console.log(e);
-    ctx.scene.enter('showGoods');
+    null;
+    ctx.scene.enter("showGoods");
   }
-})
-
-showGoods.action(keys.BackMenu.buttons, ctx => {
-  ctx.telegram.deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id).catch(_ => null);
-  ctx.reply(`Возвращаемся...`)
-      .then(msg => ctx.scene.enter('goods', { menu: msg }))
-      .catch(_ => null);
 });
 
-showGoods.action('prev', ctx => {
+showGoods.action(keys.BackMenu.buttons, (ctx) => {
+  ctx.telegram
+    .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
+    .catch((_) => null);
+  ctx
+    .reply(`Возвращаемся...`)
+    .then((msg) => ctx.scene.enter("goods", { menu: msg }))
+    .catch((_) => null);
+});
+
+showGoods.action("prev", (ctx) => {
   ctx.scene.reenter({
     menu: ctx.callbackQuery.message,
-    category: null
+    category: null,
   });
 });
 
@@ -132,54 +143,64 @@ showGoods.action('prev', ctx => {
 //     ctx.telegram.deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id).catch(_ => null);
 //     ctx.reply('Что-то пошло не так')
 //       .then(msg => ctx.scene.enter('goods', { menu: msg }))
-//       .catch(_ => null); 
+//       .catch(_ => null);
 //   }
 // });
 
-showGoods.action(/item#\w+/i, async ctx => {
-    try {
-      const itemID = /[^#]+$/.exec(ctx.callbackQuery.data)[0];
-      const item = await goods.findById(itemID);
+showGoods.action(/item#\w+/i, async (ctx) => {
+  try {
+    const itemID = /[^#]+$/.exec(ctx.callbackQuery.data)[0];
+    const item = await goods.findById(itemID);
 
-      if (item) ctx.scene.enter('manageItem', { menu: ctx.callbackQuery.message, item: item, category: ctx.scene.state.itemsCategory });
-      else ctx.answerCbQuery('Не удалось найти товар в базе данных, возможно он был удален').catch(_ => null);
-    } catch (e) {
-      console.log(e);
-      ctx.scene.reenter({
-        menu: ctx.callbackQuery.message
+    if (item)
+      ctx.scene.enter("manageItem", {
+        menu: ctx.callbackQuery.message,
+        item: item,
+        category: ctx.scene.state.itemsCategory,
       });
-    }
+    else
+      ctx
+        .answerCbQuery(
+          "Не удалось найти товар в базе данных, возможно он был удален"
+        )
+        .catch((_) => null);
+  } catch (e) {
+    null;
+    ctx.scene.reenter({
+      menu: ctx.callbackQuery.message,
+    });
   }
-);
+});
 
 async function drawItemsKeyboard(categoryID) {
-  const items = await goods.find({
-    category: Types.ObjectId(categoryID)
-  }, '_id title');
+  const items = await goods.find(
+    {
+      category: Types.ObjectId(categoryID),
+    },
+    "_id title"
+  );
 
   let keyboard = [],
     length = items.length,
-    msg = length > 0 ? 'Товары в категории' : 'Товаров нет',
+    msg = length > 0 ? "Товары в категории" : "Товаров нет",
     second = false,
     line = [],
     counter = 1;
-  
+
   for (let item of items) {
-    line.push(
-      Markup.button.callback(item.title, `item#${item._id}`)
-    );
-    
+    line.push(Markup.button.callback(item.title, `item#${item._id}`));
+
     if (second || counter === length) {
       keyboard.push(line);
       line = [];
     }
 
-    second = !second
+    second = !second;
     counter++;
   }
-  keyboard.push([ Markup.button.callback('Назад', 'prev') ]);
+  keyboard.push([Markup.button.callback("Назад", "prev")]);
 
-  return [ msg, Markup.inlineKeyboard(keyboard) ];
+  return [msg, Markup.inlineKeyboard(keyboard)];
 }
 
 module.exports = showGoods;

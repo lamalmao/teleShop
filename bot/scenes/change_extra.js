@@ -35,7 +35,7 @@ changeExtra.enterHandler = async function (ctx) {
       }
     );
   } catch (e) {
-    console.log(e);
+    null;
     ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
@@ -64,7 +64,7 @@ changeExtra.action(keys.BackMenu.buttons, async (ctx) => {
         item: ctx.scene.state.item,
       });
   } catch (e) {
-    console.log(e);
+    null;
     ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
@@ -90,7 +90,7 @@ changeExtra.action("change_message", async (ctx) => {
     );
     ctx.scene.state.target = "message";
   } catch (e) {
-    console.log(e);
+    null;
     ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
@@ -117,7 +117,7 @@ changeExtra.action("change_answers", async (ctx) => {
     );
     ctx.scene.state.target = "answers";
   } catch (e) {
-    console.log(e);
+    null;
     ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
@@ -157,7 +157,7 @@ changeExtra.on(
         category: ctx.scene.state.category,
       });
     } catch (e) {
-      console.log(e);
+      null;
       ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
       ctx.telegram
         .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)

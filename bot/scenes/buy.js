@@ -1,27 +1,27 @@
-const { Scenes, Markup } = require('telegraf');
-const { Types } = require('mongoose');
-const crypto = require('crypto');
+const { Scenes, Markup } = require("telegraf");
+const { Types } = require("mongoose");
+const crypto = require("crypto");
 
-const goods = require('../../models/goods');
-const users = require('../../models/users');
-const keys = require('../keyboard');
-const orders = require('../../models/orders');
+const goods = require("../../models/goods");
+const users = require("../../models/users");
+const keys = require("../keyboard");
+const orders = require("../../models/orders");
 
-const buy = new Scenes.BaseScene('buy');
+const buy = new Scenes.BaseScene("buy");
 
-buy.enterHandler = async function(ctx) {
+buy.enterHandler = async function (ctx) {
   try {
     if (global.suspend) {
-      ctx.reply('Продажи временно приостановлены, попробуйте позже')
-        .then(msg => {
+      ctx
+        .reply("Продажи временно приостановлены, попробуйте позже")
+        .then((msg) => {
           setTimeout(() => {
-            ctx.telegram.deleteMessage(
-              ctx.from.id,
-              msg.message_id
-            ).catch(_ => null);
+            ctx.telegram
+              .deleteMessage(ctx.from.id, msg.message_id)
+              .catch((_) => null);
           }, 1500);
         })
-        .catch(_ => null);
+        .catch((_) => null);
       ctx.scene.leave();
       return;
     }
@@ -29,17 +29,19 @@ buy.enterHandler = async function(ctx) {
     const itemID = /\w+$/.exec(ctx.callbackQuery.data)[0];
 
     const item = await goods.findOne({
-      _id: Types.ObjectId(itemID)
+      _id: Types.ObjectId(itemID),
     });
 
     if (item.hidden) {
-      ctx.answerCbQuery('На данный момент товар недоступен')
-        .catch(_ => null);
+      ctx.answerCbQuery("На данный момент товар недоступен").catch((_) => null);
       ctx.scene.enter(`shop`);
     } else {
-      const user = await users.findOne({
-        telegramID: ctx.from.id
-      }, '_id balance');
+      const user = await users.findOne(
+        {
+          telegramID: ctx.from.id,
+        },
+        "_id balance"
+      );
 
       const dif = (user.balance - item.getPrice()).toFixed(2);
       if (dif < 0) {
@@ -47,24 +49,31 @@ buy.enterHandler = async function(ctx) {
           ctx.from.id,
           ctx.callbackQuery.message.message_id,
           undefined,
-          `На вашем счету не хватает <b>${Math.abs(dif)} ₽</b> для покупки "${item.title}"`,
+          `На вашем счету не хватает <b>${Math.abs(dif)} ₽</b> для покупки "${
+            item.title
+          }"`,
           {
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback('Пополнить баланс', `ref#${Math.abs(dif)}`)],
-              [Markup.button.callback('Назад', `item#${itemID}`)]
+              [
+                Markup.button.callback(
+                  "Пополнить баланс",
+                  `ref#${Math.abs(dif)}`
+                ),
+              ],
+              [Markup.button.callback("Назад", `item#${itemID}`)],
             ]).reply_markup,
-            parse_mode: 'HTML'
+            parse_mode: "HTML",
           }
         );
       } else {
         let button;
-        if (item.itemType === 'manual') {
-          if (item.game === 'fortnite') {
-            button = 'proceed#';
-          } else if (item.game === 'brawlstars') {
-            button = 'supercell_proceed#';
-          } else if (item.game === 'genshin') {
-            button = 'genshin_proceed#';
+        if (item.itemType === "manual") {
+          if (item.game === "fortnite") {
+            button = "proceed#";
+          } else if (item.game === "brawlstars") {
+            button = "supercell_proceed#";
+          } else if (item.game === "genshin") {
+            button = "genshin_proceed#";
           }
           // button = (item.game === 'fortnite' ? 'proceed#' : 'supercell_proceed#') + item._id;
 
@@ -77,41 +86,45 @@ buy.enterHandler = async function(ctx) {
             item: item._id,
             itemTitle: item.title,
             amount: item.getPrice(),
-            game: item.game
+            game: item.game,
           });
 
-          button = 'accept#' + orderID;
+          button = "accept#" + orderID;
         }
 
         await ctx.telegram.editMessageCaption(
           ctx.from.id,
           ctx.callbackQuery.message.message_id,
           undefined,
-          `Вы хотите приобрести <b>${item.title}</b> за <b>${item.getPrice()}</b> ₽, верно?`,
+          `Вы хотите приобрести <b>${
+            item.title
+          }</b> за <b>${item.getPrice()}</b> ₽, верно?`,
           {
-            parse_mode: 'HTML',
+            parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [ Markup.button.callback('Да', button) ],
-              [ Markup.button.callback('Нет', `item#${itemID}`) ]
-            ]).reply_markup
+              [Markup.button.callback("Да", button)],
+              [Markup.button.callback("Нет", `item#${itemID}`)],
+            ]).reply_markup,
           }
-        )
+        );
       }
       ctx.scene.leave();
     }
   } catch (e) {
-    console.log(e);
-    ctx.answerCbQuery('Что-то пошло не так')
-      .catch(_ => null);
-    ctx.scene.enter('shop');
+    null;
+    ctx.answerCbQuery("Что-то пошло не так").catch((_) => null);
+    ctx.scene.enter("shop");
   }
-}
+};
 
 async function genUniqueID() {
   const id = crypto.randomInt(100000, 999999);
-  const check = await orders.findOne({
-    orderID: id
-  }, '_id');
+  const check = await orders.findOne(
+    {
+      orderID: id,
+    },
+    "_id"
+  );
 
   if (check) return await genUniqueID();
   else return id;

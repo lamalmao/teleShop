@@ -38,7 +38,7 @@ sendCode.enterHandler = async function (ctx) {
     ctx.scene.state.order = order;
     ctx.scene.state.menu = ctx.callbackQuery.message;
   } catch (e) {
-    console.log(e);
+    null;
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
       .catch((_) => null);
@@ -81,7 +81,7 @@ sendCode.hears(
       );
       ctx.scene.leave();
     } catch (e) {
-      console.log(e);
+      null;
       ctx.scene.leave();
     }
   }

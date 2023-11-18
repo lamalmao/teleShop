@@ -16,6 +16,7 @@ async function genItemMessage(item, isAdmin) {
   let message = `${item.title}\n\n${item.bigDescription}\n\nЦена: ${price} руб.`;
 
   if (isAdmin) {
+    message += `\nid: ${item._id.toString('hex')}`
     message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}\nИгра: ${item.game}\nДоставляется сразу при покупке: ${item.itemType === 'auto' ? 'Да' : 'Нет'}\nВарбаксы: ${item.isVBucks ? 'Да' : 'Нет'}\nРазмер шрифта для названия: ${item.titleFontSize}\nРазмер шрифта для описания: ${item.descriptionFontSize}`;
 
     if (item.itemType === 'auto') {

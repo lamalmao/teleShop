@@ -1,25 +1,28 @@
-const { Scenes, Markup } = require('telegraf');
+const { Scenes, Markup } = require("telegraf");
 
-const users = require('../../models/users');
-const orders = require('../../models/orders');
-const keys = require('../keyboard');
+const users = require("../../models/users");
+const orders = require("../../models/orders");
+const keys = require("../keyboard");
 
-const managerMenu = new Scenes.BaseScene('manager_menu');
+const managerMenu = new Scenes.BaseScene("manager_menu");
 
-managerMenu.enterHandler = async function(ctx, next) {
+managerMenu.enterHandler = async function (ctx, next) {
   try {
     const user = await users.findOne({
-      telegramID: ctx.from.id
+      telegramID: ctx.from.id,
     });
 
-    if (user.role === 'manager' || user.role === 'admin') {
-      const work = await orders.find({
-        manager: ctx.from.id,
-        paid: true,
-        status: {
-          $ne: 'canceled'
-        }
-      }, '_id status');
+    if (user.role === "manager" || user.role === "admin") {
+      const work = await orders.find(
+        {
+          manager: ctx.from.id,
+          paid: true,
+          status: {
+            $ne: "canceled",
+          },
+        },
+        "_id status"
+      );
 
       const stats = genStats(work);
       const sum = stats.done + stats.processing + stats.refund;
@@ -27,23 +30,32 @@ managerMenu.enterHandler = async function(ctx, next) {
       const doneP = ((stats.done / sum) * 100).toFixed(2);
       const processingP = ((stats.processing / sum) * 100).toFixed(2);
       const refundP = ((stats.refund / sum) * 100).toFixed(2);
-      
-      let msg = `<b>Меню менеджера</b> <code>${ctx.from.id}</code>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${stats.processing} = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${stats.refund} = ${Number.isNaN(refundP) ? 0 : refundP}%\n\n<b>Статистика по последним заказам</b>\n`;
+
+      let msg = `<b>Меню менеджера</b> <code>${
+        ctx.from.id
+      }</code>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${
+        stats.done
+      } = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${
+        stats.processing
+      } = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${
+        stats.refund
+      } = ${
+        Number.isNaN(refundP) ? 0 : refundP
+      }%\n\n<b>Статистика по последним заказам</b>\n`;
 
       if (user.stats.length > 0) {
         let summary = 0;
         for (let stat of user.stats) {
           msg += `<i>${stat.title}</i>: ${stat.count}\n`;
-          summary += stat.count
+          summary += stat.count;
         }
         msg += `<b>Всего:</b> ${summary}`;
-
-      } else msg += '<i>Заказов нет</i>'
+      } else msg += "<i>Заказов нет</i>";
 
       if (!ctx.callbackQuery) {
         await ctx.reply(msg, {
           reply_markup: keys.ManagerWorkMenu.keyboard.reply_markup,
-          parse_mode: 'HTML'
+          parse_mode: "HTML",
         });
       } else {
         await ctx.telegram.editMessageText(
@@ -53,23 +65,23 @@ managerMenu.enterHandler = async function(ctx, next) {
           msg,
           {
             reply_markup: keys.ManagerWorkMenu.keyboard.reply_markup,
-            parse_mode: 'HTML'
+            parse_mode: "HTML",
           }
         );
       }
     }
   } catch (e) {
-    console.log(e);
+    null;
   } finally {
     ctx.scene.leave();
   }
-}
+};
 
 function genStats(works) {
   let result = {
     processing: 0,
     done: 0,
-    refund: 0
+    refund: 0,
   };
 
   for (let order of works) result[order.status]++;
