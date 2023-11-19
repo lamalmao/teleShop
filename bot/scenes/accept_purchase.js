@@ -6,6 +6,7 @@ const messages = require("../messages");
 const goods = require("../../models/goods");
 const { delivery } = require("../../models/delivery");
 const { Types } = require("mongoose");
+const escapeHTML = require("escape-html");
 
 const acceptPurchase = new Scenes.BaseScene("accept_purchase");
 
@@ -100,12 +101,13 @@ acceptPurchase.enterHandler = async function (ctx) {
           } else {
             order.status = "done";
             order.key = key.value;
-            await order.save();
+            order.save().catch(() => null);
             await ctx.telegram.editMessageCaption(
               ctx.from.id,
               ctx.callbackQuery.message.message_id,
               undefined,
-              `Заказ <code>${order.orderID}</code> <b>${order.itemTitle}</b>\n\nВаш ключ: <code>${key.value}</code>\nЧтобы активировать ключ перейдите на <a href="https://www.epicgames.com/fortnite/ru/redeem/">сайт Epic Games</a>`,
+              //prettier-ignore
+              `Заказ <code>${order.orderID}</code> <b>${escapeHTML(order.itemTitle)}</b>\n\nВаш ключ: <code>${escapeHTML(key.value)}</code>\nЧтобы активировать ключ перейдите на <a href="https://www.epicgames.com/fortnite/ru/redeem/">сайт Epic Games</a>`,
               {
                 parse_mode: "HTML",
                 disable_web_page_preview: true,
@@ -154,6 +156,9 @@ acceptPurchase.enterHandler = async function (ctx) {
       ctx.scene.enter("shop");
     }
   } catch (e) {
+    console.log("Key delivery problem:");
+    console.log(e);
+
     ctx.answerCbQuery("Что-то пошло не так").catch((_) => null);
     ctx.scene.enter("start", {
       menu: ctx.callbackQuery.message,
