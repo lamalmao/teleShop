@@ -396,6 +396,7 @@ shareMessage.action("cancel", (ctx) => {
 });
 
 shareMessage.action("exit", (ctx) => {
+  ctx.scene.leave();
   ctx.reply("Вышел").catch(() => null);
 });
 
