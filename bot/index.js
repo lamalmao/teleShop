@@ -6,6 +6,9 @@ const payments = require("../models/payments");
 const keys = require("./keyboard");
 const messages = require("./messages");
 const path = require("path");
+const goods = require("../models/goods");
+const { delivery } = require("../models/delivery");
+const managerKey = require("../models/manager-keys");
 
 const images = path.join(process.cwd(), "files", "images");
 
@@ -13,6 +16,14 @@ function CreateBot(token) {
   const bot = new Telegraf(token);
 
   global.suspend = false;
+
+  // bot.use((ctx, next) => {
+  //   if (ctx.callbackQuery && ctx.callbackQuery.data) {
+  //     console.log(ctx.callbackQuery.data);
+  //   }
+
+  //   next();
+  // });
 
   bot.use(session());
   bot.use(stage.middleware());
@@ -42,6 +53,88 @@ function CreateBot(token) {
       null;
     }
   });
+
+  bot.command(
+    "codes",
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            role: 1,
+          }
+        );
+
+        if (user && user.role === "admin") {
+          next();
+        }
+      } catch {
+        null;
+      }
+    },
+    async (ctx) => {
+      try {
+        const autoItems = await goods.find(
+          {
+            itemType: "auto",
+          },
+          {
+            title: 1,
+          }
+        );
+
+        const manualItems = await goods.find(
+          {
+            itemType: {
+              $ne: "auto",
+            },
+            managerKeys: true,
+          },
+          {
+            title: 1,
+          }
+        );
+
+        let msg = "Ключи для клиентов:\n";
+
+        for (const auto of autoItems) {
+          const count = await delivery.countDocuments({
+            item: auto._id,
+            accessable: true,
+            delivered: false,
+          });
+
+          msg += `${auto.title} - ${count}\n`;
+        }
+
+        msg += "\nКлючи для менеджеров:\n";
+
+        for (const manual of manualItems) {
+          const count = await managerKey.countDocuments({
+            item: manual._id,
+            used: false,
+          });
+
+          msg += `${manual.title} - ${count}\n`;
+        }
+
+        let length = msg.length;
+        const partsCount = Math.ceil(length / 4096);
+
+        for (let i = 0; i < partsCount; i++) {
+          const start = i * 4096;
+          const d = length - start;
+          const slice = d >= 4096 ? 4096 : d;
+
+          await ctx.reply(msg.slice(start, start + slice));
+        }
+      } catch (error) {
+        ctx.reply("Что-то пошло не так").catch(() => null);
+      }
+    }
+  );
 
   bot.on("callback_query", (ctx, next) => {
     // null

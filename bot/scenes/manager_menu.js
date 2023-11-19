@@ -1,4 +1,4 @@
-const { Scenes, Markup } = require("telegraf");
+const { Scenes } = require("telegraf");
 
 const users = require("../../models/users");
 const orders = require("../../models/orders");
@@ -31,17 +31,8 @@ managerMenu.enterHandler = async function (ctx, next) {
       const processingP = ((stats.processing / sum) * 100).toFixed(2);
       const refundP = ((stats.refund / sum) * 100).toFixed(2);
 
-      let msg = `<b>Меню менеджера</b> <code>${
-        ctx.from.id
-      }</code>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${
-        stats.done
-      } = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${
-        stats.processing
-      } = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${
-        stats.refund
-      } = ${
-        Number.isNaN(refundP) ? 0 : refundP
-      }%\n\n<b>Статистика по последним заказам</b>\n`;
+      // prettier-ignore
+      let msg = `<b>Меню менеджера</b> <code>${ctx.from.id}</code>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${stats.processing} = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${stats.refund} = ${Number.isNaN(refundP) ? 0 : refundP}%\n\n<b>Статистика по последним заказам</b>\n`;
 
       if (user.stats.length > 0) {
         let summary = 0;

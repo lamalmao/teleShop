@@ -1,65 +1,63 @@
-const { Schema, Types, model } = require('mongoose');
-const fs = require('fs');
-const path = require('path');
-const nodeRSA = require('node-rsa');
-const CSVParser = require('csv-parser');
+const { Schema, Types, model } = require("mongoose");
+const CSVParser = require("csv-parser");
 
 const Delivery = new Schema({
   item: {
     type: Types.ObjectId,
-    required: true
+    required: true,
   },
   value: {
     type: String,
     required: true,
     get: getValue,
-    set: setValue
+    set: setValue,
   },
   delivered: {
     type: Boolean,
-    default: false
+    default: false,
   },
   accessable: {
     type: Boolean,
-    default: true
+    default: true,
   },
   addDate: {
     type: Date,
-    default: Date.now()
+    default: Date.now(),
   },
-  departureDate: Date
+  departureDate: Date,
 });
 
 function setValue(value) {
-  return global.key.encrypt(value, 'base64');
+  return global.key.encrypt(value, "base64");
 }
 
 function getValue(value) {
-  return global.key.decrypt(value).toString('utf-8');
+  return global.key.decrypt(value).toString("utf-8");
 }
 
 function parseTableToBase(file, item) {
   var dbTasks = [];
 
-  file.pipe(CSVParser())
-    .on('data', data => {
+  file
+    .pipe(CSVParser())
+    .on("data", (data) => {
       dbTasks.push(
         delivery.create({
           item: Types.ObjectId(item),
-          value: data.keys
+          value: data.keys,
         })
       );
     })
-    .on('end', async _ => {
+    .on("end", async (_) => {
       const result = await Promise.allSettled(dbTasks);
       console.log(`Parsed ${result.length} entries`);
 
       const length = result.length;
-      const done = result.filter(i => i.status === 'fulfilled').length;
+      const done = result.filter((i) => i.status === "fulfilled").length;
 
-      file.emit('done', {
+      file.emit("done", {
         done,
-        failed: length - done
+        failed: length - done,
       });
     });
 
@@ -68,7 +66,7 @@ function parseTableToBase(file, item) {
 
 Delivery.methods.parseFile = parseTableToBase;
 
-const delivery = model('delivery', Delivery)
+const delivery = model("delivery", Delivery);
 
 module.exports.delivery = delivery;
 module.exports.parseFile = parseTableToBase;

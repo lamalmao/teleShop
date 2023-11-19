@@ -1,69 +1,80 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model, SchemaTypes } = require("mongoose");
 
 const Order = new Schema({
   orderID: {
     type: Number,
     required: true,
-    unique: true
+    unique: true,
   },
   client: {
     type: Number,
-    required: true
+    required: true,
   },
   manager: {
     type: Number,
-    default: 0
+    default: 0,
   },
   status: {
     type: String,
     required: true,
-    enum: ['untaken', 'processing', 'done', 'refund', 'canceled', 'delivered'],
-    default: 'untaken'
+    enum: ["untaken", "processing", "done", "refund", "canceled", "delivered"],
+    default: "untaken",
   },
   paid: {
     type: Boolean,
-    default: false
+    default: false,
   },
   date: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   item: {
     type: String,
-    required: true
+    required: true,
   },
   itemTitle: {
     type: String,
-    required: true
+    required: true,
   },
   amount: {
     type: Number,
-    required: true
+    required: true,
   },
   platform: {
     type: String,
-    enum: ['ps', 'pc', 'android', 'xbox', 'nintendo']
+    enum: ["ps", "pc", "android", "xbox", "nintendo"],
   },
   data: {
     login: String,
-    password: String
+    password: String,
   },
   game: {
     type: String,
     enum: global.games,
-    required: true
+    required: true,
   },
   refundData: String,
   refundStatus: {
     type: String,
-    enum: ['rejected', 'approved', 'waiting']
+    enum: ["rejected", "approved", "waiting"],
   },
   extra: {
     message: String,
-    choice: String
-  }
+    choice: String,
+  },
+  keyIssued: {
+    type: Boolean,
+    default: false,
+  },
+  keyUsed: {
+    type: SchemaTypes.ObjectId,
+    required: false,
+  },
+  key: {
+    type: String,
+  },
 });
 
-const orders = model('orders', Order);
+const orders = model("orders", Order);
 
 module.exports = orders;

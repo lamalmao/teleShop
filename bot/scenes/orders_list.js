@@ -18,7 +18,6 @@ ordersList.enterHandler = async function (ctx) {
     };
 
     if (user.role === "manager" && user.game !== "all") {
-      console.log("setting game");
       dbRequest.game = user.game;
     }
 

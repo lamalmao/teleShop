@@ -142,7 +142,6 @@ const userRefund = new Scenes.WizardScene(
         ctx.updateType === "callback_query" &&
         ctx.callbackQuery.data === "back"
       ) {
-        console.log("LEMME IN");
         ctx.scene.reenter({
           refundID: ctx.scene.state.refundID,
         });

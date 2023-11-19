@@ -5,13 +5,17 @@ const crypto = require("crypto");
 
 const goods = require("../../models/goods");
 const categories = require("../../models/categories");
-const { delivery, parseFile } = require("../../models/delivery");
+const { parseFile, delivery } = require("../../models/delivery");
+const { parseManagerKeysFile } = require("../../models/manager-keys");
 
 const itemMenu = require("../item_menu");
 const keys = require("../keyboard");
 const axios = require("axios");
 const render = require("../../render");
 const { Types } = require("mongoose");
+const item = require("./item");
+const managerKey = require("../../models/manager-keys");
+const escapeHTML = require("escape-html");
 
 const cancelMenu = Markup.inlineKeyboard([
   Markup.button.callback("Отмена", "cancel"),
@@ -23,40 +27,37 @@ manageItem.enterHandler = async function (ctx) {
   try {
     ctx.scene.state.target = undefined;
 
+    const menuId = ctx.scene.state.menu.message_id;
     const item = ctx.scene.state.item;
+
     const itemMessage = await itemMenu.genItemMessage(item, true);
     const itemKeyboard = itemMenu.genItemKeyboard(item, true);
 
     ctx.scene.state.message = itemMessage;
     ctx.scene.state.keyboard = itemKeyboard;
 
-    await ctx.telegram.editMessageMedia(
-      ctx.from.id,
-      ctx.scene.state.menu.message_id,
-      undefined,
-      {
-        media: {
-          source: path.join(process.cwd(), "files", "images", item.bigImage),
-        },
-        type: "photo",
-      }
-    );
+    await ctx.telegram.editMessageMedia(ctx.from.id, menuId, undefined, {
+      media: {
+        source: path.join(process.cwd(), "files", "images", item.bigImage),
+      },
+      type: "photo",
+    });
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
-      ctx.scene.state.menu.message_id,
+      menuId,
       undefined,
       itemMessage,
       {
         reply_markup: itemKeyboard.reply_markup,
       }
     );
-  } catch (e) {
-    null;
 
+    ctx.scene.state.item = item;
+  } catch (e) {
     ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
     ctx.telegram
-      .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
-      .catch((_) => null);
+      .deleteMessage(ctx.from.id, ctx.scene.state.menu?.message_id)
+      .catch(() => null);
     ctx.scene.enter("showGoods", {
       menu: ctx.scene.state.menu,
       category: ctx.scene.state.category,
@@ -70,6 +71,7 @@ manageItem.action("cancel", (ctx) => {
   ctx.scene.state.action = undefined;
 
   ctx.scene.enter("manageItem", {
+    item: ctx.scene.state.item,
     menu: ctx.scene.state.menu,
     category: ctx.scene.state.category,
   });
@@ -82,12 +84,90 @@ manageItem.action(keys.BackMenu.buttons, (ctx) => {
   });
 });
 
+manageItem.action("downloadKeys", async (ctx) => {
+  try {
+    await ctx.sendChatAction("upload_document");
+
+    let keys;
+    if (ctx.scene.state.item.itemType === "auto") {
+      keys = await delivery.find(
+        {
+          item: ctx.scene.state.item._id,
+          delivered: false,
+          accessable: true,
+        },
+        {
+          value: 1,
+        }
+      );
+    } else {
+      keys = await managerKey.find(
+        {
+          item: ctx.scene.state.item._id,
+          used: false,
+        },
+        {
+          value: 1,
+        }
+      );
+    }
+
+    if (!keys || keys.length === 0) {
+      await ctx.answerCbQuery("Ключей нет");
+      return;
+    }
+
+    let data = "";
+    for (const key of keys) {
+      data += key.value + "\n";
+    }
+
+    await ctx.replyWithDocument(
+      {
+        filename: `${ctx.scene.state.item._id.toString()}.txt`,
+        source: Buffer.from(data),
+      },
+      {
+        caption: `Ключи для <b>${escapeHTML(ctx.scene.state.item.title)}</b>`,
+        parse_mode: "HTML",
+      }
+    );
+  } catch (error) {
+    ctx.scene.enter("manageItem", {
+      menu: ctx.scene.state.menu,
+      category: ctx.scene.state.category,
+    });
+  } finally {
+    ctx.answerCbQuery().catch(() => null);
+  }
+});
+
 manageItem.action("changeExtra", (ctx) => {
   ctx.scene.enter("change_extra", {
     menu: ctx.scene.state.menu,
     category: ctx.scene.state.category,
     item: ctx.scene.state.item,
   });
+});
+
+manageItem.action("switchSuspend", async (ctx) => {
+  try {
+    await goods.findByIdAndUpdate(ctx.scene.state.item._id, {
+      $set: {
+        suspended: !ctx.scene.state.item.suspended,
+      },
+    });
+
+    const item = await goods.findById(ctx.scene.state.item._id);
+    ctx.scene.state.item = item;
+  } catch {
+    ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
+  } finally {
+    ctx.scene.enter("manageItem", {
+      item: ctx.scene.state.item,
+      menu: ctx.scene.state.menu,
+    });
+  }
 });
 
 manageItem.action(/new#\S+/i, async (ctx) => {
@@ -115,11 +195,11 @@ manageItem.action(/new#\S+/i, async (ctx) => {
                   image: filename,
                 },
               })
-              .catch((err) => null);
+              .catch(() => null);
           })
-          .catch((err) => null);
+          .catch(() => null);
       })
-      .catch((err) => null);
+      .catch(() => null);
 
     render
       .renderShopPage(targetCategory)
@@ -212,11 +292,24 @@ manageItem.action(
               category: ctx.scene.state.category,
             });
             break;
+          case "managerKeys":
+            if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes) {
+              ctx.scene.state.item.managerKeys =
+                !ctx.scene.state.item.managerKeys;
+              await ctx.scene.state.item.save();
+            }
 
-            ctx.scene.state.target = undefined;
-            ctx.scene.state.validation = undefined;
-            ctx.scene.state.action = undefined;
+            ctx.scene.enter("manageItem", {
+              menu: ctx.scene.state.menu,
+              item: ctx.scene.state.item,
+              category: ctx.scene.state.category,
+            });
+            break;
         }
+
+        ctx.scene.state.target = undefined;
+        ctx.scene.state.validation = undefined;
+        ctx.scene.state.action = undefined;
       } else {
         ctx.scene.enter("manageItem", {
           menu: ctx.scene.state.menu,
@@ -239,9 +332,26 @@ manageItem.action(
   }
 );
 
-manageItem.action("loadKeys", async (ctx) => {
+manageItem.action("changeDeliveryType", (ctx) => {
+  ctx.scene.enter("change-delivery-type", {
+    item: ctx.scene.state.item,
+    menu: ctx.scene.state.menu,
+  });
+});
+
+manageItem.action(/loadKeys:(manager|deliveries)/, async (ctx) => {
   try {
+    const rawTarget = /loadKeys:(managers|deliveries)/.exec(
+      ctx.callbackQuery.data
+    );
+
+    if (!rawTarget) {
+      throw new Error("No data");
+    }
+
+    const target = rawTarget[1];
     ctx.scene.state.csv = true;
+    ctx.scene.state.csvTarget = target;
 
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
@@ -283,37 +393,68 @@ manageItem.on(
     try {
       const link = await ctx.telegram.getFileLink(ctx.message.document.file_id);
 
-      const localctx = ctx;
+      const localCtx = ctx;
       ctx.scene.state.csv = false;
 
-      axios({
-        method: "get",
-        url: link.href,
-        responseType: "stream",
-      }).then((res) => {
-        parseFile(res.data, ctx.scene.state.item)
-          .on("done", (result) => {
-            localctx
-              .reply(
-                `Готово!\nУспешно загружено: ${result.done}\nОшибок: ${result.failed}`
-              )
-              .then((msg) => {
-                setTimeout(function () {
-                  localctx.telegram
-                    .deleteMessage(localctx.from.id, msg.message_id)
-                    .catch((_) => null);
-                }, 5000);
-              })
-              .catch((_) => null);
-          })
-          .on("error", (err) => {
-            localctx
-              .reply(`Что-то пошло не так:\n<code>${err.message}</code>`, {
-                parse_mode: "HTML",
-              })
-              .catch((_) => null);
-          });
-      });
+      if (ctx.scene.state.csvTarget === "deliveries") {
+        axios({
+          method: "get",
+          url: link.href,
+          responseType: "stream",
+        }).then((res) => {
+          parseFile(res.data, ctx.scene.state.item)
+            .on("done", (result) => {
+              localCtx
+                .reply(
+                  `Готово!\nУспешно загружено: ${result.done}\nОшибок: ${result.failed}`
+                )
+                .then((msg) => {
+                  setTimeout(function () {
+                    localCtx.telegram
+                      .deleteMessage(localCtx.from.id, msg.message_id)
+                      .catch((_) => null);
+                  }, 5000);
+                })
+                .catch((_) => null);
+            })
+            .on("error", (err) => {
+              localCtx
+                .reply(`Что-то пошло не так:\n<code>${err.message}</code>`, {
+                  parse_mode: "HTML",
+                })
+                .catch((_) => null);
+            });
+        });
+      } else if (ctx.scene.state.csvTarget === "managers") {
+        axios({
+          method: "get",
+          url: link.href,
+          responseType: "stream",
+        }).then((res) => {
+          parseManagerKeysFile(res.data, ctx.scene.state.item)
+            .on("done", (result) => {
+              localCtx
+                .reply(
+                  `Готово!\nУспешно загружено: ${result.done}\nОшибок: ${result.failed}`
+                )
+                .then((msg) => {
+                  setTimeout(function () {
+                    localCtx.telegram
+                      .deleteMessage(localCtx.from.id, msg.message_id)
+                      .catch((_) => null);
+                  }, 5000);
+                })
+                .catch((_) => null);
+            })
+            .on("error", (err) => {
+              localCtx
+                .reply(`Что-то пошло не так:\n<code>${err.message}</code>`, {
+                  parse_mode: "HTML",
+                })
+                .catch((_) => null);
+            });
+        });
+      }
 
       ctx.scene.enter("manageItem", {
         menu: ctx.scene.state.menu,
@@ -370,13 +511,18 @@ manageItem.on("callback_query", async (ctx, next) => {
           target = "photo";
           break;
         case "delete":
-          msg = "Вы уверены";
+          msg = "Вы уверены?";
           keyboard = keys.YesNoMenu.keyboard;
           target = "delete";
           break;
         case "switchIsVBucks":
           msg = "Вы уверены?";
           target = "isVBucks";
+          keyboard = keys.YesNoMenu.keyboard;
+          break;
+        case "keysForManagers":
+          msg = "Вы уверены?";
+          target = "managerKeys";
           keyboard = keys.YesNoMenu.keyboard;
           break;
         case "changeFonts":
@@ -580,7 +726,7 @@ manageItem.on("photo", async (ctx) => {
           5000
         );
       })
-      .catch((_) => null);
+      .catch(() => null);
 
     ctx.scene.enter("manageItem", {
       menu: ctx.scene.state.menu,
@@ -592,7 +738,7 @@ manageItem.on("photo", async (ctx) => {
 
 manageItem.on("message", async (ctx) => {
   try {
-    ctx.deleteMessage().catch((_) => null);
+    ctx.deleteMessage().catch(() => null);
     let needToRender = true;
 
     if (ctx.scene.state.action === "message" && !ctx.message.photo) {

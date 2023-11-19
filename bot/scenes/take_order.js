@@ -9,6 +9,9 @@ const goods = require("../../models/goods");
 
 const keys = require("../keyboard");
 const messages = require("../messages");
+const { genItemMessage } = require("../item_menu");
+const managerKey = require("../../models/manager-keys");
+const escapeHTML = require("escape-html");
 
 const takeOrder = new Scenes.BaseScene("take_order");
 
@@ -49,16 +52,38 @@ takeOrder.enterHandler = async function (ctx) {
         queryPart,
       });
 
+      const item = await goods.findById(order.item, {
+        managerKeys: 1,
+      });
+
       const client = await users.findOne(
         {
           telegramID: order.client,
         },
-        "username"
+        {
+          username: 1,
+        }
       );
 
       if (!order) {
         ctx.answerCbQuery("Заказ не найден или занят").catch((_) => null);
         ctx.scene.enter("orders_list");
+        return;
+      } else if (order.keyIssued && order.manager !== ctx.from.id) {
+        ctx.answerCbQuery("Заказ нельзя взять").catch((_) => null);
+        ctx.scene.enter("orders_list");
+        return;
+      } else if (order.manager !== ctx.from.id && user.keyedOrder !== 0) {
+        ctx
+          .reply(
+            `Вы не можете взять новый заказ до тех пор, пока не выполните заказ на который получили ключ (<code>${user.keyedOrder}</code>)`,
+            {
+              parse_mode: "HTML",
+            }
+          )
+          .catch(() => null);
+        ctx.scene.enter("orders_list");
+        return;
       } else {
         if (
           order.status !== "done" &&
@@ -87,41 +112,35 @@ takeOrder.enterHandler = async function (ctx) {
             [Markup.button.callback("Оформить возврат", "order_refund")],
             [Markup.button.callback("Отменить заказ", "order_cancel")],
             [Markup.button.callback("Запросить код", "request_code")],
-            [Markup.button.callback("Отказаться от выполнения", "order_reject")]
+            [
+              Markup.button.callback(
+                "Отказаться от выполнения",
+                "order_reject",
+                order.keyIssued
+              ),
+            ],
+            [
+              Markup.button.callback(
+                "Взять ключ",
+                "take_key",
+                !(item.managerKeys && item.itemType !== "auto")
+              ),
+            ]
           );
         }
         keyboard.push([Markup.button.callback("Назад", "manager_menu")]);
 
         keyboard = Markup.inlineKeyboard(keyboard);
 
-        const data =
-          order.data.login || order.data.password
-            ? `<i>Логин (почта):</i> <code>${escape(
-                order.data.login
-              )}</code>\n<i>Пароль:</i> <code>${escape(
-                order.data.password
-              )}</code>`
-            : "[ДАННЫЕ УДАЛЕНЫ]";
-        let msg = `Заказ <code>${
-          order.orderID
-        }</code>\n\n<i>Клиент:</i> <a href="tg://user?id=${
-          order.client
-        }">${escape(client.username)}</a>\n<i>Товар:</i> ${
-          order.itemTitle
-        }\n<i>Игра</i>: <b>${order.game}</b>\n<i>Статус:</i> ${statuses.get(
-          order.status
-        )}\n<i>Дата:</i> ${new Date(order.date).toLocaleString(
-          "ru-RU"
-        )}\n\n<b>Данные для выполнения</b>\n\n<i>Платформа:</i> ${platforms.get(
-          order.platform
-        )}\n${data}`;
+        //prettier-ignore
+        const data = order.data.login || order.data.password ? `<i>Логин (почта):</i> <code>${escape(order.data.login)}</code>\n<i>Пароль:</i> <code>${escape(order.data.password)}</code>` : "[ДАННЫЕ УДАЛЕНЫ]";
+
+        //prettier-ignore
+        let msg = `Заказ <code>${order.orderID}</code>\n\n<i>Клиент:</i> <a href="tg://user?id=${order.client}">${escape(client.username)}</a>\n<i>Товар:</i> ${order.itemTitle}\n<i>Игра</i>: <b>${order.game}</b>\n<i>Статус:</i> ${statuses.get(order.status)}\n<i>Дата:</i> ${new Date(order.date).toLocaleString("ru-RU")}\n\n<b>Данные для выполнения</b>\n\n<i>Платформа:</i> ${platforms.get(order.platform)}\n${data}`;
 
         if (order.extra.message) {
-          msg += `\n\n<b>Дополнительный вопрос:</b> "<i>${escape(
-            order.extra.message
-          )}</i>"\n<b>Ответ пользователя:</b> <i>${escape(
-            order.extra.choice
-          )}</i>`;
+          //prettier-ignore
+          msg += `\n\n<b>Дополнительный вопрос:</b> "<i>${escape(order.extra.message)}</i>"\n<b>Ответ пользователя:</b> <i>${escape(order.extra.choice)}</i>`;
         }
 
         ctx.scene.state.order = order;
@@ -168,6 +187,105 @@ takeOrder.on("callback_query", async (ctx, next) => {
   } catch (e) {
     null;
     ctx.scene.leave();
+  }
+});
+
+takeOrder.action("take_key", async (ctx) => {
+  try {
+    const user = await users.findOne(
+      {
+        telegramID: ctx.from.id,
+      },
+      {
+        keyedOrder: 1,
+      }
+    );
+
+    const order = await orders.findById(ctx.scene.state.order._id, {
+      keyUsed: 1,
+      keyIssued: 1,
+      itemTitle: 1,
+      item: 1,
+      orderID: 1,
+    });
+
+    if (user.keyedOrder !== 0 && user.keyedOrder !== order.orderID) {
+      await ctx.answerCbQuery(
+        `Вы не можете взять ключ, пока не выполните заказ ${user.keyedOrder}`
+      );
+      return;
+    }
+
+    let key;
+    if (order.keyIssued) {
+      key = await managerKey.findById(order.keyUsed);
+    } else {
+      key = await managerKey.findOneAndUpdate(
+        {
+          used: false,
+          item: order.item,
+        },
+        {
+          $set: {
+            used: true,
+          },
+        }
+      );
+    }
+
+    if (!key) {
+      ctx.answerCbQuery("Ключи закончились").catch(() => null);
+      // prettier-ignore
+      ctx.telegram.sendMessage(global.ownerID, `У товара <b>${escape(order.itemTitle)}</b> закончились ключи для менеджеров`, {
+        parse_mode: 'HTML'
+      });
+      return;
+    }
+
+    order.keyIssued = true;
+    order.keyUsed = key._id;
+    order.key = key.value + " (М)";
+
+    order.save().catch(() => null);
+
+    await users.updateOne(
+      {
+        telegramID: ctx.from.id,
+      },
+      {
+        $set: {
+          keyedOrder: order.orderID,
+        },
+      }
+    );
+
+    // prettier-ignore
+    await ctx.reply(`Ключ для заказа <code>${order.orderID}</code>\n\n<code>${escapeHTML(key.value)}</code>`, {
+      parse_mode: "HTML"
+    });
+
+    managerKey
+      .countDocuments({
+        used: false,
+        item: order.item,
+      })
+      .then((count) => {
+        if (count <= 3) {
+          ctx.telegram
+            .sendMessage(
+              global.ownerID,
+              //prettier-ignore
+              `У товара <b>${escape(order.itemTitle)}</b> осталось ${count} ключа для менеджеров`,
+              {
+                parse_mode: "HTML",
+              }
+            )
+            .catch(() => null);
+        }
+      })
+      .catch(() => null);
+  } catch (error) {
+    ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
   }
 });
 
@@ -301,6 +419,28 @@ takeOrder.action("done", async (ctx) => {
     ctx.scene.state.order.date = new Date();
     await ctx.scene.state.order.save();
 
+    const user = await users.findOne(
+      {
+        telegramID: ctx.from.id,
+      },
+      {
+        keyedOrder: 1,
+      }
+    );
+
+    if (user.keyedOrder === ctx.scene.state.order.orderID) {
+      await users.updateOne(
+        {
+          telegramID: ctx.from.id,
+        },
+        {
+          $set: {
+            keyedOrder: 0,
+          },
+        }
+      );
+    }
+
     ctx.telegram
       .sendMessage(
         ctx.scene.state.order.client,
@@ -376,6 +516,18 @@ takeOrder.action("done", async (ctx) => {
 
 takeOrder.action("order_reject", async (ctx) => {
   try {
+    const order = await orders.findById(ctx.scene.state.order._id, {
+      keyIssued: 1,
+    });
+
+    if (order?.keyIssued) {
+      ctx
+        .answerCbQuery("Нельзя отказаться от заказа после получения ключа")
+        .catch(() => null);
+
+      return;
+    }
+
     await ctx.telegram.editMessageText(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,

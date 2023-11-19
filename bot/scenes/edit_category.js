@@ -82,11 +82,6 @@ editCategory.on(
           ctx.scene.state.action = undefined;
 
           if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes) {
-            console.log(
-              ctx.scene.state.category.hidden,
-              !ctx.scene.state.category.hidden
-            );
-
             await categories.updateOne(
               {
                 _id: ctx.scene.state.category._id,

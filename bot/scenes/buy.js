@@ -32,9 +32,10 @@ buy.enterHandler = async function (ctx) {
       _id: Types.ObjectId(itemID),
     });
 
-    if (item.hidden) {
-      ctx.answerCbQuery("На данный момент товар недоступен").catch((_) => null);
+    if (item.hidden || item.suspended) {
+      ctx.reply("На данный момент товар недоступен").catch((_) => null);
       ctx.scene.enter(`shop`);
+      return;
     } else {
       const user = await users.findOne(
         {
@@ -74,6 +75,8 @@ buy.enterHandler = async function (ctx) {
             button = "supercell_proceed#";
           } else if (item.game === "genshin") {
             button = "genshin_proceed#";
+          } else {
+            button = "proceed#";
           }
           // button = (item.game === 'fortnite' ? 'proceed#' : 'supercell_proceed#') + item._id;
 

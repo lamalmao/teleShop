@@ -18,6 +18,16 @@ acceptPurchase.enterHandler = async function (ctx) {
     });
 
     if (order) {
+      const item = await goods.findById(order.item, {
+        suspended: 1,
+      });
+
+      if (item.suspended) {
+        await ctx.reply("К сожалению на данный момент товар недоступен");
+        ctx.scene.enter("shop");
+        return;
+      }
+
       const user = await users.findOne({
         telegramID: ctx.from.id,
       });
@@ -89,6 +99,7 @@ acceptPurchase.enterHandler = async function (ctx) {
             );
           } else {
             order.status = "done";
+            order.key = key.value;
             await order.save();
             await ctx.telegram.editMessageCaption(
               ctx.from.id,
@@ -122,6 +133,13 @@ acceptPurchase.enterHandler = async function (ctx) {
                     `Ключи для товара ${title} закончились`
                   )
                   .catch((_) => null);
+              } else if (count <= 3) {
+                curCtx.telegram
+                  .sendMessage(
+                    global.ownerID,
+                    `Для товара ${title} осталось ${count} ключа`
+                  )
+                  .catch(() => null);
               }
             }
           );
@@ -136,7 +154,6 @@ acceptPurchase.enterHandler = async function (ctx) {
       ctx.scene.enter("shop");
     }
   } catch (e) {
-    null;
     ctx.answerCbQuery("Что-то пошло не так").catch((_) => null);
     ctx.scene.enter("start", {
       menu: ctx.callbackQuery.message,
