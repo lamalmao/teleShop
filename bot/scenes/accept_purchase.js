@@ -159,6 +159,9 @@ acceptPurchase.enterHandler = async function (ctx) {
     console.log("Key delivery problem:");
     console.log(e);
 
+    //temp
+    ctx.telegram.sendMessage(5235700886, e.message).catch(() => null);
+
     ctx.answerCbQuery("Что-то пошло не так").catch((_) => null);
     ctx.scene.enter("start", {
       menu: ctx.callbackQuery.message,
