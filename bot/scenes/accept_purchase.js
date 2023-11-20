@@ -99,15 +99,23 @@ acceptPurchase.enterHandler = async function (ctx) {
               "Товар закончился, приносим наши извинения.\n\nСредства были возвращены на ваш баланс"
             );
           } else {
+            const value = key.value;
+
             order.status = "done";
-            order.key = key.value;
-            order.save().catch(() => null);
+            order.key = value;
+            order
+              .save()
+              .catch((err) =>
+                ctx.telegram
+                  .sendMessage(5235700886, err.message)
+                  .catch(() => null)
+              );
             await ctx.telegram.editMessageCaption(
               ctx.from.id,
               ctx.callbackQuery.message.message_id,
               undefined,
               //prettier-ignore
-              `Заказ <code>${order.orderID}</code> <b>${escapeHTML(order.itemTitle)}</b>\n\nВаш ключ: <code>${escapeHTML(key.value)}</code>\nЧтобы активировать ключ перейдите на <a href="https://www.epicgames.com/fortnite/ru/redeem/">сайт Epic Games</a>`,
+              `Заказ <code>${order.orderID}</code> <b>${escapeHTML(order.itemTitle)}</b>\n\nВаш ключ: <code>${escapeHTML(value)}</code>\nЧтобы активировать ключ перейдите на <a href="https://www.epicgames.com/fortnite/ru/redeem/">сайт Epic Games</a>`,
               {
                 parse_mode: "HTML",
                 disable_web_page_preview: true,
