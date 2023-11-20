@@ -37,16 +37,33 @@ acceptPurchase.enterHandler = async function (ctx) {
         ctx.answerCbQuery("Недостаточно денег на балансе").catch((_) => null);
         ctx.scene.enter("shop");
       } else {
-        user.balance -= order.amount;
-        user.purchases++;
-        user.onlineUntil = new Date(Date.now() + 15 * 60 * 1000);
-        user.save().catch((_) => null);
+        await users.updateOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            $inc: {
+              balance: -order.amount,
+              purchases: 1,
+            },
+            $set: {
+              onlineUntil: new Date(Date.now() + 15 * 60 * 1000),
+            },
+          }
+        );
 
-        order.paid = true;
-        order.save().catch((_) => null);
+        await orders.updateOne(
+          {
+            orderID: order.orderID,
+          },
+          {
+            $set: {
+              paid: true,
+            },
+          }
+        );
 
         ctx.scene.state.menu = ctx.callbackQuery.message;
-
         const item = await goods.findById(order.item, "itemType");
 
         if (
@@ -87,10 +104,19 @@ acceptPurchase.enterHandler = async function (ctx) {
           if (!key) {
             user.balance += order.amount;
             user.purchases--;
+
             await user.save();
 
-            order.paid = false;
-            await order.save();
+            await orders.updateOne(
+              {
+                orderID: order.orderID,
+              },
+              {
+                $set: {
+                  paid: false,
+                },
+              }
+            );
 
             await ctx.telegram.editMessageCaption(
               ctx.from.id,
@@ -101,15 +127,18 @@ acceptPurchase.enterHandler = async function (ctx) {
           } else {
             const value = key.value;
 
-            order.status = "done";
-            order.key = value;
-            order
-              .save()
-              .catch((err) =>
-                ctx.telegram
-                  .sendMessage(5235700886, err.message)
-                  .catch(() => null)
-              );
+            await orders.updateOne(
+              {
+                orderID: order.orderID,
+              },
+              {
+                $set: {
+                  status: "done",
+                  key: value,
+                },
+              }
+            );
+
             await ctx.telegram.editMessageCaption(
               ctx.from.id,
               ctx.callbackQuery.message.message_id,
