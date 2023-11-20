@@ -39,7 +39,7 @@ takeOrder.enterHandler = async function (ctx) {
     if (user.role === "admin" || user.role === "manager") {
       const orderID = ctx.scene.state.orderID
         ? ctx.scene.state.orderID
-        : /\d+/.exec(ctx.callbackQuery.data)[0];
+        : Number(/\d+/.exec(ctx.callbackQuery.data)[0]);
 
       let queryPart = ctx.scene.state.interception
         ? undefined
@@ -47,7 +47,7 @@ takeOrder.enterHandler = async function (ctx) {
             $or: [{ status: "untaken" }, { manager: ctx.from.id }],
           };
 
-      const order = await orders.findOne({
+      let order = await orders.findOne({
         orderID: orderID,
         queryPart,
       });
@@ -86,15 +86,29 @@ takeOrder.enterHandler = async function (ctx) {
         return;
       } else {
         if (
-          order.status !== "done" &&
-          order.status !== "refund" &&
-          order.status !== "canceled" &&
-          order.status !== "delivered"
+          order.status === "processing" ||
+          order.status === "untaken"
+          // order.status !== "done" &&
+          // order.status !== "refund" &&
+          // order.status !== "canceled" &&
+          // order.status !== "delivered"
         ) {
-          order.status = "processing";
-          order.manager = ctx.from.id;
-          await order.save();
+          await orders.updateOne(
+            {
+              orderID: order.orderID,
+            },
+            {
+              $set: {
+                status: "processing",
+                manager: user.telegramID,
+              },
+            }
+          );
         }
+
+        order = await orders.findOne({
+          orderID,
+        });
 
         let keyboard = [
           [
@@ -242,11 +256,18 @@ takeOrder.action("take_key", async (ctx) => {
       return;
     }
 
-    order.keyIssued = true;
-    order.keyUsed = key._id;
-    order.key = key.value + " (М)";
-
-    order.save().catch(() => null);
+    await orders.updateOne(
+      {
+        orderID: order.orderID,
+      },
+      {
+        $set: {
+          keyIssued: true,
+          keyUsed: key._id,
+          key: key.value + " (M)",
+        },
+      }
+    );
 
     await users.updateOne(
       {
