@@ -259,7 +259,6 @@ takeOrder.action("return_key", async (ctx) => {
       $set: {
         status: "canceled",
         keyIssued: false,
-        client: 1,
       },
       $unset: {
         key: 1,
