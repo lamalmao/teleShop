@@ -262,8 +262,7 @@ takeOrder.action("return_key", async (ctx) => {
       },
       $unset: {
         key: 1,
-        keyUsed: 1,
-        manager: 1,
+        keyUsed: 1
       },
     });
 
