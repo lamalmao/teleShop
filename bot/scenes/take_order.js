@@ -9,7 +9,6 @@ const goods = require("../../models/goods");
 
 const keys = require("../keyboard");
 const messages = require("../messages");
-const { genItemMessage } = require("../item_menu");
 const managerKey = require("../../models/manager-keys");
 const escapeHTML = require("escape-html");
 
@@ -32,6 +31,8 @@ platforms.set("xbox", "XBox");
 
 takeOrder.enterHandler = async function (ctx) {
   try {
+    const menuId = ctx.scene.state.menu;
+
     const user = await users.findOne({
       telegramID: ctx.from.id,
     });
@@ -70,7 +71,7 @@ takeOrder.enterHandler = async function (ctx) {
         ctx.scene.enter("orders_list");
         return;
       } else if (order.keyIssued && order.manager !== ctx.from.id) {
-        ctx.answerCbQuery("Заказ нельзя взять").catch((_) => null);
+        ctx.answerCbQuery("Заказ нельзя взять").catch(() => null);
         ctx.scene.enter("orders_list");
         return;
       } else if (order.manager !== ctx.from.id && user.keyedOrder !== 0) {
@@ -123,8 +124,20 @@ takeOrder.enterHandler = async function (ctx) {
         if (order.status === "processing") {
           keyboard.push(
             [Markup.button.callback("Заказ выполнен", "order_done")],
-            [Markup.button.callback("Оформить возврат", "order_refund")],
-            [Markup.button.callback("Отменить заказ", "order_cancel")],
+            [
+              Markup.button.callback(
+                "Оформить возврат",
+                "order_refund",
+                order.keyIssued
+              ),
+            ],
+            [
+              Markup.button.callback(
+                "Отменить заказ",
+                "order_cancel",
+                order.keyIssued
+              ),
+            ],
             [Markup.button.callback("Запросить код", "request_code")],
             [
               Markup.button.callback(
@@ -136,14 +149,21 @@ takeOrder.enterHandler = async function (ctx) {
             [
               Markup.button.callback(
                 "Взять ключ",
-                "take_key",
+                "ask_for_key",
                 !(item.managerKeys && item.itemType !== "auto")
+              ),
+            ],
+            [
+              Markup.button.callback(
+                "Вернуть ключ и отменить заказ",
+                "return_key",
+                !order.keyIssued
               ),
             ]
           );
         }
-        keyboard.push([Markup.button.callback("Назад", "manager_menu")]);
 
+        keyboard.push([Markup.button.callback("Назад", "manager_menu")]);
         keyboard = Markup.inlineKeyboard(keyboard);
 
         //prettier-ignore
@@ -159,26 +179,27 @@ takeOrder.enterHandler = async function (ctx) {
 
         ctx.scene.state.order = order;
 
-        await ctx.telegram.editMessageText(
-          ctx.from.id,
-          ctx.callbackQuery.message.message_id,
-          undefined,
-          msg,
-          {
-            reply_markup: keyboard.reply_markup,
-            parse_mode: "HTML",
-          }
-        );
+        ctx.telegram
+          .editMessageText(
+            ctx.from.id,
+            menuId || ctx.callbackQuery.message.message_id,
+            undefined,
+            msg,
+            {
+              reply_markup: keyboard.reply_markup,
+              parse_mode: "HTML",
+            }
+          )
+          .catch(() => null);
       }
     } else {
-      ctx.answerCbQuery("У вас нет прав").catch((_) => null);
+      ctx.answerCbQuery("У вас нет прав").catch(() => null);
       ctx.scene.leave();
     }
   } catch (e) {
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
-      .catch((_) => null);
-    null;
+      .catch(() => null);
     ctx.scene.enter("manager_menu");
   }
 };
@@ -192,8 +213,17 @@ takeOrder.on("callback_query", async (ctx, next) => {
       "_id role"
     );
 
-    if (user.role === "manager" || user.role === "admin") next();
-    else {
+    if (user.role === "manager" || user.role === "admin") {
+      const order = await orders.findById(ctx.scene.state.order._id);
+
+      if (order.manager !== ctx.from.id) {
+        ctx.answerCbQuery("Заказ выполняется не вами").catch(() => null);
+        ctx.scene.enter("manager_menu");
+        return;
+      }
+
+      next();
+    } else {
       ctx.answerCbQuery("У вас более нет доступа").catch((_) => null);
       ctx.deleteMessage().catch((_) => null);
       ctx.scene.leave();
@@ -204,8 +234,99 @@ takeOrder.on("callback_query", async (ctx, next) => {
   }
 });
 
+takeOrder.action("ask_for_key", async (ctx) => {
+  try {
+    ctx.scene.state.menu = ctx.callbackQuery.message.message_id;
+
+    await ctx.reply("Вы уверены что хотите взять ключ?", {
+      reply_markup: Markup.inlineKeyboard([
+        [Markup.button.callback("Да", "take_key")],
+        [Markup.button.callback("Нет", "delete_message")],
+      ]).reply_markup,
+    });
+  } catch {
+    ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
+  }
+});
+
+takeOrder.action("delete_message", (ctx) => {
+  ctx.deleteMessage().catch(() => null);
+});
+
+takeOrder.action("return_key", async (ctx) => {
+  try {
+    const order = await orders.findByIdAndUpdate(ctx.scene.state.order._id, {
+      $set: {
+        status: "canceled",
+        keyIssued: false,
+        client: 1,
+      },
+      $unset: {
+        key: 1,
+        keyUsed: 1,
+        manager: 1,
+      },
+    });
+
+    users
+      .updateOne(
+        {
+          telegramID: order.manager,
+        },
+        {
+          $set: {
+            keyedOrder: 0,
+          },
+        }
+      )
+      .catch(() => null);
+
+    await managerKey.updateOne(
+      {
+        _id: order.keyUsed,
+      },
+      {
+        $set: {
+          used: false,
+        },
+      }
+    );
+
+    await users.updateOne(
+      {
+        telegramID: order.client,
+      },
+      {
+        $inc: {
+          balance: order.amount,
+        },
+      }
+    );
+
+    ctx.telegram
+      .sendMessage(
+        order.client,
+        //prettier-ignore
+        `Заказ <code>${order.orderID}</code> - <b>${escapeHTML(order.itemTitle)}</b> был отменен\n<b>${order.amount}</b> рублей были возвращены на Ваш баланс`,
+        {
+          parse_mode: "HTML",
+        }
+      )
+      .catch(() => null);
+
+    ctx
+      .answerCbQuery("Заказ успешно отменён, ключ возвращен в пул")
+      .catch(() => null);
+    ctx.scene.enter("manager_menu");
+  } catch {
+    ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
+  }
+});
+
 takeOrder.action("take_key", async (ctx) => {
   try {
+    ctx.deleteMessage().catch(() => null);
+
     const user = await users.findOne(
       {
         telegramID: ctx.from.id,
@@ -305,6 +426,13 @@ takeOrder.action("take_key", async (ctx) => {
         }
       })
       .catch(() => null);
+
+    const menu = ctx.scene.state.menu;
+
+    ctx.scene.enter("take_order", {
+      menu,
+      orderID: order.orderID,
+    });
   } catch (error) {
     ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
   }

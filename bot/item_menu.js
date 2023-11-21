@@ -114,6 +114,16 @@ function genItemKeyboard(item, isAdmin) {
       [cb("Изменить скидку", "changeDiscount")],
       [cb("Изменить тип доставки", "changeDeliveryType")],
       [cb("Загрузить ключи", "loadKeys:deliveries", item.itemType !== "auto")],
+      [
+        cb(
+          "Удалить ключи",
+          "deleteKeys",
+          !(
+            item.itemType === "auto" ||
+            (item.managerKeys && item.itemType !== "auto")
+          )
+        ),
+      ],
       [cb("В-Баксы?", "switchIsVBucks", item.game !== "fortnite")],
       [cb("Изменить размеры шрифтов", "changeFonts")],
       [

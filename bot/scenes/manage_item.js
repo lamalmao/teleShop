@@ -244,6 +244,36 @@ manageItem.action(
     try {
       if (ctx.scene.state.action) {
         switch (ctx.scene.state.target) {
+          case "deleteKeys":
+            if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.no) {
+              ctx.scene.enter("manageItem", {
+                menu: ctx.scene.state.menu,
+                item: ctx.scene.state.item,
+                category: ctx.scene.state.category,
+              });
+
+              return;
+            }
+
+            let result;
+            if (ctx.scene.state.item.itemType === "auto") {
+              result = await delivery.deleteMany({
+                item: ctx.scene.state.item._id,
+              });
+            } else {
+              result = await managerKey.deleteMany({
+                item: ctx.scene.state.item._id,
+              });
+            }
+
+            const item = await goods.findById(ctx.scene.state.item._id);
+            ctx.scene.enter("manageItem", {
+              menu: ctx.scene.state.menu,
+              item,
+              category: ctx.scene.state.category,
+            });
+
+            break;
           case "delete":
             if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes) {
               await goods.findByIdAndDelete(ctx.scene.state.item._id);
@@ -523,6 +553,11 @@ manageItem.on("callback_query", async (ctx, next) => {
         case "keysForManagers":
           msg = "Вы уверены?";
           target = "managerKeys";
+          keyboard = keys.YesNoMenu.keyboard;
+          break;
+        case "deleteKeys":
+          msg = "Вы уверены?";
+          target = "deleteKeys";
           keyboard = keys.YesNoMenu.keyboard;
           break;
         case "changeFonts":
