@@ -36,6 +36,7 @@ acceptPurchase.enterHandler = async function (ctx) {
       if (user.balance < order.amount) {
         ctx.answerCbQuery("Недостаточно денег на балансе").catch((_) => null);
         ctx.scene.enter("shop");
+        return;
       } else {
         await users.updateOne(
           {
@@ -52,7 +53,7 @@ acceptPurchase.enterHandler = async function (ctx) {
           }
         );
 
-        await orders.updateOne(
+        const up = await orders.updateOne(
           {
             orderID: order.orderID,
           },
@@ -102,10 +103,17 @@ acceptPurchase.enterHandler = async function (ctx) {
           );
 
           if (!key) {
-            user.balance += order.amount;
-            user.purchases--;
-
-            await user.save();
+            await users.updateOne(
+              {
+                telegramID: ctx.from.id,
+              },
+              {
+                $inc: {
+                  balance: order.amount,
+                  purchases: -1,
+                },
+              }
+            );
 
             await orders.updateOne(
               {

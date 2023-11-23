@@ -4,7 +4,6 @@ const crypto = require("crypto");
 
 const goods = require("../../models/goods");
 const users = require("../../models/users");
-const keys = require("../keyboard");
 const orders = require("../../models/orders");
 
 const buy = new Scenes.BaseScene("buy");
