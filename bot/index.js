@@ -1,4 +1,4 @@
-const { Telegraf, session } = require("telegraf");
+const { Telegraf, session, Markup } = require("telegraf");
 const stage = require("./scenes");
 const clean = require("../cleanup");
 const users = require("../models/users");
@@ -50,6 +50,34 @@ function CreateBot(token) {
         );
       }
     } catch (e) {
+      null;
+    }
+  });
+
+  bot.command("orders", async (ctx, next) => {
+    try {
+      const user = await users.findOne(
+        {
+          telegramID: ctx.from.id,
+        },
+        {
+          role: 1,
+        }
+      );
+
+      if (user && user.role !== "client") {
+        await ctx.reply("Никому не передавайте эту ссылку", {
+          reply_markup: Markup.inlineKeyboard([
+            [
+              Markup.button.url(
+                "Заказы",
+                `http://83.222.11.174/?u=${user._id.toString()}`
+              ),
+            ],
+          ]).reply_markup,
+        });
+      }
+    } catch {
       null;
     }
   });
