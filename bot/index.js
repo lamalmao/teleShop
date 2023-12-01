@@ -83,7 +83,7 @@ function CreateBot(token) {
     },
     async (ctx) => {
       try {
-        await ctx.reply("Удалить все транзакции всех карта?", {
+        await ctx.reply("Удалить все транзакции всех карт?", {
           reply_markup: Markup.inlineKeyboard([
             [Markup.button.callback("Да", "sure-delete-transactions")],
             [Markup.button.callback("Нет", "delete-message")],
@@ -96,7 +96,7 @@ function CreateBot(token) {
   );
 
   bot.action(
-    "sure-delete-message",
+    "sure-delete-transactions",
     async (ctx, next) => {
       try {
         const user = await users.findOne(
@@ -141,11 +141,9 @@ function CreateBot(token) {
           }
         );
 
-        if (!user || user.role !== "admin") {
-          return;
+        if (user && user.role === "admin") {
+          next();
         }
-
-        next();
       } catch {
         return;
       }
@@ -194,36 +192,23 @@ function CreateBot(token) {
         let sum = 0;
         let text = "<u>Статистика заказов за 24 часа</u>\n";
 
+        const data = new Map();
+
         for (const stat of orderStats) {
           total += stat.count;
           sum += stat.sum;
 
-          let pre;
-          switch (stat._id) {
-            case "refund":
-              pre = "Возвратов";
-              break;
-            case "done":
-              pre = "Выполнено";
-              break;
-            case "canceled":
-              pre = "Отменено";
-              break;
-            case "processing":
-              pre = "В работе";
-              break;
-            case "refund":
-              pre = "Ожидает";
-              break;
-            default:
-              continue;
-          }
-
-          text = text.concat(`\n<i>${pre}: ${stat.count}</i>`);
+          data.set(stat._id, stat.count);
         }
 
         text = text.concat(
-          `\n<b>Всего заказов: ${total}</b>\n<b>Сумма заказов: ${sum}</b>\n\n<u>Статистика менеджеров за 24 часа</u>\n`
+          `\n<b>Заказов за сутки: ${total}</b>\n<i>Отмен за сутки: ${
+            data.get("canceled") || 0
+          }</i>\n<i>Возвратов за сутки: ${
+            data.get("refund") || 0
+          }</i>\n<i>Сделано заказов за сутки: ${
+            data.get("done") || 0
+          }</i>\n<b>Сумма заказов: ${sum} рублей</b>\n\n<u>Статистика менеджеров за 24 часа</u>\n`
         );
 
         for (const managerStat of managerStats) {
@@ -246,6 +231,56 @@ function CreateBot(token) {
         await ctx.reply(text, {
           parse_mode: "HTML",
         });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  );
+
+  bot.command(
+    "balance",
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            role: 1,
+          }
+        );
+
+        if (user && user.role === "admin") {
+          next();
+        }
+      } catch {
+        return;
+      }
+    },
+    async (ctx) => {
+      try {
+        const cardsData = await cards.aggregate([
+          {
+            $group: {
+              _id: "$currency",
+              sum: { $sum: "$balance" },
+            },
+          },
+        ]);
+
+        const data = new Map();
+        for (const currency of cardsData) {
+          data.set(currency._id, currency.sum);
+        }
+
+        await ctx.reply(
+          `<b>Суммарный баланс карт</b>\n\nUAH - ${
+            data.get("UAH") || 0
+          }\nUSD - ${data.get("USD") || 0}\nUAH - ${data.get("USD") || 0}`,
+          {
+            parse_mode: "HTML",
+          }
+        );
       } catch (error) {
         console.log(error);
       }

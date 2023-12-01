@@ -36,7 +36,7 @@ cardTransactionsScene.enterHandler = async (ctx) => {
       },
       {
         sort: {
-          date: -1,
+          date: 1,
         },
       }
     );
