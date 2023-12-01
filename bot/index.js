@@ -150,14 +150,26 @@ function CreateBot(token) {
     },
     async (ctx) => {
       try {
-        const past = new Date(Date.now() - 86400000);
+        const now = new Date();
+        const day = now.getDate();
+        const month = now.getMonth();
+        const year = now.getFullYear();
+
+        const from = new Date(year, month, day, 0, 0, 0, 0);
+        const to = new Date(from.getTime() + 86400000);
+
+        const totalWait = await orders.count({
+          paid: true,
+          status: "untaken",
+        });
 
         const orderStats = await orders.aggregate([
           {
             $match: {
               paid: true,
               date: {
-                $gte: past,
+                $gte: from,
+                $lte: to,
               },
             },
           },
@@ -176,7 +188,8 @@ function CreateBot(token) {
               paid: true,
               status: "done",
               date: {
-                $gte: past,
+                $gte: from,
+                $lte: to,
               },
             },
           },
@@ -212,7 +225,7 @@ function CreateBot(token) {
             data.get("processing") || 0
           }</i>\n<i>Заказов ожидает: ${
             data.get("untaken") || 0
-          }</i>\n<b>Сумма заказов: ${sum} рублей</b>\n\n<u>Статистика менеджеров за 24 часа</u>\n`
+          }</i>\n<b><i>Всего заказов ожидает: ${totalWait}</i></b>\n<b>Сумма заказов: ${sum} рублей</b>\n\n<u>Статистика менеджеров за 24 часа</u>\n`
         );
 
         for (const managerStat of managerStats) {
@@ -935,6 +948,17 @@ function CreateBot(token) {
         throw new Error("No access");
       }
 
+      const now = new Date();
+      const day = now.getDate();
+      const month = now.getMonth();
+      const year = now.getFullYear();
+      const dayInMs = 24 * 60 * 60 * 1000;
+
+      const to = new Date(year, month, day, 0, 0, 0, 0);
+      const fromDay = new Date(to.getTime() - dayInMs);
+      const fromWeek = new Date(to.getTime() - dayInMs * 7);
+      const fromMonth = new Date(to.getTime() - dayInMs * 30);
+
       const allCount = await users.count({
         role: "client",
       });
@@ -942,21 +966,24 @@ function CreateBot(token) {
       const todayCount = await users.count({
         role: "client",
         join_date: {
-          $gte: new Date(Date.now() - 86400000),
+          $gte: fromDay,
+          $lte: to,
         },
       });
 
       const weekCount = await users.count({
         role: "client",
         join_date: {
-          $gte: new Date(Date.now() - 86400000 * 7),
+          $gte: fromWeek,
+          $lte: to,
         },
       });
 
       const monthCount = await users.count({
         role: "client",
         join_date: {
-          $gte: new Date(Date.now() - 86400000 * 30),
+          $gte: fromMonth,
+          $lte: to,
         },
       });
 

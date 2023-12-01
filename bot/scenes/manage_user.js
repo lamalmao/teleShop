@@ -261,15 +261,25 @@ manageUser.on(
     ctx.deleteMessage().catch((_) => null);
     if (ctx.scene.state.action) next();
   },
-  async (ctx, next) => {
-    try {
-    } catch (error) {}
-  },
   async (ctx) => {
     try {
-      const data = /([+-])\s{0,}(\d+)/.exec(ctx.message.text);
+      if (ctx.scene.state.action !== "balance") {
+        return;
+      }
 
-      if (!data) return;
+      const amount = Number(ctx.message.text);
+      if (Number.isNaN(amount)) {
+        ctx
+          .reply("Введите число")
+          .then((msg) =>
+            setTimeout(
+              () => ctx.deleteMessage(msg.message_id).catch(() => null),
+              2500
+            )
+          )
+          .catch(() => null);
+        return;
+      }
 
       await users.updateOne(
         {
@@ -277,20 +287,15 @@ manageUser.on(
         },
         {
           $inc: {
-            balance: Number(data[1] + data[2]),
+            balance: Math.floor(amount),
           },
         }
       );
 
-      ctx.scene.enter("manage_user", {
-        menu: ctx.scene.state.menu,
-        user: ctx.scene.state.user,
-      });
-    } catch (e) {
-      null;
-      ctx.scene.enter("admin", {
-        menu: ctx.scene.state.menu,
-      });
+      ctx.scene.state.action = undefined;
+      ctx.scene.enter("manage_user", ctx.scene.state);
+    } catch (error) {
+      console.log(error);
     }
   }
 );

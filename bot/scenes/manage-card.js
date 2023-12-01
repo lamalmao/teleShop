@@ -11,6 +11,11 @@ const manageCard = new Scenes.BaseScene("manage-card");
 
 manageCard.enterHandler = async (ctx) => {
   try {
+    const user = await users.findOne({ telegramID: ctx.from.id }, { role: 1 });
+    if (!user || user.role !== "admin") {
+      return;
+    }
+
     const card = await cards.findById(ctx.scene.state.card);
     if (!card) {
       ctx.answerCbQuery("Карта не найдена").catch(() => null);
@@ -147,7 +152,7 @@ manageCard.on(
           regExpCheck = /((0[1-9]|1[0-2])\/([2-3][0-9]))/;
           break;
         case "number":
-          regExpCheck = /(\d{16})/;
+          regExpCheck = /(\d{4}\s{0,}\d{4}\s{0,}\d{4}\s{0,}\d{4})/;
           break;
         case "cvc":
           regExpCheck = /^(\d{3})$/;
@@ -185,6 +190,8 @@ manageCard.on(
       let data = raw[0];
       if (action === "cardholder") {
         data = data.toUpperCase();
+      } else if (action === "number") {
+        data = data.replace(/\s+/g, "");
       }
 
       ctx.telegram

@@ -35,7 +35,7 @@ const addCard = new Scenes.WizardScene(
       ctx.deleteMessage().catch(() => null);
 
       const data =
-        /^(?<number>\d{16})\s+(?<duration>(0[1-9]|1[0-2])\/([2-3][0-9]))\s+(?<cvc>\d{3})$/.exec(
+        /^(?<number>\d{4}\s{0,}\d{4}\s{0,}\d{4}\s{0,}\d{4})((\s+)|(\s{0,}-\s{0,}))(?<duration>(0[1-9]|1[0-2])\/([2-3][0-9]))((\s+)|(\s{0,}-\s{0,}))(?<cvc>\d{3})$/.exec(
           ctx.message.text
         );
       if (!data) {
@@ -61,13 +61,14 @@ const addCard = new Scenes.WizardScene(
 
       const { groups } = data;
 
+      const number = groups.number.replace(/\s+/g, "");
       const check = await cards.exists({
-        number: groups.number,
+        number: number,
       });
 
       if (check) {
         ctx
-          .reply(`⚠️ Карта <code>${groups.number}</code> уже существует`, {
+          .reply(`⚠️ Карта <code>${number}</code> уже существует`, {
             parse_mode: "HTML",
           })
           .catch(() => null)
@@ -85,6 +86,7 @@ const addCard = new Scenes.WizardScene(
 
       ctx.wizard.state.card = {
         ...groups,
+        number,
       };
 
       const banks = await cards.distinct("bank");
