@@ -208,6 +208,10 @@ function CreateBot(token) {
             data.get("refund") || 0
           }</i>\n<i>Сделано заказов за сутки: ${
             data.get("done") || 0
+          }</i>\n<i>Заказов в работе: ${
+            data.get("processing") || 0
+          }</i>\n<i>Заказов ожидает: ${
+            data.get("untaken") || 0
           }</i>\n<b>Сумма заказов: ${sum} рублей</b>\n\n<u>Статистика менеджеров за 24 часа</u>\n`
         );
 
