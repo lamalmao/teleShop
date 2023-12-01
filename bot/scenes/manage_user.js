@@ -261,6 +261,10 @@ manageUser.on(
     ctx.deleteMessage().catch((_) => null);
     if (ctx.scene.state.action) next();
   },
+  async (ctx, next) => {
+    try {
+    } catch (error) {}
+  },
   async (ctx) => {
     try {
       const data = /([+-])\s{0,}(\d+)/.exec(ctx.message.text);

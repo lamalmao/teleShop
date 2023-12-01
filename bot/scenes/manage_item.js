@@ -84,6 +84,66 @@ manageItem.action(keys.BackMenu.buttons, (ctx) => {
   });
 });
 
+manageItem.action("switch-cards", async (ctx) => {
+  try {
+    await ctx.telegram.editMessageCaption(
+      ctx.from.id,
+      ctx.scene.state.menu.message_id,
+      undefined,
+      "Вы уверены?",
+      {
+        reply_markup: Markup.inlineKeyboard([
+          [Markup.button.callback("Да", "sure-switch-cards")],
+          [Markup.button.callback("Нет", "cancel")],
+        ]).reply_markup,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    ctx.scene.enter("manageItem", {
+      menu: ctx.scene.state.menu,
+      category: ctx.scene.state.category,
+    });
+  }
+});
+
+manageItem.action("sure-switch-cards", async (ctx) => {
+  try {
+    const current = !!ctx.scene.state.item.useCards;
+    await goods.updateOne(
+      {
+        _id: ctx.scene.state.item._id,
+      },
+      {
+        $set: {
+          useCards: !current,
+          managerKeys: false,
+        },
+      }
+    );
+
+    if (!current && !ctx.scene.state.item.netCost) {
+      ctx.scene.state.itemId = ctx.scene.state.item._id;
+      ctx.scene.enter("set-item-net-cost", ctx.scene.state);
+    } else {
+      const item = await goods.findById(ctx.scene.state.item._id);
+      ctx.scene.state.item = item;
+      ctx.scene.enter("manageItem", ctx.scene.state);
+    }
+  } catch (error) {
+    console.log(error);
+    ctx.scene.enter("manageItem", {
+      menu: ctx.scene.state.menu,
+      category: ctx.scene.state.category,
+    });
+  }
+});
+
+manageItem.action("set-net-cost", (ctx) => {
+  ctx.scene.state.itemId = ctx.scene.state.item._id;
+  ctx.scene.enter("set-item-net-cost", ctx.scene.state);
+});
+
 manageItem.action("downloadKeys", async (ctx) => {
   try {
     await ctx.sendChatAction("upload_document");

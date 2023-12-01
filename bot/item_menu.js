@@ -21,6 +21,13 @@ async function genItemMessage(item, isAdmin) {
     //prettier-ignore
     message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}\nИгра: ${item.game}\nДоставляется сразу при покупке: ${item.itemType === 'auto' ? 'Да' : 'Нет'}\nВ-Баксы: ${item.isVBucks ? 'Да' : 'Нет'}\nРазмер шрифта для названия: ${item.titleFontSize}\nРазмер шрифта для описания: ${item.descriptionFontSize}`;
 
+    if (item.useCards) {
+      message += "\n\nМенеджерам выдаются карты";
+      message += item.netCost
+        ? `\nСебестоимость: ${item.netCost.UAH} UAH ${item.netCost.USD} USD ${item.netCost.EUR} EUR`
+        : "\nСебестоимость не указана";
+    }
+
     if (item.managerKeys) {
       message += "\nКлючи менеджерам выдаются автоматически";
     }
@@ -113,6 +120,14 @@ function genItemKeyboard(item, isAdmin) {
       [cb("Изменить цену", "changePrice")],
       [cb("Изменить скидку", "changeDiscount")],
       [cb("Изменить тип доставки", "changeDeliveryType")],
+      [
+        cb(
+          `${item.useCards ? "Не и" : "И"}спользовать карты`,
+          "switch-cards",
+          item.itemType === "auto" || item.managerKeys
+        ),
+      ],
+      [cb("Изменить себестоимость товара", "set-net-cost", !item.useCards)],
       [cb("Загрузить ключи", "loadKeys:deliveries", item.itemType !== "auto")],
       [
         cb(

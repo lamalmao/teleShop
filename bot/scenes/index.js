@@ -43,6 +43,16 @@ const genshinProceed = require("./genshin_proceed");
 const lavaCheck = require("./lava-check");
 const shareMessage = require("./share");
 const changeDeliveryType = require("./change-delivery-type");
+const cardsCategories = require("./card-categories");
+const createCardCategory = require("./create-card-category");
+const manageCardCategory = require("./manage-card-category");
+const addCard = require("./add-card");
+const manageCard = require("./manage-card");
+const cardsList = require("./cards-list");
+const refillCard = require("./refill-card");
+const cardTransactionsScene = require("./card-transactions");
+const loadCards = require("./load-cards");
+const setItemNetCost = require("./set-item-net-cost");
 
 module.exports = new Scenes.Stage([
   start,
@@ -88,4 +98,14 @@ module.exports = new Scenes.Stage([
   lavaCheck,
   shareMessage,
   changeDeliveryType,
+  cardsCategories,
+  createCardCategory,
+  manageCardCategory,
+  addCard,
+  manageCard,
+  cardsList,
+  refillCard,
+  cardTransactionsScene,
+  loadCards,
+  setItemNetCost,
 ]);

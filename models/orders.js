@@ -70,9 +70,10 @@ const Order = new Schema({
     type: SchemaTypes.ObjectId,
     required: false,
   },
-  key: {
-    type: String,
-  },
+  key: String,
+  card: SchemaTypes.ObjectId,
+  cardNumber: String,
+  cardPaid: Boolean,
 });
 
 const orders = model("orders", Order);

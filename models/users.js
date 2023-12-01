@@ -1,4 +1,4 @@
-const { Schema, model } = require("mongoose");
+const { Schema, model, SchemaTypes } = require("mongoose");
 
 const User = new Schema({
   telegramID: {
@@ -59,7 +59,9 @@ const User = new Schema({
   keyedOrder: {
     type: Number,
     default: 0,
+    default: "all",
   },
+  cardOrder: Number,
 });
 
 const users = model("users", User);

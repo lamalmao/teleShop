@@ -11,6 +11,7 @@ const keys = require("../keyboard");
 const messages = require("../messages");
 const managerKey = require("../../models/manager-keys");
 const escapeHTML = require("escape-html");
+const cards = require("../../models/cards");
 
 const takeOrder = new Scenes.BaseScene("take_order");
 
@@ -55,6 +56,8 @@ takeOrder.enterHandler = async function (ctx) {
 
       const item = await goods.findById(order.item, {
         managerKeys: 1,
+        useCards: 1,
+        netCost: 1,
       });
 
       const client = await users.findOne(
@@ -66,8 +69,30 @@ takeOrder.enterHandler = async function (ctx) {
         }
       );
 
+      const count = await orders.countDocuments({
+        manager: ctx.from.id,
+        status: "processing",
+      });
+
       if (!order) {
         ctx.answerCbQuery("Заказ не найден или занят").catch((_) => null);
+        ctx.scene.enter("orders_list");
+        return;
+      } else if (
+        !ctx.scene.state.interception &&
+        order.manager !== 0 &&
+        order.manager !== ctx.from.id
+      ) {
+        ctx
+          .reply("Заказ занят другим менеджером")
+          .then((msg) =>
+            setTimeout(
+              () => ctx.deleteMessage(msg.message_id).catch(() => null),
+              2500
+            )
+          )
+          .catch(() => null);
+
         ctx.scene.enter("orders_list");
         return;
       } else if (order.keyIssued && order.manager !== ctx.from.id) {
@@ -83,6 +108,36 @@ takeOrder.enterHandler = async function (ctx) {
             }
           )
           .catch(() => null);
+        ctx.scene.enter("orders_list");
+        return;
+      } else if (
+        user.cardOrder &&
+        user.cardOrder !== order.orderID &&
+        item.useCards &&
+        user.telegramID !== order.manager
+      ) {
+        await ctx.reply(
+          `Вы не можете взять данный заказ, пока не завершите заказ <code>${user.cardOrder}</code>`,
+          {
+            parse_mode: "HTML",
+          }
+        );
+        ctx.scene.enter("orders_list");
+        return;
+      } else if (
+        user.cardOrder &&
+        user.cardOrder !== order.orderID &&
+        !item.useCards &&
+        count > 1 &&
+        user.telegramID !== order.manager
+      ) {
+        await ctx.reply(
+          `Вы не можете взять больше заказов, пока не завершите заказ <code>${user.cardOrder}</code>`,
+          {
+            parse_mode: "HTML",
+          }
+        );
+
         ctx.scene.enter("orders_list");
         return;
       } else {
@@ -144,6 +199,13 @@ takeOrder.enterHandler = async function (ctx) {
                 "Отказаться от выполнения",
                 "order_reject",
                 order.keyIssued
+              ),
+            ],
+            [
+              Markup.button.callback(
+                "Взять карту",
+                "take-card",
+                !(item.useCards && !order.cardPaid)
               ),
             ],
             [
@@ -262,7 +324,7 @@ takeOrder.action("return_key", async (ctx) => {
       },
       $unset: {
         key: 1,
-        keyUsed: 1
+        keyUsed: 1,
       },
     });
 
@@ -532,6 +594,25 @@ takeOrder.action("kill", (ctx) => {
 
 takeOrder.action("order_done", async (ctx) => {
   try {
+    console.log(ctx.scene.state.order.orderID);
+
+    const order = await orders.findOne(
+      {
+        orderID: ctx.scene.state.order.orderID,
+      },
+      {
+        cardPaid: 1,
+        card: 1,
+      }
+    );
+
+    if (order.card && !order.cardPaid) {
+      await ctx.reply(
+        "Сначала подтвердите оплату картой (если вы потеряли нужное сообщение - просто нажмите взять карту)"
+      );
+      return;
+    }
+
     await ctx.telegram.editMessageText(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
@@ -551,20 +632,27 @@ takeOrder.action("order_done", async (ctx) => {
       }
     );
   } catch (e) {
-    null;
     ctx.scene.enter("manager_menu");
   }
 });
 
 takeOrder.action("done", async (ctx) => {
   try {
-    ctx.scene.state.order.status = "done";
-    ctx.scene.state.order.data = {
-      login: "",
-      password: "",
-    };
-    ctx.scene.state.order.date = new Date();
-    await ctx.scene.state.order.save();
+    const order = await orders.findOneAndUpdate(
+      {
+        orderID: ctx.scene.state.order.orderID,
+      },
+      {
+        $set: {
+          status: "done",
+          data: {
+            login: "",
+            password: "",
+          },
+          date: new Date(),
+        },
+      }
+    );
 
     const user = await users.findOne(
       {
@@ -572,6 +660,7 @@ takeOrder.action("done", async (ctx) => {
       },
       {
         keyedOrder: 1,
+        cardOrder: 1,
       }
     );
 
@@ -583,6 +672,19 @@ takeOrder.action("done", async (ctx) => {
         {
           $set: {
             keyedOrder: 0,
+          },
+        }
+      );
+    }
+
+    if (user.cardOrder === order.orderID) {
+      await users.updateOne(
+        {
+          telegramID: ctx.from.id,
+        },
+        {
+          $unset: {
+            cardOrder: "",
           },
         }
       );
@@ -665,11 +767,38 @@ takeOrder.action("order_reject", async (ctx) => {
   try {
     const order = await orders.findById(ctx.scene.state.order._id, {
       keyIssued: 1,
+      card: 1,
+      cardNumber: 1,
+      cardPaid: 1,
+      orderID: 1,
     });
 
-    if (order?.keyIssued) {
+    if (!order) {
+      return;
+    }
+
+    if (order.keyIssued) {
       ctx
         .answerCbQuery("Нельзя отказаться от заказа после получения ключа")
+        .catch(() => null);
+
+      return;
+    }
+
+    if (order.card) {
+      ctx
+        .reply(
+          `Чтобы отказаться от заказа <code>${order.orderID}</code> - верните карту <code>${order.cardNumber}</code>`,
+          {
+            parse_mode: "HTML",
+          }
+        )
+        .then((msg) =>
+          setTimeout(
+            () => ctx.deleteMessage(msg.message_id).catch(() => null),
+            1000
+          )
+        )
         .catch(() => null);
 
       return;
@@ -722,6 +851,39 @@ takeOrder.action("reject", async (ctx) => {
 
 takeOrder.action("order_refund", async (ctx) => {
   try {
+    const order = await orders.findOne(
+      { orderID: ctx.scene.state.order.orderID },
+      {
+        card: 1,
+        cardNumber: 1,
+        cardPaid: 1,
+        orderID: 1,
+      }
+    );
+
+    if (!order) {
+      return;
+    }
+
+    if (order.card && !order.cardPaid) {
+      ctx
+        .reply(
+          `Перед оформлением возврата для заказа <code>${order.orderID}</code> - верните карту <code>${order.cardNumber}</code>`,
+          {
+            parse_mode: "HTML",
+          }
+        )
+        .then((msg) =>
+          setTimeout(
+            () => ctx.deleteMessage(msg.message_id).catch(() => null),
+            10000
+          )
+        )
+        .catch(() => null);
+
+      return;
+    }
+
     await ctx.telegram.editMessageText(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
@@ -741,7 +903,7 @@ takeOrder.action("order_refund", async (ctx) => {
       }
     );
   } catch (e) {
-    null;
+    console.log(e);
     ctx.scene.enter("orders_list");
   }
 });
@@ -829,6 +991,45 @@ takeOrder.action(/req_contact#\d+/, async (ctx) => {
 
 takeOrder.action("order_cancel", async (ctx) => {
   try {
+    ctx.scene.state.menuId = ctx.callbackQuery.message.message_id;
+
+    const order = await orders.findOne(
+      {
+        orderID: ctx.scene.state.order.orderID,
+      },
+      {
+        card: 1,
+        cardNumber: 1,
+      }
+    );
+
+    if (!order) {
+      ctx.scene.enter("manager_menu");
+      return;
+    }
+
+    ctx.scene.state.orderID = order.orderID;
+
+    if (order.card) {
+      ctx
+        .reply(
+          `Для отмены заказа - верните карту <code>${order.cardNumber}</code>`,
+          {
+            parse_mode: "HTML",
+          }
+        )
+        .then((msg) =>
+          setTimeout(
+            () => ctx.deleteMessage(msg.message_id).catch(() => null),
+            4000
+          )
+        )
+        .catch(() => null);
+
+      // ctx.scene.enter("take_order", ctx.scene.state);
+      return;
+    }
+
     await ctx.telegram.editMessageText(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
@@ -848,7 +1049,6 @@ takeOrder.action("order_cancel", async (ctx) => {
       }
     );
   } catch (e) {
-    null;
     ctx.scene.enter("manager_menu");
   }
 });
@@ -905,6 +1105,189 @@ takeOrder.action("cancel_accept", async (ctx) => {
   } catch (e) {
     null;
     ctx.scene.enter("manager_menu");
+  }
+});
+
+takeOrder.action("take-card", async (ctx) => {
+  try {
+    ctx.scene.state.menu = ctx.callbackQuery.message.message_id;
+    ctx.scene.state.orderID = ctx.scene.state.order.orderID;
+
+    const item = await goods.findById(ctx.scene.state.order.item, {
+      useCards: 1,
+      netCost: 1,
+    });
+
+    if (!item) {
+      throw new Error("No item found");
+    }
+
+    if (!item.netCost) {
+      ctx
+        .answerCbQuery("Для товара не указана себестоимость")
+        .catch(() => null);
+      return;
+    }
+
+    const order = await orders.findOne(
+      { orderID: ctx.scene.state.order.orderID },
+      {
+        card: 1,
+        cardPaid: 1,
+      }
+    );
+
+    if (order.cardPaid) {
+      return;
+    }
+
+    let card;
+    if (!order.card) {
+      card = await cards.findOneAndUpdate(
+        {
+          hidden: false,
+          busy: false,
+          hold: {
+            $lte: new Date(),
+          },
+          $or: [
+            {
+              $and: [
+                {
+                  currency: { $eq: "UAH" },
+                },
+                {
+                  balance: {
+                    $gte: item.netCost.UAH,
+                  },
+                },
+              ],
+            },
+            {
+              $and: [
+                {
+                  currency: { $eq: "USD" },
+                },
+                {
+                  balance: {
+                    $gte: item.netCost.USD,
+                  },
+                },
+              ],
+            },
+            {
+              $and: [
+                {
+                  currency: { $eq: "EUR" },
+                },
+                {
+                  balance: {
+                    $gte: item.netCost.EUR,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          $set: {
+            busy: true,
+          },
+        }
+      );
+
+      if (!card) {
+        ctx.answerCbQuery("Не удалось найти карту").catch(() => null);
+        return;
+      }
+
+      await orders.updateOne(
+        {
+          orderID: ctx.scene.state.order.orderID,
+        },
+        {
+          $set: {
+            card: card._id,
+            cardNumber: card.number,
+            cardPaid: false,
+          },
+        }
+      );
+
+      await users.updateOne(
+        {
+          telegramID: ctx.from.id,
+        },
+        {
+          $set: {
+            cardOrder: ctx.scene.state.order.orderID,
+          },
+        }
+      );
+    } else {
+      card = await cards.findById(order.card);
+    }
+
+    if (!card) {
+      ctx.answerCbQuery("Не удалось найти карту").catch(() => null);
+      return;
+    }
+
+    await ctx.reply(
+      `<b>Карта для заказа <code>${
+        ctx.scene.state.order.orderID
+      }</code></b>\n\n<i>Номер:</i> <code>${
+        card.number
+      }</code>\n<i>Срок действия:</i> <code>${escapeHTML(
+        card.duration
+      )}</code>\n<i>CVC:</i> <code>${
+        card.cvc
+      }</code>\n\n<i>Владелец:</i> <code>${escapeHTML(
+        card.cardholder
+      )}</code>\n<i>Банк:</i> <code>${escapeHTML(card.bank)}</code>`,
+      {
+        parse_mode: "HTML",
+        reply_markup: Markup.inlineKeyboard([
+          [
+            Markup.button.callback(
+              "Оплатил",
+              `card-paid:${
+                ctx.scene.state.order.orderID
+              }:${card._id.toString()}`
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "Не привязалась",
+              `card-weld-error:${
+                ctx.scene.state.order.orderID
+              }:${card._id.toString()}`
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "Ошибка при оплате",
+              `card-pay-error:${
+                ctx.scene.state.order.orderID
+              }:${card._id.toString()}`
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "Вернуть карту",
+              `card-return:${
+                ctx.scene.state.order.orderID
+              }:${card._id.toString()}`
+            ),
+          ],
+        ]).reply_markup,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
+  } finally {
+    ctx.scene.enter("take_order", ctx.scene.state);
   }
 });
 

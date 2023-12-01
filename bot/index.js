@@ -9,6 +9,11 @@ const path = require("path");
 const goods = require("../models/goods");
 const { delivery } = require("../models/delivery");
 const managerKey = require("../models/manager-keys");
+const orders = require("../models/orders");
+const { Types } = require("mongoose");
+const cards = require("../models/cards");
+const cardTransactions = require("../models/cards-transactions");
+const escapeHTML = require("escape-html");
 
 const images = path.join(process.cwd(), "files", "images");
 
@@ -53,6 +58,199 @@ function CreateBot(token) {
       null;
     }
   });
+
+  bot.command(
+    "deltrans",
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            role: 1,
+          }
+        );
+
+        if (!user || user.role !== "admin") {
+          return;
+        }
+
+        next();
+      } catch {
+        return;
+      }
+    },
+    async (ctx) => {
+      try {
+        await ctx.reply("Удалить все транзакции всех карта?", {
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback("Да", "sure-delete-transactions")],
+            [Markup.button.callback("Нет", "delete-message")],
+          ]).reply_markup,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  );
+
+  bot.action(
+    "sure-delete-message",
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            role: 1,
+          }
+        );
+
+        if (!user || user.role !== "admin") {
+          ctx.deleteMessage().catch(() => null);
+          return;
+        }
+
+        next();
+      } catch {
+        return;
+      }
+    },
+    async (ctx) => {
+      try {
+        await cardTransactions.deleteMany({});
+        await ctx.editMessageText("Транзакции удалены");
+      } catch (error) {
+        console.log(e);
+      }
+    }
+  );
+
+  bot.command(
+    "orderstats",
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            role: 1,
+          }
+        );
+
+        if (!user || user.role !== "admin") {
+          return;
+        }
+
+        next();
+      } catch {
+        return;
+      }
+    },
+    async (ctx) => {
+      try {
+        const past = new Date(Date.now() - 86400000);
+
+        const orderStats = await orders.aggregate([
+          {
+            $match: {
+              paid: true,
+              date: {
+                $gte: past,
+              },
+            },
+          },
+          {
+            $group: {
+              _id: "$status",
+              sum: { $sum: "$amount" },
+              count: { $count: {} },
+            },
+          },
+        ]);
+
+        const managerStats = await orders.aggregate([
+          {
+            $match: {
+              paid: true,
+              status: "done",
+              date: {
+                $gte: past,
+              },
+            },
+          },
+          {
+            $group: {
+              _id: "$manager",
+              count: { $count: {} },
+            },
+          },
+        ]);
+
+        let total = 0;
+        let sum = 0;
+        let text = "<u>Статистика заказов за 24 часа</u>\n";
+
+        for (const stat of orderStats) {
+          total += stat.count;
+          sum += stat.sum;
+
+          let pre;
+          switch (stat._id) {
+            case "refund":
+              pre = "Возвратов";
+              break;
+            case "done":
+              pre = "Выполнено";
+              break;
+            case "canceled":
+              pre = "Отменено";
+              break;
+            case "processing":
+              pre = "В работе";
+              break;
+            case "refund":
+              pre = "Ожидает";
+              break;
+            default:
+              continue;
+          }
+
+          text = text.concat(`\n<i>${pre}: ${stat.count}</i>`);
+        }
+
+        text = text.concat(
+          `\n<b>Всего заказов: ${total}</b>\n<b>Сумма заказов: ${sum}</b>\n\n<u>Статистика менеджеров за 24 часа</u>\n`
+        );
+
+        for (const managerStat of managerStats) {
+          const manager = await users.findOne(
+            {
+              telegramID: managerStat._id,
+            },
+            {
+              username: 1,
+            }
+          );
+
+          text = text.concat(
+            `\n<a href="tg://user?id=${managerStat._id}">${escapeHTML(
+              manager.username
+            )}</a> - ${managerStat.count}`
+          );
+        }
+
+        await ctx.reply(text, {
+          parse_mode: "HTML",
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  );
 
   bot.command("orders", async (ctx, next) => {
     try {
@@ -169,6 +367,299 @@ function CreateBot(token) {
     ctx.answerCbQuery().catch((_) => null);
     next();
   });
+
+  bot.action(
+    /^(card-paid|card-weld-error|card-pay-error|card-return):[0-9]+:[a-z0-9]+/,
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            role: 1,
+          }
+        );
+
+        if (user && ["admin", "manager"].includes(user.role)) {
+          next();
+        }
+      } catch (error) {
+        return;
+      }
+    },
+    async (ctx) => {
+      try {
+        const raw =
+          /^(?<type>[a-z\-]+):(?<orderId>\d+):(?<cardId>[a-z0-9]+)$/.exec(
+            ctx.callbackQuery.data
+          );
+
+        if (!raw) {
+          throw new Error("No data");
+        }
+        const { orderId, cardId, type } = raw.groups;
+
+        console.log(orderId, cardId, type);
+
+        const order = await orders.findOne(
+          {
+            orderID: Number(orderId),
+          },
+          {
+            card: 1,
+            cardPaid: 1,
+            manager: 1,
+            status: 1,
+          }
+        );
+
+        const cardObjId = new Types.ObjectId(cardId);
+        const check = await cards.exists({
+          _id: cardObjId,
+        });
+
+        if (
+          order.manager !== ctx.from.id ||
+          order.status !== "processing" ||
+          order.card.toString() !== cardId ||
+          order.cardPaid ||
+          !check
+        ) {
+          ctx.answerCbQuery("Более не актуально").catch(() => null);
+          ctx.deleteMessage(() => null).catch(() => null);
+          return;
+        }
+
+        let success;
+        let text;
+        switch (type) {
+          case "card-paid":
+            success = "card-payment";
+            text = "Вы подтверждаете оплату?";
+            break;
+          case "card-weld-error":
+            success = "weld-error";
+            text = "Вы подтверждаете ошибку привязки?";
+            break;
+          case "card-pay-error":
+            success = "pay-error";
+            text = "Вы подтверждаете ошибку оплаты?";
+            break;
+          case "card-return":
+            success = "card-return";
+            text = "Вы подтверждаете возврат карты?";
+            break;
+          default:
+            return;
+        }
+
+        await ctx.editMessageText(text, {
+          reply_markup: Markup.inlineKeyboard([
+            [
+              Markup.button.callback(
+                "Да",
+                `accept-${success}:${orderId}:${cardId}`
+              ),
+            ],
+            [Markup.button.callback("Нет", "delete-message")],
+          ]).reply_markup,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  );
+
+  bot.action(
+    /^accept-(card-return|card-payment|weld-error|pay-error):[0-9]+:[a-z0-9]+/,
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            role: 1,
+          }
+        );
+
+        if (user && ["admin", "manager"].includes(user.role)) {
+          next();
+        }
+      } catch (error) {
+        return;
+      }
+    },
+    async (ctx, next) => {
+      try {
+        const raw =
+          /accept-(?<target>card-return|card-payment|weld-error|pay-error):(?<orderId>\d+):(?<cardId>[a-z0-9]+)$/.exec(
+            ctx.callbackQuery.data
+          );
+
+        if (!raw) {
+          throw new Error("No data");
+        }
+        const { orderId, cardId, target } = raw.groups;
+
+        const order = await orders.findOne({
+          orderID: Number(orderId),
+        });
+
+        const item = await goods.findById(order.item, {
+          netCost: 1,
+        });
+
+        if (!item || !item.netCost) {
+          throw new Error("No item found");
+        }
+
+        const cardObjId = new Types.ObjectId(cardId);
+        const card = await cards.findById(cardObjId);
+
+        if (
+          order.manager !== ctx.from.id ||
+          order.status !== "processing" ||
+          order.card.toString() !== cardId ||
+          order.cardPaid ||
+          !card
+        ) {
+          ctx.answerCbQuery("Более не актуально").catch(() => null);
+          ctx.deleteMessage(() => null).catch(() => null);
+          return;
+        }
+
+        ctx.state.item = item;
+        ctx.state.order = order;
+        ctx.state.card = card;
+        ctx.state.target = target;
+        next();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async (ctx, next) => {
+      try {
+        if (ctx.state.target !== "card-payment") {
+          next();
+          return;
+        }
+
+        const { card, order, item } = ctx.state;
+
+        const result = await card.createTransaction(card._id, {
+          amount: -item.netCost[card.currency],
+          currency: card.currency,
+          description: `Выполнение заказа ${order.orderID}`,
+          issuer: ctx.from.id,
+          sendToHold: true,
+          busy: false,
+          order: order.orderID,
+          cardBalance: card.balance,
+        });
+
+        if (result === null) {
+          ctx
+            .answerCbQuery("Не получилось сохранить оплату, попробуйте еще раз")
+            .catch(() => null);
+          return;
+        }
+
+        await orders.updateOne(
+          {
+            orderID: order.orderID,
+          },
+          {
+            $set: {
+              cardPaid: true,
+            },
+          }
+        );
+
+        ctx.state = {};
+
+        ctx
+          .editMessageText(
+            `Транзакция сохранена, заказ ${order.orderID} можно завершать`
+          )
+          .catch(() => null);
+      } catch (error) {
+        console.log(error);
+        ctx.state = {};
+      }
+    },
+    async (ctx) => {
+      try {
+        const { card, order, target, item } = ctx.state;
+        if (!["weld-error", "pay-error", "card-return"].includes(target)) {
+          return;
+        }
+
+        let description;
+        switch (target) {
+          case "weld-error":
+            description = "Ошибка привязки";
+            break;
+          case "pay-error":
+            description = "Ошибка оплаты";
+            break;
+          case "card-return":
+            description = "Карта возвращена";
+            break;
+          default:
+            return;
+        }
+
+        await orders.updateOne(
+          {
+            orderID: order.orderID,
+          },
+          {
+            $unset: {
+              card: "",
+              cardPaid: "",
+              cardNumber: "",
+            },
+          }
+        );
+
+        await users.updateOne(
+          {
+            telegramID: ctx.from.id,
+          },
+          {
+            $unset: {
+              cardOrder: "",
+            },
+          }
+        );
+
+        await card.createTransaction(card._id, {
+          amount: -item.netCost[card.currency],
+          currency: card.currency,
+          issuer: ctx.from.id,
+          sendToHold: target !== "card-return",
+          description,
+          busy: false,
+          order: order.orderID,
+          success: false,
+          cardBalance: card.balance,
+        });
+
+        await ctx.editMessageText(
+          `Карта отвязана от заказа ${order.orderID}, теперь вы можете взять другую, отменить заказ или отказаться от него`
+        );
+
+        ctx.state = {};
+      } catch (error) {
+        ctx.state = {};
+        console.log(error);
+      }
+    }
+  );
+
+  bot.action("delete-message", (ctx) => ctx.deleteMessage().catch(() => null));
 
   bot.action("profile", (ctx) =>
     ctx.scene.enter("profile", { menu: ctx.callbackQuery.message })

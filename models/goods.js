@@ -2,6 +2,24 @@ const { Schema, model } = require("mongoose");
 
 const categories = require("./categories");
 
+const NetCostSchema = new Schema({
+  USD: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  UAH: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  EUR: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+});
+
 const Goods = new Schema({
   title: {
     type: String,
@@ -76,6 +94,11 @@ const Goods = new Schema({
     type: Boolean,
     default: false,
   },
+  useCards: {
+    type: Boolean,
+    default: false,
+  },
+  netCost: NetCostSchema,
 });
 
 async function checkCategoryExistence(category) {

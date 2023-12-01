@@ -22,7 +22,12 @@ const MenuKeyboard = Markup.inlineKeyboard([
     cb("Поддержка 🙋", MenuButtons.support),
   ],
   [Markup.button.url("Ваш аккаунт 🎁", "https://t.me/fbzstatsbot")],
- [Markup.button.url("Бесплатный кейс ⚡️", "https://bit.ly/fbzdrop-fbzshoptg")]
+  [
+    Markup.button.url(
+      "Бесплатный кейс ⚡️",
+      "https://bit.ly/fbzdrop-fbzshoptg"
+    ),
+  ],
 ]);
 
 const AdminButtons = {
@@ -32,6 +37,7 @@ const AdminButtons = {
   sales: "sales",
   refunds: "refunds",
   exit: "exit",
+  cards: "card-categories",
 };
 
 const ManagersButtons = {
@@ -44,6 +50,7 @@ const AdminKeyboard = Markup.inlineKeyboard([
   [cb("Категории", AdminButtons.categories), cb("Товары", AdminButtons.goods)],
   [cb("Менеджеры", AdminButtons.managers), cb("Статистика", "showManagers")],
   [cb("Заказы", AdminButtons.sales), cb("Возвраты", AdminButtons.refunds)],
+  [cb("Карты", AdminButtons.cards)],
   [cb("Пользователи", "get_user_data")],
   [cb("Выйти из панели администратора", AdminButtons.exit)],
 ]);
