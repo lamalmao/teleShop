@@ -223,7 +223,7 @@ function CreateBot(token) {
 
           text = text.concat(
             `\n<a href="tg://user?id=${managerStat._id}">${escapeHTML(
-              manager.username
+              manager ? manager.username : "unknown"
             )}</a> - ${managerStat.count}`
           );
         }
@@ -304,7 +304,7 @@ function CreateBot(token) {
             [
               Markup.button.url(
                 "Заказы",
-                `http://83.222.11.174/?u=${user._id.toString()}`
+                `http://94.241.175.97/?u=${user._id.toString()}`
               ),
             ],
           ]).reply_markup,
