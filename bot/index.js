@@ -955,7 +955,7 @@ function CreateBot(token) {
       const dayInMs = 24 * 60 * 60 * 1000;
 
       const to = new Date(
-        new Date(year, month, day, 0, 0, 0, 0).getDate() + dayInMs
+        new Date(year, month, day, 0, 0, 0, 0).getTime() + dayInMs
       );
       const fromDay = new Date(to.getTime() - dayInMs);
       const fromWeek = new Date(to.getTime() - dayInMs * 7);
