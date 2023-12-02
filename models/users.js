@@ -59,7 +59,7 @@ const User = new Schema({
   keyedOrder: {
     type: Number,
     default: 0,
-    default: "all",
+    required: false
   },
   cardOrder: Number,
 });
