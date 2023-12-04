@@ -290,10 +290,22 @@ function CreateBot(token) {
           data.set(currency._id, currency.sum);
         }
 
+        const total = await cards.countDocuments({});
+        const active = await cards.countDocuments({
+          busy: false,
+          hold: {
+            $lt: new Date(),
+          },
+        });
+
         await ctx.reply(
-          `<b>Суммарный баланс карт</b>\n\nUAH - ${
+          `<b>Суммарный баланс карт</b>\n\n<i>UAH - ${
             data.get("UAH") || 0
-          }\nUSD - ${data.get("USD") || 0}\nUAH - ${data.get("USD") || 0}`,
+          }</i>\n<i>USD - ${data.get("USD") || 0}</i>\n<i>EUR - ${
+            data.get("EUR") || 0
+          }</i>\n\n<b>Всего карт: ${total}</b>\n<i>Активных карт: ${active}</i>\n<i>В холде: ${
+            total - active
+          }</i>`,
           {
             parse_mode: "HTML",
           }
