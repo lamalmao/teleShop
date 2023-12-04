@@ -240,7 +240,7 @@ function CreateBot(token) {
 
           text = text.concat(
             `\n<a href="tg://user?id=${managerStat._id}">${escapeHTML(
-              manager ? manager.username : "unknown"
+              manager ? manager.username : "Ключи"
             )}</a> - ${managerStat.count}`
           );
         }
