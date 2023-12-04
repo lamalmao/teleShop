@@ -180,7 +180,7 @@ const addCard = new Scenes.WizardScene(
         ctx.updateType === "callback_query" &&
         ctx.callbackQuery.data.startsWith("name")
       ) {
-        name = /:([\w\s\.]+)$/i.exec(ctx.callbackQuery.data)[1];
+        name = /:([a-zа-яёA-ZА-ЯЁ\s\.]+)$/i.exec(ctx.callbackQuery.data)[1];
       } else if (ctx.updateType === "message") {
         ctx.deleteMessage().catch(() => null);
 
