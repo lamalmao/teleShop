@@ -49,7 +49,7 @@ manageCardCategory.enterHandler = async (ctx) => {
         [Markup.button.callback('Переименовать', 'rename'), Markup.button.callback('Удалить', 'delete')],
         [Markup.button.callback('Назад', 'back')]
       ]).reply_markup
-    }).catch(() => null);
+    }).catch((e) => console.log(e));
   } catch (error) {
     console.log(error);
     ctx.reply(error.message).catch(() => null);
@@ -94,7 +94,9 @@ manageCardCategory.action("delete", async (ctx) => {
       }
     );
 
-    const keyboard = [[Markup.button.callback("Не перемещать", "cancel")]];
+    const keyboard = [
+      [Markup.button.callback("Не перемещать", "delete-to:none")],
+    ];
     for (const category of categories) {
       keyboard.push([
         Markup.button.callback(
@@ -104,7 +106,7 @@ manageCardCategory.action("delete", async (ctx) => {
       ]);
     }
 
-    keyboard.push([Markup.button.callback("Назад", "reenter")]);
+    keyboard.push([Markup.button.callback("Назад", "cancel")]);
     await ctx.editMessageText(`Переместить все карты после удаления в`, {
       reply_markup: Markup.inlineKeyboard(keyboard).reply_markup,
     });
