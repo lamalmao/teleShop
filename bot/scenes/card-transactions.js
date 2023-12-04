@@ -181,7 +181,7 @@ cardTransactionsScene.action("download", async (ctx) => {
         transaction.description,
         transaction.success ? "завершена" : "не завершена",
         `${transaction.amount} ${transaction.currency}`,
-        transaction.balanceAfter ? transaction.balanceAfter.toString() : "",
+        transaction.balanceAfter ? transaction.balanceAfter.toFixed(2) : "",
       ]);
     }
 
@@ -239,9 +239,9 @@ cardTransactionsScene.on(
             transaction.amount
           } ${
             transaction.currency
-          }</code>\n<i>Баланс после транзакции:</i> <code>${
-            transaction.balanceAfter
-          } ${
+          }</code>\n<i>Баланс после транзакции:</i> <code>${transaction.balanceAfter.toFixed(
+            2
+          )} ${
             transaction.currency
           }</code>\n<i>Пользователь:</i> <a href="tg://user?id=${
             transaction.issuer

@@ -76,7 +76,7 @@ cardsList.enterHandler = async (ctx) => {
           Markup.button.callback(
             `${check ? "🟢" : "🔴"} *${card.number.slice(12)} ${
               card.duration
-            } ${card.cvc} (${card.balance} ${card.currency})`,
+            } ${card.cvc} (${card.balance.toFixed(2)} ${card.currency})`,
             `card:${card._id.toString()}`
           ),
         ]);
