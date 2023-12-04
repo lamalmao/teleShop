@@ -1285,6 +1285,14 @@ takeOrder.action("take-card", async (ctx) => {
               }:${card._id.toString()}`
             ),
           ],
+          [
+            Markup.button.callback(
+              "Карта привязана",
+              `card-linked:${
+                ctx.scene.state.order.orderID
+              }:${card._id.toString()}`
+            ),
+          ],
         ]).reply_markup,
       }
     );

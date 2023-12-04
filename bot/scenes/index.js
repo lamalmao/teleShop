@@ -53,6 +53,7 @@ const refillCard = require("./refill-card");
 const cardTransactionsScene = require("./card-transactions");
 const loadCards = require("./load-cards");
 const setItemNetCost = require("./set-item-net-cost");
+const findLinkedCard = require("./find-linked-card");
 
 module.exports = new Scenes.Stage([
   start,
@@ -108,4 +109,5 @@ module.exports = new Scenes.Stage([
   cardTransactionsScene,
   loadCards,
   setItemNetCost,
+  findLinkedCard,
 ]);

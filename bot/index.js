@@ -300,9 +300,9 @@ function CreateBot(token) {
 
         await ctx.reply(
           `<b>Суммарный баланс карт</b>\n\n<i>UAH - ${
-            data.get("UAH") || 0
-          }</i>\n<i>USD - ${data.get("USD") || 0}</i>\n<i>EUR - ${
-            data.get("EUR") || 0
+            data.get("UAH").toFixed(2) || 0
+          }</i>\n<i>USD - ${data.get("USD").toFixed(2) || 0}</i>\n<i>EUR - ${
+            data.get("EUR").toFixed(2) || 0
           }</i>\n\n<b>Всего карт: ${total}</b>\n<i>Активных карт: ${active}</i>\n<i>В холде: ${
             total - active
           }</i>`,
@@ -433,7 +433,7 @@ function CreateBot(token) {
   });
 
   bot.action(
-    /^(card-paid|card-weld-error|card-pay-error|card-return):[0-9]+:[a-z0-9]+/,
+    /^(card-paid|card-weld-error|card-pay-error|card-return|card-linked):[0-9]+:[a-z0-9]+/,
     async (ctx, next) => {
       try {
         const user = await users.findOne(
@@ -514,6 +514,12 @@ function CreateBot(token) {
             success = "card-return";
             text = "Вы подтверждаете возврат карты?";
             break;
+          case "card-linked":
+            ctx.scene.enter("find-linked-card", {
+              card: cardObjId,
+              order: orderId,
+            });
+            return;
           default:
             return;
         }
@@ -617,7 +623,7 @@ function CreateBot(token) {
           currency: card.currency,
           description: `Выполнение заказа ${order.orderID}`,
           issuer: ctx.from.id,
-          sendToHold: true,
+          sendToHold: !order.avoidHold,
           busy: false,
           order: order.orderID,
           cardBalance: card.balance,
@@ -684,6 +690,7 @@ function CreateBot(token) {
               card: "",
               cardPaid: "",
               cardNumber: "",
+              avoidHold: "",
             },
           }
         );

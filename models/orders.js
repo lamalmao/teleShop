@@ -74,6 +74,7 @@ const Order = new Schema({
   card: SchemaTypes.ObjectId,
   cardNumber: String,
   cardPaid: Boolean,
+  avoidHold: Boolean,
 });
 
 const orders = model("orders", Order);
