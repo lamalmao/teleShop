@@ -297,10 +297,10 @@ const addCard = new Scenes.WizardScene(
     try {
       if (ctx.updateType === "message") {
         ctx.deleteMessage().catch(() => null);
-        const raw = /^(\d+)$/.exec(ctx.message.text);
-        if (!raw) {
+        const balance = Number(ctx.message.text);
+        if (Number.isNaN(balance) || balance < 0) {
           ctx
-            .reply("<b>⚠️ Укажите целое число</b>", {
+            .reply("<b>⚠️ Укажите положительно число или ноль</b>", {
               parse_mode: "HTML",
             })
             .catch(() => null)
@@ -316,7 +316,6 @@ const addCard = new Scenes.WizardScene(
           return;
         }
 
-        const balance = Number(raw[1]);
         ctx.wizard.state.card.balance = balance;
       } else if (
         ctx.updateType !== "callback_query" ||

@@ -8,6 +8,10 @@ const cardsList = new Scenes.BaseScene("cards-list");
 
 cardsList.enterHandler = async (ctx) => {
   try {
+    if (ctx.scene.state.lowBalance) {
+      ctx.scene.state.id = undefined;
+    }
+
     let category;
     if (ctx.scene.state.id) {
       category = (await cardsCategories.findById(ctx.scene.state.id, {
@@ -15,20 +19,48 @@ cardsList.enterHandler = async (ctx) => {
       })) || {
         title: "Not found",
       };
+    } else if (ctx.scene.state.lowBalance) {
+      category = {
+        title: "Карты с низким балансом",
+      };
     } else {
       category = {
         title: "Без категории",
       };
     }
 
-    const filter = ctx.scene.state.id || {
-      $exists: false,
-    };
+    let filter;
+    if (ctx.scene.state.lowBalance) {
+      filter = {
+        $or: [
+          {
+            currency: "UAH",
+            balance: { $lte: 250 },
+          },
+          {
+            currency: "USD",
+            balance: { $lte: 6 },
+          },
+          {
+            currency: "EUR",
+            balance: { $lte: 6 },
+          },
+        ],
+      };
+    } else if (ctx.scene.state.id) {
+      filter = {
+        category: ctx.scene.state.id,
+      };
+    } else {
+      filter = {
+        category: {
+          $exists: false,
+        },
+      };
+    }
 
     const categoryCards = await cards.find(
-      {
-        category: filter,
-      },
+      filter,
       {
         number: 1,
         cvc: 1,
@@ -72,11 +104,26 @@ cardsList.enterHandler = async (ctx) => {
         }
         const check = !card.hidden && card.hold < now && !card.busy;
 
+        let outOfMoney = false;
+        switch (card.currency) {
+          case "EUR":
+            outOfMoney = card.balance <= 6;
+            break;
+          case "USD":
+            outOfMoney = card.balance <= 6;
+            break;
+          case "UAH":
+            outOfMoney = card.balance <= 250;
+            break;
+        }
+
         page.push([
           Markup.button.callback(
-            `${check ? "🟢" : "🔴"} *${card.number.slice(12)} ${
-              card.duration
-            } ${card.cvc} (${card.balance.toFixed(2)} ${card.currency})`,
+            `${outOfMoney ? "🟡 " : ""}${
+              check ? "🟢" : "🔴"
+            } *${card.number.slice(12)} ${card.duration} ${
+              card.cvc
+            } (${card.balance.toFixed(2)} ${card.currency})`,
             `card:${card._id.toString()}`
           ),
         ]);
@@ -95,7 +142,7 @@ cardsList.enterHandler = async (ctx) => {
           Markup.button.callback(
             "⬆️ Переместить все",
             "move-homeless",
-            !!ctx.scene.state.id
+            !!ctx.scene.state.id || ctx.scene.state.lowBalance
           ),
         ],
         [Markup.button.callback("Назад", "exit")]
@@ -118,6 +165,7 @@ cardsList.enterHandler = async (ctx) => {
       }
     );
   } catch (error) {
+    console.log(error);
     ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
     ctx.scene.enter("manage-card-category", ctx.scene.state);
   }
@@ -236,6 +284,7 @@ cardsList.action("exit", (ctx) =>
 );
 
 cardsList.leaveHandler = (ctx) => {
+  ctx.scene.state.lowBalance = undefined;
   ctx.scene.state.pages = [];
   ctx.scene.state.page = undefined;
 };

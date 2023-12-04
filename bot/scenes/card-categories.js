@@ -9,6 +9,7 @@ cardsCategories.enterHandler = async (ctx) => {
     const keyboard = [
       [Markup.button.callback("➕ Создать категорию", "create-category")],
       [Markup.button.callback("◎ Карты без категории", "no-category")],
+      [Markup.button.callback("🟡 Карты с низким балансом", "low-balance")],
     ];
 
     const categories = await cardsCategoriesModel.find();
@@ -37,6 +38,10 @@ cardsCategories.enterHandler = async (ctx) => {
     ctx.scene.enter("admin", ctx.scene.state);
   }
 };
+
+cardsCategories.action("low-balance", (ctx) =>
+  ctx.scene.enter("cards-list", { ...ctx.scene.state, lowBalance: true })
+);
 
 cardsCategories.action("no-category", (ctx) => {
   ctx.scene.state.id = undefined;
