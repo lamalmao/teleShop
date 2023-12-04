@@ -1236,9 +1236,14 @@ takeOrder.action("take-card", async (ctx) => {
     await ctx.reply(
       `<b>Карта для заказа <code>${
         ctx.scene.state.order.orderID
-      }</code></b>\n\n<i>Номер:</i> <code>${
-        card.number
-      }</code>\n<i>Срок действия:</i> <code>${escapeHTML(
+      }</code></b>\n\n<i>Номер:</i> <code>${card.number.slice(
+        0,
+        4
+      )} ${card.number.slice(4, 8)} ${card.number.slice(
+        8,
+        12
+      )} ${card.number.slice(12, 16)}
+      </code>\n<i>Срок действия:</i> <code>${escapeHTML(
         card.duration
       )}</code>\n<i>CVC:</i> <code>${
         card.cvc

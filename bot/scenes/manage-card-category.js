@@ -94,9 +94,7 @@ manageCardCategory.action("delete", async (ctx) => {
       }
     );
 
-    const keyboard = [
-      [Markup.button.callback("Не перемещать", "delete-to:none")],
-    ];
+    const keyboard = [[Markup.button.callback("Не перемещать", "cancel")]];
     for (const category of categories) {
       keyboard.push([
         Markup.button.callback(
