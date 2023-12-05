@@ -210,6 +210,13 @@ takeOrder.enterHandler = async function (ctx) {
             ],
             [
               Markup.button.callback(
+                "Карта привязана",
+                "card-linked",
+                !item.useCards
+              ),
+            ],
+            [
+              Markup.button.callback(
                 "Взять ключ",
                 "ask_for_key",
                 !(item.managerKeys && item.itemType !== "auto")
@@ -293,6 +300,23 @@ takeOrder.on("callback_query", async (ctx, next) => {
   } catch (e) {
     null;
     ctx.scene.leave();
+  }
+});
+
+takeOrder.action("card-linked", async (ctx) => {
+  try {
+    const order = await orders.findOne({
+      orderID: ctx.scene.state.order.orderID,
+    });
+
+    if (!order) {
+      return;
+    }
+
+    ctx.scene.state.order = order.orderID;
+    ctx.scene.enter("find-linked-card", ctx.scene.state);
+  } catch (error) {
+    console.log(error);
   }
 });
 
@@ -796,7 +820,7 @@ takeOrder.action("order_reject", async (ctx) => {
         .then((msg) =>
           setTimeout(
             () => ctx.deleteMessage(msg.message_id).catch(() => null),
-            1000
+            2500
           )
         )
         .catch(() => null);

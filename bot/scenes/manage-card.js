@@ -37,7 +37,9 @@ manageCard.enterHandler = async (ctx) => {
       card.hold > now
         ? "закончится " + escapeHTML(moment(card.hold).locale("ru").fromNow())
         : "нет"
-    }</code>\n\n<b>Баланс:</b> <code>${card.balance} ${card.currency}</code>`;
+    }</code>\n\n<b>Баланс:</b> <code>${card.balance.toFixed(2)} ${
+      card.currency
+    }</code>`;
 
     if (card.busy) {
       message += "\n<b>В работе</b>";

@@ -109,16 +109,19 @@ findLinkedCard.action(/select:[a-z0-9]+/, async (ctx) => {
 
     const { cardId } = raw.groups;
     const { order, card } = ctx.scene.state;
-    await cards.updateOne(
-      {
-        _id: card,
-      },
-      {
-        $set: {
-          busy: false,
+
+    if (card) {
+      await cards.updateOne(
+        {
+          _id: card,
         },
-      }
-    );
+        {
+          $set: {
+            busy: false,
+          },
+        }
+      );
+    }
 
     const newCard = await cards.findByIdAndUpdate(new Types.ObjectId(cardId), {
       $set: {
