@@ -209,7 +209,7 @@ function CreateBot(token) {
 
         for (const stat of orderStats) {
           total += stat.count;
-          sum += stat._id === "processing" ? stats.sum : 0;
+          sum += stat._id === "untaken" ? stat.sum : 0;
 
           data.set(stat._id, stat.count);
         }
