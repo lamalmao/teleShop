@@ -313,6 +313,10 @@ takeOrder.action("card-linked", async (ctx) => {
       return;
     }
 
+    if (order.card) {
+      ctx.scene.state.card = order.card;
+    }
+
     ctx.scene.state.order = order.orderID;
     ctx.scene.enter("find-linked-card", ctx.scene.state);
   } catch (error) {
