@@ -575,7 +575,7 @@ manageItem.on('callback_query', async (ctx, next) => {
       switch (ctx.callbackQuery.data) {
         case 'set-reward':
           msg = 'Укажите сумму вознаграждения';
-          target = 'reward';
+          target = 'managerReward';
           validation = 'number';
           break;
         case 'rename':
@@ -850,7 +850,7 @@ manageItem.on('message', async ctx => {
         newValue = newValue === '-' ? '' : newValue;
       }
 
-      if (ctx.scene.state.target === 'reward') {
+      if (ctx.scene.state.target === 'managerReward') {
         needToRender = false;
       }
 

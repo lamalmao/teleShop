@@ -19,7 +19,7 @@ async function genItemMessage(item, isAdmin) {
   if (isAdmin) {
     message += `\nid: ${item._id.toString('hex')}`;
     //prettier-ignore
-    message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}\nИгра: ${item.game}\nДоставляется сразу при покупке: ${item.itemType === 'auto' ? 'Да' : 'Нет'}\nВ-Баксы: ${item.isVBucks ? 'Да' : 'Нет'}\nРазмер шрифта для названия: ${item.titleFontSize}\nРазмер шрифта для описания: ${item.descriptionFontSize}\nВознаграждение для манеджеров: ${item.reward ? item.reward + 'р' : 'не установлено'}`;
+    message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}\nИгра: ${item.game}\nДоставляется сразу при покупке: ${item.itemType === 'auto' ? 'Да' : 'Нет'}\nВ-Баксы: ${item.isVBucks ? 'Да' : 'Нет'}\nРазмер шрифта для названия: ${item.titleFontSize}\nРазмер шрифта для описания: ${item.descriptionFontSize}\nВознаграждение для манеджеров: ${item.managerReward ? item.managerReward + 'р' : 'не установлено'}`;
 
     if (item.useCards) {
       message += '\n\nМенеджерам выдаются карты';
