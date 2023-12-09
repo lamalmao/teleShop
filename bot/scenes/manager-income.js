@@ -9,7 +9,7 @@ managerIncome.enterHandler = async ctx => {
   try {
     const user = await users.findOne(
       {
-        user: ctx.scene.state.manager || ctx.from.id
+        telegramID: ctx.scene.state.manager || ctx.from.id
       },
       {
         role: 1,
@@ -44,7 +44,7 @@ managerIncome.enterHandler = async ctx => {
       );
     }
 
-    message = message.concat(`<b>Итого: ${totalIncome.toFixed(2)}р</b>`);
+    message = message.concat(`\n\n<b>Итого: ${totalIncome.toFixed(2)}р</b>`);
 
     if (ctx.scene.state.manager) {
       ctx.scene.state.menu = ctx.callbackQuery.message.message_id;
