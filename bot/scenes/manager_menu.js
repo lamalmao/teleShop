@@ -1,27 +1,27 @@
-const { Scenes } = require("telegraf");
+const { Scenes } = require('telegraf');
 
-const users = require("../../models/users");
-const orders = require("../../models/orders");
-const keys = require("../keyboard");
+const users = require('../../models/users');
+const orders = require('../../models/orders');
+const keys = require('../keyboard');
 
-const managerMenu = new Scenes.BaseScene("manager_menu");
+const managerMenu = new Scenes.BaseScene('manager_menu');
 
 managerMenu.enterHandler = async function (ctx, next) {
   try {
     const user = await users.findOne({
-      telegramID: ctx.from.id,
+      telegramID: ctx.from.id
     });
 
-    if (user.role === "manager" || user.role === "admin") {
+    if (user.role === 'manager' || user.role === 'admin') {
       const work = await orders.find(
         {
           manager: ctx.from.id,
           paid: true,
           status: {
-            $ne: "canceled",
-          },
+            $ne: 'canceled'
+          }
         },
-        "_id status"
+        '_id status'
       );
 
       const stats = genStats(work);
@@ -50,22 +50,22 @@ managerMenu.enterHandler = async function (ctx, next) {
           summary += stat.count;
         }
         msg += `<b>Всего:</b> ${summary}`;
-      } else msg += "<i>Заказов нет</i>";
+      } else msg += '<i>Заказов нет</i>';
 
       if (!ctx.callbackQuery) {
         await ctx.reply(msg, {
           reply_markup: keys.ManagerWorkMenu.keyboard.reply_markup,
-          parse_mode: "HTML",
+          parse_mode: 'HTML'
         });
       } else {
         await ctx.telegram.editMessageText(
           ctx.from.id,
-          ctx.callbackQuery.message.message_id,
+          ctx.scene.state.menu || ctx.callbackQuery.message.message_id,
           undefined,
           msg,
           {
             reply_markup: keys.ManagerWorkMenu.keyboard.reply_markup,
-            parse_mode: "HTML",
+            parse_mode: 'HTML'
           }
         );
       }
@@ -81,7 +81,7 @@ function genStats(works) {
   let result = {
     processing: 0,
     done: 0,
-    refund: 0,
+    refund: 0
   };
 
   for (let order of works) result[order.status]++;

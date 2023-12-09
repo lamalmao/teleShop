@@ -1,8 +1,8 @@
-const { Scenes } = require("telegraf");
-const users = require("../../models/users");
-const sendMenu = require("../menu");
+const { Scenes } = require('telegraf');
+const users = require('../../models/users');
+const sendMenu = require('../menu');
 
-const start = new Scenes.BaseScene("start");
+const start = new Scenes.BaseScene('start');
 
 start.enterHandler = async function (ctx) {
   // ctx.deleteMessage().catch(_ => null);
@@ -11,7 +11,7 @@ start.enterHandler = async function (ctx) {
     const userId = ctx.from.id;
 
     const user = await users.findOne({
-      telegramID: userId,
+      telegramID: userId
     });
 
     if (!user) {
@@ -22,13 +22,13 @@ start.enterHandler = async function (ctx) {
       await users.create({
         telegramID: userId,
         username: ctx.from.username ? ctx.from.username : ctx.from.first_name,
-        invitedBy: inviter !== ctx.from.id ? inviter : null,
+        invitedBy: inviter !== ctx.from.id ? inviter : null
       });
     }
 
     await sendMenu(ctx, ctx.scene.state.menu);
   } catch (e) {
-    null;
+    console.log(e);
   } finally {
     ctx.scene.leave();
   }

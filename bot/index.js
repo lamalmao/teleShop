@@ -1,21 +1,21 @@
-const { Telegraf, session, Markup } = require("telegraf");
-const stage = require("./scenes");
-const clean = require("../cleanup");
-const users = require("../models/users");
-const payments = require("../models/payments");
-const keys = require("./keyboard");
-const messages = require("./messages");
-const path = require("path");
-const goods = require("../models/goods");
-const { delivery } = require("../models/delivery");
-const managerKey = require("../models/manager-keys");
-const orders = require("../models/orders");
-const { Types } = require("mongoose");
-const cards = require("../models/cards");
-const cardTransactions = require("../models/cards-transactions");
-const escapeHTML = require("escape-html");
+const { Telegraf, session, Markup } = require('telegraf');
+const stage = require('./scenes');
+const clean = require('../cleanup');
+const users = require('../models/users');
+const payments = require('../models/payments');
+const keys = require('./keyboard');
+const messages = require('./messages');
+const path = require('path');
+const goods = require('../models/goods');
+const { delivery } = require('../models/delivery');
+const managerKey = require('../models/manager-keys');
+const orders = require('../models/orders');
+const { Types } = require('mongoose');
+const cards = require('../models/cards');
+const cardTransactions = require('../models/cards-transactions');
+const escapeHTML = require('escape-html');
 
-const images = path.join(process.cwd(), "files", "images");
+const images = path.join(process.cwd(), 'files', 'images');
 
 function CreateBot(token) {
   const bot = new Telegraf(token);
@@ -33,24 +33,24 @@ function CreateBot(token) {
   bot.use(session());
   bot.use(stage.middleware());
 
-  bot.start((ctx) => ctx.scene.enter("start"));
+  bot.start(ctx => ctx.scene.enter('start'));
 
-  bot.command("switch", async (ctx) => {
+  bot.command('switch', async ctx => {
     try {
       const user = await users.findOne(
         {
-          telegramID: ctx.from.id,
+          telegramID: ctx.from.id
         },
-        "role"
+        'role'
       );
 
-      if (user && user.role === "admin") {
+      if (user && user.role === 'admin') {
         global.suspend = !global.suspend;
         await ctx.reply(
           `Продажи ${
-            global.suspend ? "приостановлены" : "возобновлены"
+            global.suspend ? 'приостановлены' : 'возобновлены'
           }.\n/switch для того чтобы ${
-            global.suspend ? "возобновить" : "приостановить"
+            global.suspend ? 'возобновить' : 'приостановить'
           }`
         );
       }
@@ -60,34 +60,34 @@ function CreateBot(token) {
   });
 
   bot.command(
-    "deltrans",
+    'deltrans',
     async (ctx, next) => {
       try {
         const user = await users.findOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
-            role: 1,
+            role: 1
           }
         );
 
-        if (!user || user.role !== "admin") {
+        if (!user || user.role !== 'admin') {
           return;
         }
 
         next();
       } catch {
-        return;
+
       }
     },
-    async (ctx) => {
+    async ctx => {
       try {
-        await ctx.reply("Удалить все транзакции всех карт?", {
+        await ctx.reply('Удалить все транзакции всех карт?', {
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("Да", "sure-delete-transactions")],
-            [Markup.button.callback("Нет", "delete-message")],
-          ]).reply_markup,
+            [Markup.button.callback('Да', 'sure-delete-transactions')],
+            [Markup.button.callback('Нет', 'delete-message')]
+          ]).reply_markup
         });
       } catch (error) {
         console.log(error);
@@ -96,32 +96,32 @@ function CreateBot(token) {
   );
 
   bot.action(
-    "sure-delete-transactions",
+    'sure-delete-transactions',
     async (ctx, next) => {
       try {
         const user = await users.findOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
-            role: 1,
+            role: 1
           }
         );
 
-        if (!user || user.role !== "admin") {
+        if (!user || user.role !== 'admin') {
           ctx.deleteMessage().catch(() => null);
           return;
         }
 
         next();
       } catch {
-        return;
+
       }
     },
-    async (ctx) => {
+    async ctx => {
       try {
         await cardTransactions.deleteMany({});
-        await ctx.editMessageText("Транзакции удалены");
+        await ctx.editMessageText('Транзакции удалены');
       } catch (error) {
         console.log(e);
       }
@@ -129,26 +129,26 @@ function CreateBot(token) {
   );
 
   bot.command(
-    "orderstats",
+    'orderstats',
     async (ctx, next) => {
       try {
         const user = await users.findOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
-            role: 1,
+            role: 1
           }
         );
 
-        if (user && user.role === "admin") {
+        if (user && user.role === 'admin') {
           next();
         }
       } catch {
-        return;
+
       }
     },
-    async (ctx) => {
+    async ctx => {
       try {
         const now = new Date();
         const day = now.getDate();
@@ -160,7 +160,7 @@ function CreateBot(token) {
 
         const totalWait = await orders.count({
           paid: true,
-          status: "untaken",
+          status: 'untaken'
         });
 
         const orderStats = await orders.aggregate([
@@ -169,84 +169,84 @@ function CreateBot(token) {
               paid: true,
               date: {
                 $gte: from,
-                $lte: to,
-              },
-            },
+                $lte: to
+              }
+            }
           },
           {
             $group: {
-              _id: "$status",
-              sum: { $sum: "$amount" },
-              count: { $count: {} },
-            },
-          },
+              _id: '$status',
+              sum: { $sum: '$amount' },
+              count: { $count: {} }
+            }
+          }
         ]);
 
         const managerStats = await orders.aggregate([
           {
             $match: {
               paid: true,
-              status: "done",
+              status: 'done',
               date: {
                 $gte: from,
-                $lte: to,
-              },
-            },
+                $lte: to
+              }
+            }
           },
           {
             $group: {
-              _id: "$manager",
-              count: { $count: {} },
-            },
-          },
+              _id: '$manager',
+              count: { $count: {} }
+            }
+          }
         ]);
 
         let total = 0;
         let sum = 0;
-        let text = "<u>Статистика заказов за 24 часа</u>\n";
+        let text = '<u>Статистика заказов за 24 часа</u>\n';
 
         const data = new Map();
 
         for (const stat of orderStats) {
           total += stat.count;
-          sum += stat._id === "untaken" ? stat.sum : 0;
+          sum += stat._id === 'untaken' ? stat.sum : 0;
 
           data.set(stat._id, stat.count);
         }
 
         text = text.concat(
           `\n<b>Заказов за сутки: ${total}</b>\n<i>Отмен за сутки: ${
-            data.get("canceled") || 0
+            data.get('canceled') || 0
           }</i>\n<i>Возвратов за сутки: ${
-            data.get("refund") || 0
+            data.get('refund') || 0
           }</i>\n<i>Сделано заказов за сутки: ${
-            data.get("done") || 0
+            data.get('done') || 0
           }</i>\n<i>Заказов в работе: ${
-            data.get("processing") || 0
+            data.get('processing') || 0
           }</i>\n<i>Заказов ожидает: ${
-            data.get("untaken") || 0
+            data.get('untaken') || 0
           }</i>\n<b><i>Всего заказов ожидает: ${totalWait}</i></b>\n<b>Сумма заказов: ${sum} рублей</b>\n\n<u>Статистика менеджеров за 24 часа</u>\n`
         );
 
         for (const managerStat of managerStats) {
           const manager = await users.findOne(
             {
-              telegramID: managerStat._id,
+              telegramID: managerStat._id
             },
             {
-              username: 1,
+              username: 1
             }
           );
 
           text = text.concat(
             `\n<a href="tg://user?id=${managerStat._id}">${escapeHTML(
-              manager ? manager.username : "Ключи"
+              manager ? manager.username : 'Ключи'
             )}</a> - ${managerStat.count}`
           );
         }
 
         await ctx.reply(text, {
-          parse_mode: "HTML",
+          parse_mode: 'HTML'
         });
       } catch (error) {
         console.log(error);
@@ -255,34 +255,34 @@ function CreateBot(token) {
   );
 
   bot.command(
-    "balance",
+    'balance',
     async (ctx, next) => {
       try {
         const user = await users.findOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
-            role: 1,
+            role: 1
           }
         );
 
-        if (user && user.role === "admin") {
+        if (user && user.role === 'admin') {
           next();
         }
       } catch {
-        return;
+
       }
     },
-    async (ctx) => {
+    async ctx => {
       try {
         const cardsData = await cards.aggregate([
           {
             $group: {
-              _id: "$currency",
-              sum: { $sum: "$balance" },
-            },
-          },
+              _id: '$currency',
+              sum: { $sum: '$balance' }
+            }
+          }
         ]);
 
         const data = new Map();
@@ -294,20 +294,20 @@ function CreateBot(token) {
         const active = await cards.countDocuments({
           busy: false,
           hold: {
-            $lt: new Date(),
-          },
+            $lt: new Date()
+          }
         });
 
         await ctx.reply(
           `<b>Суммарный баланс карт</b>\n\n<i>UAH - ${
-            data.get("UAH").toFixed(2) || 0
-          }</i>\n<i>USD - ${data.get("USD").toFixed(2) || 0}</i>\n<i>EUR - ${
-            data.get("EUR").toFixed(2) || 0
+            data.get('UAH').toFixed(2) || 0
+          }</i>\n<i>USD - ${data.get('USD').toFixed(2) || 0}</i>\n<i>EUR - ${
+            data.get('EUR').toFixed(2) || 0
           }</i>\n\n<b>Всего карт: ${total}</b>\n<i>Активных карт: ${active}</i>\n<i>В холде: ${
             total - active
           }</i>`,
           {
-            parse_mode: "HTML",
+            parse_mode: 'HTML'
           }
         );
       } catch (error) {
@@ -316,27 +316,27 @@ function CreateBot(token) {
     }
   );
 
-  bot.command("orders", async (ctx, next) => {
+  bot.command('orders', async (ctx, next) => {
     try {
       const user = await users.findOne(
         {
-          telegramID: ctx.from.id,
+          telegramID: ctx.from.id
         },
         {
-          role: 1,
+          role: 1
         }
       );
 
-      if (user && user.role !== "client") {
-        await ctx.reply("Никому не передавайте эту ссылку", {
+      if (user && user.role !== 'client') {
+        await ctx.reply('Никому не передавайте эту ссылку', {
           reply_markup: Markup.inlineKeyboard([
             [
               Markup.button.url(
-                "Заказы",
+                'Заказы',
                 `http://94.241.175.97/?u=${user._id.toString()}`
-              ),
-            ],
-          ]).reply_markup,
+              )
+            ]
+          ]).reply_markup
         });
       }
     } catch {
@@ -345,66 +345,66 @@ function CreateBot(token) {
   });
 
   bot.command(
-    "codes",
+    'codes',
     async (ctx, next) => {
       try {
         const user = await users.findOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
-            role: 1,
+            role: 1
           }
         );
 
-        if (user && user.role === "admin") {
+        if (user && user.role === 'admin') {
           next();
         }
       } catch {
         null;
       }
     },
-    async (ctx) => {
+    async ctx => {
       try {
         const autoItems = await goods.find(
           {
-            itemType: "auto",
+            itemType: 'auto'
           },
           {
-            title: 1,
+            title: 1
           }
         );
 
         const manualItems = await goods.find(
           {
             itemType: {
-              $ne: "auto",
+              $ne: 'auto'
             },
-            managerKeys: true,
+            managerKeys: true
           },
           {
-            title: 1,
+            title: 1
           }
         );
 
-        let msg = "Ключи для клиентов:\n";
+        let msg = 'Ключи для клиентов:\n';
 
         for (const auto of autoItems) {
           const count = await delivery.countDocuments({
             item: auto._id,
             accessable: true,
-            delivered: false,
+            delivered: false
           });
 
           msg += `${auto.title} - ${count}\n`;
         }
 
-        msg += "\nКлючи для менеджеров:\n";
+        msg += '\nКлючи для менеджеров:\n';
 
         for (const manual of manualItems) {
           const count = await managerKey.countDocuments({
             item: manual._id,
-            used: false,
+            used: false
           });
 
           msg += `${manual.title} - ${count}\n`;
@@ -421,14 +421,14 @@ function CreateBot(token) {
           await ctx.reply(msg.slice(start, start + slice));
         }
       } catch (error) {
-        ctx.reply("Что-то пошло не так").catch(() => null);
+        ctx.reply('Что-то пошло не так').catch(() => null);
       }
     }
   );
 
-  bot.on("callback_query", (ctx, next) => {
+  bot.on('callback_query', (ctx, next) => {
     // null
-    ctx.answerCbQuery().catch((_) => null);
+    ctx.answerCbQuery().catch(_ => null);
     next();
   });
 
@@ -438,21 +438,21 @@ function CreateBot(token) {
       try {
         const user = await users.findOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
-            role: 1,
+            role: 1
           }
         );
 
-        if (user && ["admin", "manager"].includes(user.role)) {
+        if (user && ['admin', 'manager'].includes(user.role)) {
           next();
         }
       } catch (error) {
-        return;
+
       }
     },
-    async (ctx) => {
+    async ctx => {
       try {
         const raw =
           /^(?<type>[a-z\-]+):(?<orderId>\d+):(?<cardId>[a-z0-9]+)$/.exec(
@@ -460,7 +460,7 @@ function CreateBot(token) {
           );
 
         if (!raw) {
-          throw new Error("No data");
+          throw new Error('No data');
         }
         const { orderId, cardId, type } = raw.groups;
 
@@ -468,29 +468,29 @@ function CreateBot(token) {
 
         const order = await orders.findOne(
           {
-            orderID: Number(orderId),
+            orderID: Number(orderId)
           },
           {
             card: 1,
             cardPaid: 1,
             manager: 1,
-            status: 1,
+            status: 1
           }
         );
 
         const cardObjId = new Types.ObjectId(cardId);
         const check = await cards.exists({
-          _id: cardObjId,
+          _id: cardObjId
         });
 
         if (
           order.manager !== ctx.from.id ||
-          order.status !== "processing" ||
+          order.status !== 'processing' ||
           order.card.toString() !== cardId ||
           order.cardPaid ||
           !check
         ) {
-          ctx.answerCbQuery("Более не актуально").catch(() => null);
+          ctx.answerCbQuery('Более не актуально').catch(() => null);
           ctx.deleteMessage(() => null).catch(() => null);
           return;
         }
@@ -498,26 +498,26 @@ function CreateBot(token) {
         let success;
         let text;
         switch (type) {
-          case "card-paid":
-            success = "card-payment";
-            text = "Вы подтверждаете оплату?";
+          case 'card-paid':
+            success = 'card-payment';
+            text = 'Вы подтверждаете оплату?';
             break;
-          case "card-weld-error":
-            success = "weld-error";
-            text = "Вы подтверждаете ошибку привязки?";
+          case 'card-weld-error':
+            success = 'weld-error';
+            text = 'Вы подтверждаете ошибку привязки?';
             break;
-          case "card-pay-error":
-            success = "pay-error";
-            text = "Вы подтверждаете ошибку оплаты?";
+          case 'card-pay-error':
+            success = 'pay-error';
+            text = 'Вы подтверждаете ошибку оплаты?';
             break;
-          case "card-return":
-            success = "card-return";
-            text = "Вы подтверждаете возврат карты?";
+          case 'card-return':
+            success = 'card-return';
+            text = 'Вы подтверждаете возврат карты?';
             break;
-          case "card-linked":
-            ctx.scene.enter("find-linked-card", {
+          case 'card-linked':
+            ctx.scene.enter('find-linked-card', {
               card: cardObjId,
-              order: orderId,
+              order: orderId
             });
             return;
           default:
@@ -528,12 +528,12 @@ function CreateBot(token) {
           reply_markup: Markup.inlineKeyboard([
             [
               Markup.button.callback(
-                "Да",
+                'Да',
                 `accept-${success}:${orderId}:${cardId}`
-              ),
+              )
             ],
-            [Markup.button.callback("Нет", "delete-message")],
-          ]).reply_markup,
+            [Markup.button.callback('Нет', 'delete-message')]
+          ]).reply_markup
         });
       } catch (error) {
         console.log(error);
@@ -547,18 +547,18 @@ function CreateBot(token) {
       try {
         const user = await users.findOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
-            role: 1,
+            role: 1
           }
         );
 
-        if (user && ["admin", "manager"].includes(user.role)) {
+        if (user && ['admin', 'manager'].includes(user.role)) {
           next();
         }
       } catch (error) {
-        return;
+
       }
     },
     async (ctx, next) => {
@@ -569,20 +569,20 @@ function CreateBot(token) {
           );
 
         if (!raw) {
-          throw new Error("No data");
+          throw new Error('No data');
         }
         const { orderId, cardId, target } = raw.groups;
 
         const order = await orders.findOne({
-          orderID: Number(orderId),
+          orderID: Number(orderId)
         });
 
         const item = await goods.findById(order.item, {
-          netCost: 1,
+          netCost: 1
         });
 
         if (!item || !item.netCost) {
-          throw new Error("No item found");
+          throw new Error('No item found');
         }
 
         const cardObjId = new Types.ObjectId(cardId);
@@ -590,12 +590,12 @@ function CreateBot(token) {
 
         if (
           order.manager !== ctx.from.id ||
-          order.status !== "processing" ||
+          order.status !== 'processing' ||
           order.card.toString() !== cardId ||
           order.cardPaid ||
           !card
         ) {
-          ctx.answerCbQuery("Более не актуально").catch(() => null);
+          ctx.answerCbQuery('Более не актуально').catch(() => null);
           ctx.deleteMessage(() => null).catch(() => null);
           return;
         }
@@ -611,7 +611,7 @@ function CreateBot(token) {
     },
     async (ctx, next) => {
       try {
-        if (ctx.state.target !== "card-payment") {
+        if (ctx.state.target !== 'card-payment') {
           next();
           return;
         }
@@ -626,24 +626,24 @@ function CreateBot(token) {
           sendToHold: !order.avoidHold,
           busy: false,
           order: order.orderID,
-          cardBalance: card.balance,
+          cardBalance: card.balance
         });
 
         if (result === null) {
           ctx
-            .answerCbQuery("Не получилось сохранить оплату, попробуйте еще раз")
+            .answerCbQuery('Не получилось сохранить оплату, попробуйте еще раз')
             .catch(() => null);
           return;
         }
 
         await orders.updateOne(
           {
-            orderID: order.orderID,
+            orderID: order.orderID
           },
           {
             $set: {
-              cardPaid: true,
-            },
+              cardPaid: true
+            }
           }
         );
 
@@ -659,23 +659,23 @@ function CreateBot(token) {
         ctx.state = {};
       }
     },
-    async (ctx) => {
+    async ctx => {
       try {
         const { card, order, target, item } = ctx.state;
-        if (!["weld-error", "pay-error", "card-return"].includes(target)) {
+        if (!['weld-error', 'pay-error', 'card-return'].includes(target)) {
           return;
         }
 
         let description;
         switch (target) {
-          case "weld-error":
-            description = "Ошибка привязки";
+          case 'weld-error':
+            description = 'Ошибка привязки';
             break;
-          case "pay-error":
-            description = "Ошибка оплаты";
+          case 'pay-error':
+            description = 'Ошибка оплаты';
             break;
-          case "card-return":
-            description = "Карта возвращена";
+          case 'card-return':
+            description = 'Карта возвращена';
             break;
           default:
             return;
@@ -683,26 +683,26 @@ function CreateBot(token) {
 
         await orders.updateOne(
           {
-            orderID: order.orderID,
+            orderID: order.orderID
           },
           {
             $unset: {
-              card: "",
-              cardPaid: "",
-              cardNumber: "",
-              avoidHold: "",
-            },
+              card: '',
+              cardPaid: '',
+              cardNumber: '',
+              avoidHold: ''
+            }
           }
         );
 
         await users.updateOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
             $unset: {
-              cardOrder: "",
-            },
+              cardOrder: ''
+            }
           }
         );
 
@@ -710,12 +710,12 @@ function CreateBot(token) {
           amount: -item.netCost[card.currency],
           currency: card.currency,
           issuer: ctx.from.id,
-          sendToHold: target !== "card-return",
+          sendToHold: target !== 'card-return',
           description,
           busy: false,
           order: order.orderID,
           success: false,
-          cardBalance: card.balance,
+          cardBalance: card.balance
         });
 
         await ctx.editMessageText(
@@ -730,31 +730,33 @@ function CreateBot(token) {
     }
   );
 
-  bot.action("delete-message", (ctx) => ctx.deleteMessage().catch(() => null));
+  bot.action('manager-income', ctx => ctx.scene.enter('manager-income'));
 
-  bot.action("profile", (ctx) =>
-    ctx.scene.enter("profile", { menu: ctx.callbackQuery.message })
+  bot.action('delete-message', ctx => ctx.deleteMessage().catch(() => null));
+
+  bot.action('profile', ctx =>
+    ctx.scene.enter('profile', { menu: ctx.callbackQuery.message })
   );
-  bot.action("shop", (ctx) => ctx.scene.enter("shop"));
+  bot.action('shop', ctx => ctx.scene.enter('shop'));
 
   bot.action(
     [
       keys.Menu.buttons.questions,
       keys.Menu.buttons.guarantees,
       keys.Menu.buttons.comments,
-      keys.Menu.buttons.support,
+      keys.Menu.buttons.support
     ],
-    async (ctx) => {
+    async ctx => {
       try {
         await ctx.telegram.editMessageMedia(
           ctx.from.id,
           ctx.callbackQuery.message.message_id,
           undefined,
           {
-            type: "photo",
+            type: 'photo',
             media: {
-              source: path.join(images, `blank_${ctx.callbackQuery.data}.jpg`),
-            },
+              source: path.join(images, `blank_${ctx.callbackQuery.data}.jpg`)
+            }
           }
         );
 
@@ -764,207 +766,205 @@ function CreateBot(token) {
           undefined,
           messages[ctx.callbackQuery.data],
           {
-            parse_mode: "HTML",
-            reply_markup: keys.BackMenu.keyboard.reply_markup,
+            parse_mode: 'HTML',
+            reply_markup: keys.BackMenu.keyboard.reply_markup
           }
         );
       } catch (e) {
         null;
         ctx.telegram
           .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
-          .catch((_) => null);
+          .catch(_ => null);
       }
     }
   );
 
-  bot.action(/cancelPayment#\d+/, async (ctx) => {
+  bot.action(/cancelPayment#\d+/, async ctx => {
     try {
       const paymentID = Number(/\d+$/.exec(ctx.callbackQuery.data)[0]);
 
       await payments.updateOne(
         {
           paymentID: paymentID,
-          status: "waiting",
+          status: 'waiting'
         },
         {
           $set: {
-            status: "rejected",
-          },
+            status: 'rejected'
+          }
         }
       );
 
       ctx.telegram
         .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
-        .catch((_) => null);
+        .catch(_ => null);
     } catch (e) {
-      ctx.answerCbQuery("Что-то пошло не так").catch((_) => null);
+      ctx.answerCbQuery('Что-то пошло не так').catch(_ => null);
     } finally {
-      ctx.scene.enter("start");
+      ctx.scene.enter('start');
     }
   });
 
-  bot.action(/lava-check#\d+/, (ctx) => ctx.scene.enter("lava-check"));
-  bot.action(/main_section#\w+/, (ctx) => ctx.scene.enter("mainCategory"));
-  bot.action(/sub_section#\w+/, (ctx) => ctx.scene.enter("subCategory"));
-  bot.action(/item#\w+/, (ctx) => ctx.scene.enter("item"));
-  bot.action(/buy#\w+/, (ctx) => ctx.scene.enter("buy"));
-  bot.action(/ref#\d+/, (ctx) => {
+  bot.action(/lava-check#\d+/, ctx => ctx.scene.enter('lava-check'));
+  bot.action(/main_section#\w+/, ctx => ctx.scene.enter('mainCategory'));
+  bot.action(/sub_section#\w+/, ctx => ctx.scene.enter('subCategory'));
+  bot.action(/item#\w+/, ctx => ctx.scene.enter('item'));
+  bot.action(/buy#\w+/, ctx => ctx.scene.enter('buy'));
+  bot.action(/ref#\d+/, ctx => {
     const amount = Number(/\d+$/.exec(ctx.callbackQuery.data)[0]);
-    ctx.scene.enter("pay", {
+    ctx.scene.enter('pay', {
       menu: ctx.callbackQuery.message,
-      amount: amount,
+      amount: amount
     });
   });
 
-  bot.action(/genshin_proceed#\w+/, (ctx) =>
-    ctx.scene.enter("genshin_proceed")
+  bot.action(/genshin_proceed#\w+/, ctx => ctx.scene.enter('genshin_proceed'));
+  bot.action(/supercell_proceed#\w+/, ctx =>
+    ctx.scene.enter('supercell_proceed')
   );
-  bot.action(/supercell_proceed#\w+/, (ctx) =>
-    ctx.scene.enter("supercell_proceed")
-  );
-  bot.action(/proceed#\w+/, (ctx) => ctx.scene.enter("proceed"));
-  bot.action(/accept#\d+/, (ctx) => ctx.scene.enter("accept_purchase"));
-  bot.action(/order#\d+/, (ctx) => ctx.scene.enter("order_data"));
-  bot.action(/refund_data#\d+/, (ctx) => ctx.scene.enter("user_refund"));
-  bot.action(/res_contact#\d+#\d+/, (ctx) => ctx.scene.enter("send_contact"));
-  bot.action(/send_code#\d+/, (ctx) => ctx.scene.enter("send_auth_code"));
+  bot.action(/proceed#\w+/, ctx => ctx.scene.enter('proceed'));
+  bot.action(/accept#\d+/, ctx => ctx.scene.enter('accept_purchase'));
+  bot.action(/order#\d+/, ctx => ctx.scene.enter('order_data'));
+  bot.action(/refund_data#\d+/, ctx => ctx.scene.enter('user_refund'));
+  bot.action(/res_contact#\d+#\d+/, ctx => ctx.scene.enter('send_contact'));
+  bot.action(/send_code#\d+/, ctx => ctx.scene.enter('send_auth_code'));
 
-  bot.action(keys.BackMenu.buttons, async (ctx) => {
+  bot.action(keys.BackMenu.buttons, async ctx => {
     try {
       await ctx.editMessageMedia({
-        type: "photo",
+        type: 'photo',
         media: {
-          source: path.join(images, "blank_logo.jpg"),
-        },
+          source: path.join(images, 'blank_logo.jpg')
+        }
       });
 
-      await ctx.editMessageCaption("Главное меню", {
-        reply_markup: keys.Menu.keyboard.reply_markup,
+      await ctx.editMessageCaption('Главное меню', {
+        reply_markup: keys.Menu.keyboard.reply_markup
       });
     } catch (e) {
       null;
     }
   });
 
-  bot.command("admin", (ctx) => ctx.scene.enter("admin"));
-  bot.command("manager", (ctx) => ctx.scene.enter("manager_menu"));
-  bot.action("online_alert", async (ctx) => {
+  bot.command('admin', ctx => ctx.scene.enter('admin'));
+  bot.command('manager', ctx => ctx.scene.enter('manager_menu'));
+  bot.action('online_alert', async ctx => {
     try {
       await users.updateOne(
         {
-          telegramID: ctx.from.id,
+          telegramID: ctx.from.id
         },
         {
           $set: {
-            onlineUntil: new Date(Date.now() + 15 * 60 * 1000),
-          },
+            onlineUntil: new Date(Date.now() + 15 * 60 * 1000)
+          }
         }
       );
 
       const curCtx = ctx;
       ctx
-        .reply("Ваш статус обновлен")
-        .then((msg) => {
+        .reply('Ваш статус обновлен')
+        .then(msg => {
           setTimeout(function () {
             curCtx.telegram
               .deleteMessage(curCtx.from.id, msg.message_id)
-              .catch((_) => null);
+              .catch(_ => null);
           }, 3000);
         })
-        .catch((_) => null);
+        .catch(_ => null);
     } catch (e) {
       null;
     }
   });
-  bot.action("manager_menu", (ctx) => ctx.scene.enter("manager_menu"));
-  bot.action("catch_order", (ctx) => ctx.scene.enter("catch_order"));
-  bot.action(keys.ManagerWorkMenu.buttons.active, (ctx) =>
-    ctx.scene.enter("current_orders")
+  bot.action('manager_menu', ctx => ctx.scene.enter('manager_menu'));
+  bot.action('catch_order', ctx => ctx.scene.enter('catch_order'));
+  bot.action(keys.ManagerWorkMenu.buttons.active, ctx =>
+    ctx.scene.enter('current_orders')
   );
-  bot.action(keys.ManagerWorkMenu.buttons.list, (ctx) =>
-    ctx.scene.enter("orders_list")
+  bot.action(keys.ManagerWorkMenu.buttons.list, ctx =>
+    ctx.scene.enter('orders_list')
   );
-  bot.action(keys.ManagerWorkMenu.buttons.back, (ctx) =>
-    ctx.deleteMessage().catch((_) => null)
+  bot.action(keys.ManagerWorkMenu.buttons.back, ctx =>
+    ctx.deleteMessage().catch(_ => null)
   );
-  bot.action(/manager_take#\d+/, (ctx) => ctx.scene.enter("take_order"));
+  bot.action(/manager_take#\d+/, ctx => ctx.scene.enter('take_order'));
 
-  bot.command("clean", async (ctx) => {
+  bot.command('clean', async ctx => {
     const user = await users.findOne(
       {
         telegramID: ctx.from.id,
-        role: "admin",
+        role: 'admin'
       },
-      "role"
+      'role'
     );
 
     if (user) clean();
   });
 
-  bot.command("drop", async (ctx) => {
+  bot.command('drop', async ctx => {
     try {
       const user = await users.findOne(
         {
           telegramID: ctx.from.id,
-          role: "admin",
+          role: 'admin'
         },
-        "role"
+        'role'
       );
 
       if (user) {
         await users.updateOne(
           {
-            telegramID: ctx.from.id,
+            telegramID: ctx.from.id
           },
           {
             $set: {
-              stats: [],
-            },
+              stats: []
+            }
           }
         );
 
-        ctx.reply("Статистика сброшена");
+        ctx.reply('Статистика сброшена');
       }
     } catch (e) {
       null;
     }
   });
 
-  bot.command("say", async (ctx) => {
+  bot.command('say', async ctx => {
     try {
       const user = await users.findOne(
         {
-          telegramID: ctx.from.id,
+          telegramID: ctx.from.id
         },
         {
-          role: 1,
+          role: 1
         }
       );
 
-      if (user.role !== "admin") {
-        throw new Error("No access");
+      if (user.role !== 'admin') {
+        throw new Error('No access');
       }
 
-      ctx.scene.enter("share-message");
+      ctx.scene.enter('share-message');
     } catch (error) {
       null;
-      ctx.reply("Нет доступа");
+      ctx.reply('Нет доступа');
     }
   });
 
-  bot.command("stats", async (ctx) => {
+  bot.command('stats', async ctx => {
     try {
       const user = await users.findOne(
         {
-          telegramID: ctx.from.id,
+          telegramID: ctx.from.id
         },
         {
-          role: 1,
+          role: 1
         }
       );
 
-      if (user.role !== "admin") {
-        throw new Error("No access");
+      if (user.role !== 'admin') {
+        throw new Error('No access');
       }
 
       const now = new Date();
@@ -981,31 +981,31 @@ function CreateBot(token) {
       const fromMonth = new Date(to.getTime() - dayInMs * 30);
 
       const allCount = await users.count({
-        role: "client",
+        role: 'client'
       });
 
       const todayCount = await users.count({
-        role: "client",
+        role: 'client',
         join_date: {
           $gte: fromDay,
-          $lte: to,
-        },
+          $lte: to
+        }
       });
 
       const weekCount = await users.count({
-        role: "client",
+        role: 'client',
         join_date: {
           $gte: fromWeek,
-          $lte: to,
-        },
+          $lte: to
+        }
       });
 
       const monthCount = await users.count({
-        role: "client",
+        role: 'client',
         join_date: {
           $gte: fromMonth,
-          $lte: to,
-        },
+          $lte: to
+        }
       });
 
       await ctx.reply(
