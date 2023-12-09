@@ -3,6 +3,7 @@ const { Scenes, Markup } = require('telegraf');
 const users = require('../../models/users');
 const orders = require('../../models/orders');
 const keys = require('../keyboard');
+const escapeHTML = require('escape-html');
 
 const managersInfo = new Scenes.BaseScene('showManagers');
 
@@ -136,11 +137,17 @@ managersInfo.action(/manager#\d+/, async ctx => {
               [Markup.button.callback('Доход', `income:${user.telegramID}`)],
               [
                 Markup.button.callback(
+                  'Штраф/Поощрение',
+                  `manage-income#${user.telegramID}`
+                )
+              ],
+              [
+                Markup.button.callback(
                   'Сбросить статистику',
                   `drop#${user.telegramID}`
                 )
               ],
-              [Markup.button.callback('Назад', 'prev')]
+              [Markup.button.callback('Назад', `manager#${user.telegramID}`)]
             ]).reply_markup,
             parse_mode: 'HTML'
           }
@@ -150,6 +157,157 @@ managersInfo.action(/manager#\d+/, async ctx => {
   } catch (e) {
     null;
     ctx.scene.reenter();
+  }
+});
+
+managersInfo.on(
+  'message',
+  (ctx, next) => {
+    ctx.deleteMessage().catch(() => null);
+    if (!ctx.scene.state.target) {
+      return;
+    }
+
+    next();
+  },
+  async (ctx, next) => {
+    try {
+      if (ctx.scene.state.target !== 'amount') {
+        next();
+        return;
+      }
+
+      const amount = Number(ctx.message.text);
+      if (Number.isNaN(amount) || amount === 0) {
+        ctx
+          .reply('Значение должны быть числом, и не равно нулю')
+          .then(msg =>
+            setTimeout(
+              () => ctx.deleteMessage(msg.message_id).catch(() => null),
+              2500
+            )
+          )
+          .catch(() => null);
+
+        return;
+      }
+
+      ctx.scene.state.amount = amount;
+      ctx.scene.state.target = 'description';
+      await ctx.telegram.editMessageText(
+        ctx.from.id,
+        ctx.scene.state.menu,
+        undefined,
+        `<b>Укажите причину ${amount > 0 ? 'поощрения' : 'штрафа'}</b>`,
+        {
+          parse_mode: 'HTML',
+          reply_markup: Markup.inlineKeyboard([
+            [
+              Markup.button.callback(
+                'Отмена',
+                `manager#${ctx.scene.state.incomeTarget}`
+              )
+            ]
+          ]).reply_markup
+        }
+      );
+    } catch (e) {
+      console.log(e);
+    }
+  },
+  async ctx => {
+    try {
+      if (ctx.scene.state.target !== 'description') {
+        return;
+      }
+
+      const description = ctx.message.text;
+      const manager = await users.findOne(
+        { telegramID: ctx.scene.state.incomeTarget },
+        { username: 1 }
+      );
+      if (!manager) {
+        return;
+      }
+
+      ctx.scene.state.description = description;
+      await ctx.telegram.editMessageText(
+        ctx.from.id,
+        ctx.scene.state.menu,
+        undefined,
+        `<b>Сохранить ${
+          ctx.scene.state.amount > 0 ? 'поощрение' : 'штраф'
+        } для менеджера <code>${escapeHTML(
+          manager.username
+        )}</code>?</b>\n\n<i>Сумма:</i> ${ctx.scene.state.amount.toFixed(
+          2
+        )}р\n<i>Причина:</i> ${escapeHTML(ctx.scene.state.description)}`,
+        {
+          parse_mode: 'HTML',
+          reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('Да', 'save-income')],
+            [
+              Markup.button.callback(
+                'Нет',
+                `manager#${ctx.scene.state.incomeTarget}`
+              )
+            ]
+          ]).reply_markup
+        }
+      );
+    } catch (e) {
+      console.log(e);
+    }
+  }
+);
+
+managersInfo.action('save-income', async ctx => {
+  try {
+    await users.updateOne(
+      {
+        telegramID: ctx.scene.state.incomeTarget
+      },
+      {
+        $push: {
+          incomeFactors: {
+            amount: ctx.scene.state.amount,
+            description: ctx.scene.state.description
+          }
+        }
+      }
+    );
+  } catch (e) {
+    console.log(e);
+  } finally {
+    ctx.scene.state = undefined;
+    ctx.scene.reenter();
+  }
+});
+
+managersInfo.action(/manage-income#\d+/, async ctx => {
+  try {
+    const raw = /#(\d+)$/.exec(ctx.callbackQuery.data);
+    if (!raw) {
+      return;
+    }
+
+    const managerId = Number(raw[1]);
+    ctx.scene.state.menu = ctx.callbackQuery.message.message_id;
+
+    await ctx.editMessageText(
+      '<b>Укажите сумму</b>\n<i>Отрицательная сумма будет записана как штраф, положительная - как поощрение</i>',
+      {
+        parse_mode: 'HTML',
+        reply_markup: Markup.inlineKeyboard([
+          [Markup.button.callback('Назад', `manager#${managerId}`)]
+        ]).reply_markup
+      }
+    );
+
+    ctx.scene.state.incomeTarget = managerId;
+    ctx.scene.state.target = 'amount';
+  } catch (e) {
+    console.log(e);
   }
 });
 
@@ -244,7 +402,8 @@ managersInfo.action('drop', async ctx => {
       },
       {
         $set: {
-          stats: []
+          stats: [],
+          incomeFactors: []
         }
       }
     );

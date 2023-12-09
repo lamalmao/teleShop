@@ -1,69 +1,78 @@
-const { Schema, model, SchemaTypes } = require("mongoose");
+const { Schema, model, SchemaTypes } = require('mongoose');
 
 const User = new Schema({
   telegramID: {
     type: Number,
     required: true,
-    unique: true,
+    unique: true
   },
   username: {
     type: String,
-    required: true,
+    required: true
   },
   balance: {
     type: Number,
     required: true,
-    default: 0,
+    default: 0
   },
   join_date: {
     type: Date,
     required: true,
-    default: Date.now,
+    default: Date.now
   },
   role: {
     type: String,
     required: true,
     enum: {
-      values: ["client", "admin", "manager"],
-      message: "Несуществующая роль",
+      values: ['client', 'admin', 'manager'],
+      message: 'Несуществующая роль'
     },
-    default: "client",
+    default: 'client'
   },
   purchases: {
     type: Number,
-    default: 0,
+    default: 0
   },
   invitedBy: {
     type: Number,
-    default: null,
+    default: null
   },
   refills: {
     type: Number,
-    default: 0,
+    default: 0
   },
   stats: {
     type: [
       {
         id: String,
         title: String,
-        count: Number,
-      },
+        count: Number
+      }
     ],
-    default: [],
+    default: []
   },
   onlineUntil: Date,
   game: {
     type: String,
-    enum: global.games,
+    enum: global.games
   },
   keyedOrder: {
     type: Number,
     default: 0,
     required: false
   },
-  cardOrder: Number,
+  incomeFactors: {
+    type: [
+      {
+        description: String,
+        amount: Number
+      }
+    ],
+    default: []
+  },
+  cardOrder: Number
 });
 
-const users = model("users", User);
+const users = model('users', User);
 
 module.exports = users;

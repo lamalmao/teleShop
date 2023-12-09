@@ -14,6 +14,7 @@ managerIncome.enterHandler = async ctx => {
       {
         role: 1,
         stats: 1,
+        incomeFactors: 1,
         username: 1
       }
     );
@@ -44,6 +45,16 @@ managerIncome.enterHandler = async ctx => {
           typeof reward === 'number' ? reward.toFixed(2) : reward
         }р</code>`
       );
+    }
+
+    message = message.concat('\n\n<u>Штрафы и поощрения</u>');
+    for (const factor of user.incomeFactors) {
+      message = message.concat(
+        `\n<i>${escapeHTML(factor.description)}</i>: <code>${
+          factor.amount > 0 ? '+' : ''
+        }${factor.amount.toFixed(2)}р</code>`
+      );
+      totalIncome += factor.amount;
     }
 
     message = message.concat(`\n\n<b>Итого: ${totalIncome.toFixed(2)}р</b>`);
