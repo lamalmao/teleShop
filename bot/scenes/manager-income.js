@@ -46,7 +46,7 @@ managerIncome.enterHandler = async ctx => {
 
     message = message.concat(`<b>Итого: ${totalIncome.toFixed(2)}р</b>`);
 
-    if (ctx.scene.state.manager) {
+    if (!ctx.scene.state.manager) {
       ctx.scene.state.menu = ctx.callbackQuery.message.message_id;
     } else {
       ctx.scene.state.menu = ctx.callbackQuery.message;

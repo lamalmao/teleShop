@@ -1,27 +1,26 @@
-const { Scenes, Markup } = require("telegraf");
-const path = require("path");
-const fs = require("fs");
-const crypto = require("crypto");
+const { Scenes, Markup } = require('telegraf');
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
 
-const goods = require("../../models/goods");
-const categories = require("../../models/categories");
-const { parseFile, delivery } = require("../../models/delivery");
-const { parseManagerKeysFile } = require("../../models/manager-keys");
+const goods = require('../../models/goods');
+const categories = require('../../models/categories');
+const { parseFile, delivery } = require('../../models/delivery');
+const { parseManagerKeysFile } = require('../../models/manager-keys');
 
-const itemMenu = require("../item_menu");
-const keys = require("../keyboard");
-const axios = require("axios");
-const render = require("../../render");
-const { Types } = require("mongoose");
-const item = require("./item");
-const managerKey = require("../../models/manager-keys");
-const escapeHTML = require("escape-html");
+const itemMenu = require('../item_menu');
+const keys = require('../keyboard');
+const axios = require('axios');
+const render = require('../../render');
+const { Types } = require('mongoose');
+const managerKey = require('../../models/manager-keys');
+const escapeHTML = require('escape-html');
 
 const cancelMenu = Markup.inlineKeyboard([
-  Markup.button.callback("Отмена", "cancel"),
+  Markup.button.callback('Отмена', 'cancel')
 ]);
 
-const manageItem = new Scenes.BaseScene("manageItem");
+const manageItem = new Scenes.BaseScene('manageItem');
 
 manageItem.enterHandler = async function (ctx) {
   try {
@@ -38,9 +37,9 @@ manageItem.enterHandler = async function (ctx) {
 
     await ctx.telegram.editMessageMedia(ctx.from.id, menuId, undefined, {
       media: {
-        source: path.join(process.cwd(), "files", "images", item.bigImage),
+        source: path.join(process.cwd(), 'files', 'images', item.bigImage)
       },
-      type: "photo",
+      type: 'photo'
     });
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
@@ -48,189 +47,189 @@ manageItem.enterHandler = async function (ctx) {
       undefined,
       itemMessage,
       {
-        reply_markup: itemKeyboard.reply_markup,
+        reply_markup: itemKeyboard.reply_markup
       }
     );
 
     ctx.scene.state.item = item;
   } catch (e) {
-    ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
+    ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu?.message_id)
       .catch(() => null);
-    ctx.scene.enter("showGoods", {
+    ctx.scene.enter('showGoods', {
       menu: ctx.scene.state.menu,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   }
 };
 
-manageItem.action("cancel", (ctx) => {
+manageItem.action('cancel', ctx => {
   ctx.scene.state.target = undefined;
   ctx.scene.state.validation = undefined;
   ctx.scene.state.action = undefined;
 
-  ctx.scene.enter("manageItem", {
+  ctx.scene.enter('manageItem', {
     item: ctx.scene.state.item,
     menu: ctx.scene.state.menu,
-    category: ctx.scene.state.category,
+    category: ctx.scene.state.category
   });
 });
 
-manageItem.action(keys.BackMenu.buttons, (ctx) => {
-  ctx.scene.enter("showGoods", {
+manageItem.action(keys.BackMenu.buttons, ctx => {
+  ctx.scene.enter('showGoods', {
     menu: ctx.scene.state.menu,
-    category: ctx.scene.state.category,
+    category: ctx.scene.state.category
   });
 });
 
-manageItem.action("switch-cards", async (ctx) => {
+manageItem.action('switch-cards', async ctx => {
   try {
     await ctx.telegram.editMessageCaption(
       ctx.from.id,
       ctx.scene.state.menu.message_id,
       undefined,
-      "Вы уверены?",
+      'Вы уверены?',
       {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("Да", "sure-switch-cards")],
-          [Markup.button.callback("Нет", "cancel")],
-        ]).reply_markup,
+          [Markup.button.callback('Да', 'sure-switch-cards')],
+          [Markup.button.callback('Нет', 'cancel')]
+        ]).reply_markup
       }
     );
   } catch (error) {
     console.log(error);
-    ctx.scene.enter("manageItem", {
+    ctx.scene.enter('manageItem', {
       menu: ctx.scene.state.menu,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   }
 });
 
-manageItem.action("sure-switch-cards", async (ctx) => {
+manageItem.action('sure-switch-cards', async ctx => {
   try {
     const current = !!ctx.scene.state.item.useCards;
     await goods.updateOne(
       {
-        _id: ctx.scene.state.item._id,
+        _id: ctx.scene.state.item._id
       },
       {
         $set: {
           useCards: !current,
-          managerKeys: false,
-        },
+          managerKeys: false
+        }
       }
     );
 
     if (!current && !ctx.scene.state.item.netCost) {
       ctx.scene.state.itemId = ctx.scene.state.item._id;
-      ctx.scene.enter("set-item-net-cost", ctx.scene.state);
+      ctx.scene.enter('set-item-net-cost', ctx.scene.state);
     } else {
       const item = await goods.findById(ctx.scene.state.item._id);
       ctx.scene.state.item = item;
-      ctx.scene.enter("manageItem", ctx.scene.state);
+      ctx.scene.enter('manageItem', ctx.scene.state);
     }
   } catch (error) {
     console.log(error);
-    ctx.scene.enter("manageItem", {
+    ctx.scene.enter('manageItem', {
       menu: ctx.scene.state.menu,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   }
 });
 
-manageItem.action("set-net-cost", (ctx) => {
+manageItem.action('set-net-cost', ctx => {
   ctx.scene.state.itemId = ctx.scene.state.item._id;
-  ctx.scene.enter("set-item-net-cost", ctx.scene.state);
+  ctx.scene.enter('set-item-net-cost', ctx.scene.state);
 });
 
-manageItem.action("downloadKeys", async (ctx) => {
+manageItem.action('downloadKeys', async ctx => {
   try {
-    await ctx.sendChatAction("upload_document");
+    await ctx.sendChatAction('upload_document');
 
     let keys;
-    if (ctx.scene.state.item.itemType === "auto") {
+    if (ctx.scene.state.item.itemType === 'auto') {
       keys = await delivery.find(
         {
           item: ctx.scene.state.item._id,
           delivered: false,
-          accessable: true,
+          accessable: true
         },
         {
-          value: 1,
+          value: 1
         }
       );
     } else {
       keys = await managerKey.find(
         {
           item: ctx.scene.state.item._id,
-          used: false,
+          used: false
         },
         {
-          value: 1,
+          value: 1
         }
       );
     }
 
     if (!keys || keys.length === 0) {
-      await ctx.answerCbQuery("Ключей нет");
+      await ctx.answerCbQuery('Ключей нет');
       return;
     }
 
-    let data = "";
+    let data = '';
     for (const key of keys) {
-      data += key.value + "\n";
+      data += key.value + '\n';
     }
 
     await ctx.replyWithDocument(
       {
         filename: `${ctx.scene.state.item._id.toString()}.txt`,
-        source: Buffer.from(data),
+        source: Buffer.from(data)
       },
       {
         caption: `Ключи для <b>${escapeHTML(ctx.scene.state.item.title)}</b>`,
-        parse_mode: "HTML",
+        parse_mode: 'HTML'
       }
     );
   } catch (error) {
-    ctx.scene.enter("manageItem", {
+    ctx.scene.enter('manageItem', {
       menu: ctx.scene.state.menu,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   } finally {
     ctx.answerCbQuery().catch(() => null);
   }
 });
 
-manageItem.action("changeExtra", (ctx) => {
-  ctx.scene.enter("change_extra", {
+manageItem.action('changeExtra', ctx => {
+  ctx.scene.enter('change_extra', {
     menu: ctx.scene.state.menu,
     category: ctx.scene.state.category,
-    item: ctx.scene.state.item,
+    item: ctx.scene.state.item
   });
 });
 
-manageItem.action("switchSuspend", async (ctx) => {
+manageItem.action('switchSuspend', async ctx => {
   try {
     await goods.findByIdAndUpdate(ctx.scene.state.item._id, {
       $set: {
-        suspended: !ctx.scene.state.item.suspended,
-      },
+        suspended: !ctx.scene.state.item.suspended
+      }
     });
 
     const item = await goods.findById(ctx.scene.state.item._id);
     ctx.scene.state.item = item;
   } catch {
-    ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
+    ctx.answerCbQuery('Что-то пошло не так').catch(() => null);
   } finally {
-    ctx.scene.enter("manageItem", {
+    ctx.scene.enter('manageItem', {
       item: ctx.scene.state.item,
-      menu: ctx.scene.state.menu,
+      menu: ctx.scene.state.menu
     });
   }
 });
 
-manageItem.action(/new#\S+/i, async (ctx) => {
+manageItem.action(/new#\S+/i, async ctx => {
   try {
     ctx.scene.state.target = undefined;
     ctx.scene.state.validation = undefined;
@@ -245,15 +244,15 @@ manageItem.action(/new#\S+/i, async (ctx) => {
 
     render
       .renderShopPage(oldCategory)
-      .then((blank) => {
+      .then(blank => {
         render
           .genImageFromHTML(blank)
-          .then((filename) => {
+          .then(filename => {
             categories
               .findByIdAndUpdate(oldCategory, {
                 $set: {
-                  image: filename,
-                },
+                  image: filename
+                }
               })
               .catch(() => null);
           })
@@ -263,78 +262,78 @@ manageItem.action(/new#\S+/i, async (ctx) => {
 
     render
       .renderShopPage(targetCategory)
-      .then((blank) => {
+      .then(blank => {
         render
           .genImageFromHTML(blank)
-          .then((filename) => {
+          .then(filename => {
             categories
               .findByIdAndUpdate(targetCategory, {
                 $set: {
-                  image: filename,
-                },
+                  image: filename
+                }
               })
-              .catch((err) => null);
+              .catch(err => null);
           })
-          .catch((err) => null);
+          .catch(err => null);
       })
-      .catch((err) => null);
+      .catch(err => null);
 
-    ctx.scene.enter("manageItem", {
+    ctx.scene.enter('manageItem', {
       menu: ctx.scene.state.menu,
       item: ctx.scene.state.item,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   } catch (e) {
     null;
 
-    ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
+    ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
-      .catch((_) => null);
-    ctx.scene.enter("showGoods", {
+      .catch(_ => null);
+    ctx.scene.enter('showGoods', {
       menu: ctx.scene.state.menu,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   }
 });
 
 manageItem.action(
   [keys.YesNoMenu.buttons.yes, keys.YesNoMenu.buttons.no],
-  async (ctx) => {
+  async ctx => {
     try {
       if (ctx.scene.state.action) {
         switch (ctx.scene.state.target) {
-          case "deleteKeys":
+          case 'deleteKeys':
             if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.no) {
-              ctx.scene.enter("manageItem", {
+              ctx.scene.enter('manageItem', {
                 menu: ctx.scene.state.menu,
                 item: ctx.scene.state.item,
-                category: ctx.scene.state.category,
+                category: ctx.scene.state.category
               });
 
               return;
             }
 
             let result;
-            if (ctx.scene.state.item.itemType === "auto") {
+            if (ctx.scene.state.item.itemType === 'auto') {
               result = await delivery.deleteMany({
-                item: ctx.scene.state.item._id,
+                item: ctx.scene.state.item._id
               });
             } else {
               result = await managerKey.deleteMany({
-                item: ctx.scene.state.item._id,
+                item: ctx.scene.state.item._id
               });
             }
 
             const item = await goods.findById(ctx.scene.state.item._id);
-            ctx.scene.enter("manageItem", {
+            ctx.scene.enter('manageItem', {
               menu: ctx.scene.state.menu,
               item,
-              category: ctx.scene.state.category,
+              category: ctx.scene.state.category
             });
 
             break;
-          case "delete":
+          case 'delete':
             if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes) {
               await goods.findByIdAndDelete(ctx.scene.state.item._id);
 
@@ -342,57 +341,57 @@ manageItem.action(
 
               render
                 .renderShopPage(update)
-                .then((blank) => {
+                .then(blank => {
                   render
                     .genImageFromHTML(blank)
-                    .then((filename) => {
+                    .then(filename => {
                       categories
                         .findByIdAndUpdate(update, {
                           $set: {
-                            image: filename,
-                          },
+                            image: filename
+                          }
                         })
-                        .catch((err) => null);
+                        .catch(err => null);
                     })
-                    .catch((err) => null);
+                    .catch(err => null);
                 })
-                .catch((err) => null);
+                .catch(err => null);
 
-              ctx.scene.enter("showGoods", {
+              ctx.scene.enter('showGoods', {
                 menu: ctx.scene.state.menu,
-                category: ctx.scene.state.category,
+                category: ctx.scene.state.category
               });
             } else {
-              ctx.scene.enter("manageItem", {
+              ctx.scene.enter('manageItem', {
                 menu: ctx.scene.state.menu,
                 item: ctx.scene.state.item,
-                category: ctx.scene.state.category,
+                category: ctx.scene.state.category
               });
             }
             break;
-          case "isVBucks":
+          case 'isVBucks':
             if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes) {
               ctx.scene.state.item.isVBucks = !ctx.scene.state.item.isVBucks;
               await ctx.scene.state.item.save();
             }
 
-            ctx.scene.enter("manageItem", {
+            ctx.scene.enter('manageItem', {
               menu: ctx.scene.state.menu,
               item: ctx.scene.state.item,
-              category: ctx.scene.state.category,
+              category: ctx.scene.state.category
             });
             break;
-          case "managerKeys":
+          case 'managerKeys':
             if (ctx.callbackQuery.data === keys.YesNoMenu.buttons.yes) {
               ctx.scene.state.item.managerKeys =
                 !ctx.scene.state.item.managerKeys;
               await ctx.scene.state.item.save();
             }
 
-            ctx.scene.enter("manageItem", {
+            ctx.scene.enter('manageItem', {
               menu: ctx.scene.state.menu,
               item: ctx.scene.state.item,
-              category: ctx.scene.state.category,
+              category: ctx.scene.state.category
             });
             break;
         }
@@ -401,42 +400,42 @@ manageItem.action(
         ctx.scene.state.validation = undefined;
         ctx.scene.state.action = undefined;
       } else {
-        ctx.scene.enter("manageItem", {
+        ctx.scene.enter('manageItem', {
           menu: ctx.scene.state.menu,
           item: ctx.scene.state.item,
-          category: ctx.scene.state.category,
+          category: ctx.scene.state.category
         });
       }
     } catch (e) {
       null;
 
-      ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
+      ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
       ctx.telegram
         .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
-        .catch((_) => null);
-      ctx.scene.enter("showGoods", {
+        .catch(_ => null);
+      ctx.scene.enter('showGoods', {
         menu: ctx.scene.state.menu,
-        category: ctx.scene.state.category,
+        category: ctx.scene.state.category
       });
     }
   }
 );
 
-manageItem.action("changeDeliveryType", (ctx) => {
-  ctx.scene.enter("change-delivery-type", {
+manageItem.action('changeDeliveryType', ctx => {
+  ctx.scene.enter('change-delivery-type', {
     item: ctx.scene.state.item,
-    menu: ctx.scene.state.menu,
+    menu: ctx.scene.state.menu
   });
 });
 
-manageItem.action(/loadKeys:(manager|deliveries)/, async (ctx) => {
+manageItem.action(/loadKeys:(manager|deliveries)/, async ctx => {
   try {
     const rawTarget = /loadKeys:(managers|deliveries)/.exec(
       ctx.callbackQuery.data
     );
 
     if (!rawTarget) {
-      throw new Error("No data");
+      throw new Error('No data');
     }
 
     const target = rawTarget[1];
@@ -451,208 +450,213 @@ manageItem.action(/loadKeys:(manager|deliveries)/, async (ctx) => {
       {
         reply_markup: Markup.inlineKeyboard([
           Markup.button.url(
-            "Пример",
-            "https://docs.google.com/spreadsheets/d/1ZP3rAY7a87Db1a-wXMRkxRdTURGVlE1XJ-uIfhsma-s/edit?usp=sharing"
+            'Пример',
+            'https://docs.google.com/spreadsheets/d/1ZP3rAY7a87Db1a-wXMRkxRdTURGVlE1XJ-uIfhsma-s/edit?usp=sharing'
           ),
-          Markup.button.callback("Назад", "cancel"),
+          Markup.button.callback('Назад', 'cancel')
         ]).reply_markup,
-        parse_mode: "HTML",
+        parse_mode: 'HTML'
       }
     );
   } catch (e) {
     null;
-    ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
+    ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
-      .catch((_) => null);
-    ctx.scene.enter("showGoods", {
+      .catch(_ => null);
+    ctx.scene.enter('showGoods', {
       menu: ctx.scene.state.menu,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   }
 });
 
 manageItem.on(
-  "document",
+  'document',
   async (ctx, next) => {
-    ctx.deleteMessage().catch((_) => null);
-    if (ctx.scene.state.csv && ctx.message.document.mime_type === "text/csv")
+    ctx.deleteMessage().catch(_ => null);
+    if (ctx.scene.state.csv && ctx.message.document.mime_type === 'text/csv')
       next();
   },
-  async (ctx) => {
+  async ctx => {
     try {
       const link = await ctx.telegram.getFileLink(ctx.message.document.file_id);
 
       const localCtx = ctx;
       ctx.scene.state.csv = false;
 
-      if (ctx.scene.state.csvTarget === "deliveries") {
+      if (ctx.scene.state.csvTarget === 'deliveries') {
         axios({
-          method: "get",
+          method: 'get',
           url: link.href,
-          responseType: "stream",
-        }).then((res) => {
+          responseType: 'stream'
+        }).then(res => {
           parseFile(res.data, ctx.scene.state.item)
-            .on("done", (result) => {
+            .on('done', result => {
               localCtx
                 .reply(
                   `Готово!\nУспешно загружено: ${result.done}\nОшибок: ${result.failed}`
                 )
-                .then((msg) => {
+                .then(msg => {
                   setTimeout(function () {
                     localCtx.telegram
                       .deleteMessage(localCtx.from.id, msg.message_id)
-                      .catch((_) => null);
+                      .catch(_ => null);
                   }, 5000);
                 })
-                .catch((_) => null);
+                .catch(_ => null);
             })
-            .on("error", (err) => {
+            .on('error', err => {
               localCtx
                 .reply(`Что-то пошло не так:\n<code>${err.message}</code>`, {
-                  parse_mode: "HTML",
+                  parse_mode: 'HTML'
                 })
-                .catch((_) => null);
+                .catch(_ => null);
             });
         });
-      } else if (ctx.scene.state.csvTarget === "managers") {
+      } else if (ctx.scene.state.csvTarget === 'managers') {
         axios({
-          method: "get",
+          method: 'get',
           url: link.href,
-          responseType: "stream",
-        }).then((res) => {
+          responseType: 'stream'
+        }).then(res => {
           parseManagerKeysFile(res.data, ctx.scene.state.item)
-            .on("done", (result) => {
+            .on('done', result => {
               localCtx
                 .reply(
                   `Готово!\nУспешно загружено: ${result.done}\nОшибок: ${result.failed}`
                 )
-                .then((msg) => {
+                .then(msg => {
                   setTimeout(function () {
                     localCtx.telegram
                       .deleteMessage(localCtx.from.id, msg.message_id)
-                      .catch((_) => null);
+                      .catch(_ => null);
                   }, 5000);
                 })
-                .catch((_) => null);
+                .catch(_ => null);
             })
-            .on("error", (err) => {
+            .on('error', err => {
               localCtx
                 .reply(`Что-то пошло не так:\n<code>${err.message}</code>`, {
-                  parse_mode: "HTML",
+                  parse_mode: 'HTML'
                 })
-                .catch((_) => null);
+                .catch(_ => null);
             });
         });
       }
 
-      ctx.scene.enter("manageItem", {
+      ctx.scene.enter('manageItem', {
         menu: ctx.scene.state.menu,
-        item: ctx.scene.state.item,
+        item: ctx.scene.state.item
       });
     } catch (e) {
       null;
-      ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
+      ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
       ctx.telegram
         .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
-        .catch((_) => null);
-      ctx.scene.enter("showGoods", {
+        .catch(_ => null);
+      ctx.scene.enter('showGoods', {
         menu: ctx.scene.state.menu,
-        category: ctx.scene.state.category,
+        category: ctx.scene.state.category
       });
     }
   }
 );
 
-manageItem.on("callback_query", async (ctx, next) => {
+manageItem.on('callback_query', async (ctx, next) => {
   try {
     if (!ctx.scene.state.action) {
       let msg,
         keyboard = cancelMenu,
-        action = "message",
-        validation = "false",
+        action = 'message',
+        validation = 'false',
         goOn = true;
 
       switch (ctx.callbackQuery.data) {
-        case "rename":
-          msg = "Введите новое название";
-          target = "title";
+        case 'set-reward':
+          msg = 'Укажите сумму вознаграждения';
+          target = 'reward';
+          validation = 'number';
           break;
-        case "editDescription":
+        case 'rename':
+          msg = 'Введите новое название';
+          target = 'title';
+          break;
+        case 'editDescription':
           msg = 'Введите новое описание\n\n"-" для пустого описания';
-          target = "description";
+          target = 'description';
           break;
-        case "editBigDescription":
+        case 'editBigDescription':
           msg = 'Введите новое описание\n\n"-" для пустого описания';
-          target = "bigDescription";
+          target = 'bigDescription';
           break;
-        case "changePrice":
-          msg = "Укажите новую цену";
-          target = "price";
-          validation = "number";
+        case 'changePrice':
+          msg = 'Укажите новую цену';
+          target = 'price';
+          validation = 'number';
           break;
-        case "changeDiscount":
-          msg = "Укажите скидку в процентах";
-          target = "discount";
-          validation = "discount";
+        case 'changeDiscount':
+          msg = 'Укажите скидку в процентах';
+          target = 'discount';
+          validation = 'discount';
           break;
-        case "editImage":
-          msg = "Отправьте новое изображение";
-          target = "photo";
+        case 'editImage':
+          msg = 'Отправьте новое изображение';
+          target = 'photo';
           break;
-        case "delete":
-          msg = "Вы уверены?";
+        case 'delete':
+          msg = 'Вы уверены?';
           keyboard = keys.YesNoMenu.keyboard;
-          target = "delete";
+          target = 'delete';
           break;
-        case "switchIsVBucks":
-          msg = "Вы уверены?";
-          target = "isVBucks";
-          keyboard = keys.YesNoMenu.keyboard;
-          break;
-        case "keysForManagers":
-          msg = "Вы уверены?";
-          target = "managerKeys";
+        case 'switchIsVBucks':
+          msg = 'Вы уверены?';
+          target = 'isVBucks';
           keyboard = keys.YesNoMenu.keyboard;
           break;
-        case "deleteKeys":
-          msg = "Вы уверены?";
-          target = "deleteKeys";
+        case 'keysForManagers':
+          msg = 'Вы уверены?';
+          target = 'managerKeys';
           keyboard = keys.YesNoMenu.keyboard;
           break;
-        case "changeFonts":
+        case 'deleteKeys':
+          msg = 'Вы уверены?';
+          target = 'deleteKeys';
+          keyboard = keys.YesNoMenu.keyboard;
+          break;
+        case 'changeFonts':
           msg =
-            "Введите через пробел новые размеры шрифта заголова и описания на карточке товара";
-          target = "fonts";
-          validation = "fonts";
+            'Введите через пробел новые размеры шрифта заголова и описания на карточке товара';
+          target = 'fonts';
+          validation = 'fonts';
           keysboard = keys.BackMenu.keyboard;
           break;
-        case "move":
-          target = "category";
-          msg = "Выберите новую категорию";
+        case 'move':
+          target = 'category';
+          msg = 'Выберите новую категорию';
           keyboard = [];
 
           const targets = await categories.find(
             {
-              type: "sub",
+              type: 'sub',
               _id: {
-                $ne: Types.ObjectId(ctx.scene.state.item.category),
-              },
+                $ne: Types.ObjectId(ctx.scene.state.item.category)
+              }
             },
-            "_id title"
+            '_id title'
           );
 
           for (let cat of targets)
             keyboard.push([
-              Markup.button.callback(cat.title, "new#" + cat._id),
+              Markup.button.callback(cat.title, 'new#' + cat._id)
             ]);
           keyboard.push([
-            Markup.button.callback("Отмена", keys.BackMenu.buttons),
+            Markup.button.callback('Отмена', keys.BackMenu.buttons)
           ]);
 
           keyboard = Markup.inlineKeyboard(keyboard);
           break;
-        case "hiddenSwitch":
+        case 'hiddenSwitch':
           goOn = false;
 
           ctx.scene.state.item.hidden = !ctx.scene.state.item.hidden;
@@ -669,27 +673,27 @@ manageItem.on("callback_query", async (ctx, next) => {
 
           render
             .renderShopPage(ctx.scene.state.item.category)
-            .then((blank) => {
+            .then(blank => {
               render
                 .genImageFromHTML(blank)
-                .then((filename) => {
+                .then(filename => {
                   categories
                     .findByIdAndUpdate(ctx.scene.state.item.category, {
                       $set: {
-                        image: filename,
-                      },
+                        image: filename
+                      }
                     })
-                    .catch((_) => null);
+                    .catch(_ => null);
                 })
-                .catch((_) => null);
+                .catch(_ => null);
             })
-            .catch((_) => null);
+            .catch(_ => null);
 
-          ctx.scene.reenter("manageItem", {
+          ctx.scene.reenter('manageItem', {
             menu: ctx.scene.state.menu,
             message: itemMessage,
             keyboard: itemKeyboard,
-            category: ctx.scene.state.category,
+            category: ctx.scene.state.category
           });
 
           break;
@@ -717,48 +721,48 @@ manageItem.on("callback_query", async (ctx, next) => {
   } catch (e) {
     null;
 
-    ctx.reply(`Ошибка: ${e.message}`).catch((_) => null);
+    ctx.reply(`Ошибка: ${e.message}`).catch(_ => null);
     ctx.telegram
       .deleteMessage(ctx.from.id, ctx.scene.state.menu.message_id)
-      .catch((_) => null);
-    ctx.scene.enter("showGoods", {
+      .catch(_ => null);
+    ctx.scene.enter('showGoods', {
       menu: ctx.scene.state.menu,
-      category: ctx.scene.state.category,
+      category: ctx.scene.state.category
     });
   }
 });
 
-manageItem.on("photo", async (ctx) => {
+manageItem.on('photo', async ctx => {
   try {
-    if (ctx.scene.state.target === "photo" && ctx.message.photo) {
+    if (ctx.scene.state.target === 'photo' && ctx.message.photo) {
       const link = await ctx.telegram.getFileLink(
         ctx.message.photo[ctx.message.photo.length - 1].file_id
       );
-      const filename = crypto.randomBytes(8).toString("hex") + ".jpg";
+      const filename = crypto.randomBytes(8).toString('hex') + '.jpg';
 
       axios({
-        method: "get",
+        method: 'get',
         url: link.href,
-        responseType: "stream",
+        responseType: 'stream'
       })
-        .then((res) => {
-          ctx.deleteMessage().catch((_) => null);
+        .then(res => {
+          ctx.deleteMessage().catch(_ => null);
 
           const writer = fs.createWriteStream(
-            path.join(process.cwd(), "files", "images", filename)
+            path.join(process.cwd(), 'files', 'images', filename)
           );
 
           res.data.pipe(writer);
 
           let problem;
 
-          writer.on("error", (err) => {
+          writer.on('error', err => {
             problem = true;
             writer.close();
             throw err;
           });
 
-          writer.on("close", async (_) => {
+          writer.on('close', async _ => {
             if (!problem) {
               ctx.scene.state.item.image = filename;
 
@@ -768,7 +772,7 @@ manageItem.on("photo", async (ctx) => {
                 ctx.from.id,
                 ctx.scene.state.menu.message_id,
                 undefined,
-                "Подождите, перерисовывается обложка товара и категории."
+                'Подождите, перерисовывается обложка товара и категории.'
               );
 
               const bigImageBlank = await render.renderItemPage(
@@ -782,28 +786,27 @@ manageItem.on("photo", async (ctx) => {
               const categoryBlank = await render.renderShopPage(
                 ctx.scene.state.item.category
               );
-              const categoryImage = await render.genImageFromHTML(
-                categoryBlank
-              );
+              const categoryImage =
+                await render.genImageFromHTML(categoryBlank);
 
               await categories.findByIdAndUpdate(
                 ctx.scene.state.item.category,
                 {
                   $set: {
-                    image: categoryImage,
-                  },
+                    image: categoryImage
+                  }
                 }
               );
             }
 
-            ctx.scene.enter("manageItem", {
+            ctx.scene.enter('manageItem', {
               menu: ctx.scene.state.menu,
               item: ctx.scene.state.item,
-              category: ctx.scene.state.category,
+              category: ctx.scene.state.category
             });
           });
         })
-        .catch((err) => {
+        .catch(err => {
           throw err;
         });
     }
@@ -812,57 +815,61 @@ manageItem.on("photo", async (ctx) => {
 
     ctx
       .reply(`Ошибка: ${e.message}`)
-      .then((msg) => {
+      .then(msg => {
         setTimeout(
-          (_) =>
+          _ =>
             ctx.telegram
               .deleteMessage(ctx.from.id, msg.message_id)
-              .catch((_) => null),
+              .catch(_ => null),
           5000
         );
       })
       .catch(() => null);
 
-    ctx.scene.enter("manageItem", {
+    ctx.scene.enter('manageItem', {
       menu: ctx.scene.state.menu,
       category: ctx.scene.state.category,
-      item: ctx.scene.state.item,
+      item: ctx.scene.state.item
     });
   }
 });
 
-manageItem.on("message", async (ctx) => {
+manageItem.on('message', async ctx => {
   try {
     ctx.deleteMessage().catch(() => null);
     let needToRender = true;
 
-    if (ctx.scene.state.action === "message" && !ctx.message.photo) {
+    if (ctx.scene.state.action === 'message' && !ctx.message.photo) {
       let newValue = ctx.message.text.trim();
 
-      if (ctx.scene.state.target === "bigDescription") needToRender = false;
+      if (ctx.scene.state.target === 'bigDescription') needToRender = false;
       if (
-        ctx.scene.state.target === "description" ||
-        ctx.scene.state.target === "bigDescription"
+        ctx.scene.state.target === 'description' ||
+        ctx.scene.state.target === 'bigDescription'
       ) {
-        newValue = newValue === "-" ? "" : newValue;
+        newValue = newValue === '-' ? '' : newValue;
+      }
+
+      if (ctx.scene.state.target === 'reward') {
+        needToRender = false;
       }
 
       switch (ctx.scene.state.validation) {
-        case "number":
+        case 'number':
           newValue = Number(newValue);
           if (Number.isNaN(newValue))
-            throw new Error("Значение должно быть числом");
+            throw new Error('Значение должно быть числом');
           break;
-        case "discount":
+        case 'discount':
           newValue = Number(newValue);
           if (Number.isNaN(newValue))
-            throw new Error("Значение должно быть числом");
+            throw new Error('Значение должно быть числом');
           else if (newValue < 0 || newValue > 100)
-            throw new Error("Скидка должна быть в промежутке от 0 до 100%");
+            throw new Error('Скидка должна быть в промежутке от 0 до 100%');
           break;
-        case "fonts":
+        case 'fonts':
           const values = /(\d+)\s+(\d+)/.exec(newValue);
-          if (!values) throw new Error("Введите два числа через пробел");
+          if (!values) throw new Error('Введите два числа через пробел');
           const itemTitleFont = Number(values[1]);
           const itemDescriptionFont = Number(values[2]);
           ctx.scene.state.item.titleFontSize = itemTitleFont;
@@ -870,7 +877,7 @@ manageItem.on("message", async (ctx) => {
           break;
       }
 
-      if (ctx.scene.state.validation !== "fonts")
+      if (ctx.scene.state.validation !== 'fonts')
         ctx.scene.state.item[ctx.scene.state.target] = newValue;
       await ctx.scene.state.item.save();
 
@@ -879,7 +886,7 @@ manageItem.on("message", async (ctx) => {
           ctx.from.id,
           ctx.scene.state.menu.message_id,
           undefined,
-          "Подождите, перерисовывается обложка товара и категории."
+          'Подождите, перерисовывается обложка товара и категории.'
         );
         const bigImageBlank = await render.renderItemPage(
           ctx.scene.state.item._id
@@ -896,14 +903,14 @@ manageItem.on("message", async (ctx) => {
 
         await categories.findByIdAndUpdate(ctx.scene.state.item.category, {
           $set: {
-            image: categoryImage,
-          },
+            image: categoryImage
+          }
         });
       }
-      ctx.scene.enter("manageItem", {
+      ctx.scene.enter('manageItem', {
         menu: ctx.scene.state.menu,
         item: ctx.scene.state.item,
-        category: ctx.scene.state.category,
+        category: ctx.scene.state.category
       });
     }
   } catch (e) {
@@ -911,21 +918,21 @@ manageItem.on("message", async (ctx) => {
 
     ctx
       .reply(`Ошибка: ${e.message}`)
-      .then((msg) => {
+      .then(msg => {
         setTimeout(
-          (_) =>
+          _ =>
             ctx.telegram
               .deleteMessage(ctx.from.id, msg.message_id)
-              .catch((_) => null),
+              .catch(_ => null),
           5000
         );
       })
-      .catch((_) => null);
+      .catch(_ => null);
 
-    ctx.scene.enter("manageItem", {
+    ctx.scene.enter('manageItem', {
       menu: ctx.scene.state.menu,
       category: ctx.scene.state.category,
-      item: ctx.scene.state.item,
+      item: ctx.scene.state.item
     });
   }
 });
