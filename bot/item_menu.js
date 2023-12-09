@@ -108,6 +108,7 @@ function genItemKeyboard(item, isAdmin) {
         cb('Переименовать', 'rename'),
         cb('Изменить описание', 'editDescription')
       ],
+      [cb('Показать описание', 'show-description')],
       [cb('Изменить описание в сообщении', 'editBigDescription')],
       [cb('Изменить изображение', 'editImage')],
       [cb('Изменить видимость', 'hiddenSwitch')],
