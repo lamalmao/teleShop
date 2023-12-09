@@ -40,7 +40,7 @@ managerIncome.enterHandler = async ctx => {
             : '?';
       totalIncome += typeof reward === 'number' ? reward : 0;
       message = message.concat(
-        `\n<i>${escapeHTML(stat.title)}:</i> <code>${
+        `\n<i>${escapeHTML(stat.title)}(${stat.count}):</i> <code>${
           typeof reward === 'number' ? reward.toFixed(2) : reward
         }р</code>`
       );

@@ -83,6 +83,10 @@ manageItem.action(keys.BackMenu.buttons, ctx => {
   });
 });
 
+manageItem.action('show-description', ctx => {
+  ctx.reply(ctx.scene.state.item.bigDescription || '-').catch(() => null);
+});
+
 manageItem.action('switch-cards', async ctx => {
   try {
     await ctx.telegram.editMessageCaption(

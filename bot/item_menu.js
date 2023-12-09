@@ -14,12 +14,12 @@ const dayInMillieSeconds = 24 * 60 * 60 * 1000,
 
 async function genItemMessage(item, isAdmin) {
   const price = item.getPrice();
-  let message = `${item.title}\n\n${item.bigDescription}\n\nЦена: ${price} руб.`;
+  let message = `${item.title}\n\nЦена: ${price} руб.`;
 
   if (isAdmin) {
     message += `\nid: ${item._id.toString('hex')}`;
     //prettier-ignore
-    message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}\nИгра: ${item.game}\nДоставляется сразу при покупке: ${item.itemType === 'auto' ? 'Да' : 'Нет'}\nВ-Баксы: ${item.isVBucks ? 'Да' : 'Нет'}\nРазмер шрифта для названия: ${item.titleFontSize}\nРазмер шрифта для описания: ${item.descriptionFontSize}\nВознаграждение для манеджеров: ${item.managerReward ? item.managerReward + 'р' : 'не установлено'}`;
+    message += `\n\nРеальная цена: ${item.price.toFixed(2)} руб.\nСкидка: ${item.discount}%\nПродаж: ${item.sells}\nСкрыт: ${item.hidden ? 'Да' : 'Нет'}\nИгра: ${item.game}\nДоставляется сразу при покупке: ${item.itemType === 'auto' ? 'Да' : 'Нет'}\nВ-Баксы: ${item.isVBucks ? 'Да' : 'Нет'}\nРазмер шрифта для названия: ${item.titleFontSize}\nРазмер шрифта для описания: ${item.descriptionFontSize}\nВознаграждение для менеджеров: ${item.managerReward ? item.managerReward + 'р' : 'не установлено'}`;
 
     if (item.useCards) {
       message += '\n\nМенеджерам выдаются карты';
