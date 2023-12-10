@@ -147,7 +147,7 @@ managersInfo.action(/manager#\d+/, async ctx => {
                   `drop#${user.telegramID}`
                 )
               ],
-              [Markup.button.callback('Назад', `manager#${user.telegramID}`)]
+              [Markup.button.callback('Назад', `prev`)]
             ]).reply_markup,
             parse_mode: 'HTML'
           }
