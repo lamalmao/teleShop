@@ -17,7 +17,7 @@ freeTickets.enterHandler = async ctx => {
             }
       },
       {
-        title: 1
+        theme: 1
       }
     );
 
@@ -43,7 +43,7 @@ freeTickets.enterHandler = async ctx => {
 
       keyboard.push([
         Markup.button.callback(
-          `${ticket._id.toString().toUpperCase()} - ${
+          `${ticket.theme} - ${
             hours > 0 ? '~' + hours + 'ч' : minutes + 'м'
           } без ответа`,
           `get:${ticket._id.toString()}`
