@@ -3,6 +3,7 @@ const { Scenes } = require('telegraf');
 const users = require('../../models/users');
 const orders = require('../../models/orders');
 const keys = require('../keyboard');
+const tickets = require('../../models/tickets');
 
 const managerMenu = new Scenes.BaseScene('manager_menu');
 
@@ -24,6 +25,26 @@ managerMenu.enterHandler = async function (ctx, next) {
         '_id status'
       );
 
+      const marks = await tickets.aggregate([
+        {
+          $match: {
+            manager: ctx.from.id,
+            done: true,
+            mark: {
+              $ne: 0
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            averageMark: {
+              $avg: '$mark'
+            }
+          }
+        }
+      ]);
+
       const stats = genStats(work);
       const sum = stats.done + stats.processing + stats.refund;
 
@@ -33,13 +54,15 @@ managerMenu.enterHandler = async function (ctx, next) {
 
       let msg = `<b>Меню менеджера</b> <code>${
         ctx.from.id
-      }</code>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${
-        stats.done
-      } = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${
-        stats.processing
-      } = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${
-        stats.refund
-      } = ${
+      }</code>\n\n<b>Статистика за все время</b>\nТикетов закрыто: ${
+        user.ticketsAnswered || 0
+      }\nСредняя оценка тикетов: ${
+        marks[0]?.averageMark.toFixed(1) || '-'
+      }\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${
+        Number.isNaN(doneP) ? 0 : doneP
+      }%\nВ работе: ${stats.processing} = ${
+        Number.isNaN(processingP) ? 0 : processingP
+      }%\nВозвраты: ${stats.refund} = ${
         Number.isNaN(refundP) ? 0 : refundP
       }%\n\n<b>Статистика по последним заказам</b>\n`;
 
@@ -71,7 +94,7 @@ managerMenu.enterHandler = async function (ctx, next) {
       }
     }
   } catch (e) {
-    null;
+    console.log(e);
   } finally {
     ctx.scene.leave();
   }

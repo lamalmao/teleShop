@@ -4,6 +4,7 @@ const users = require('../../models/users');
 const orders = require('../../models/orders');
 const keys = require('../keyboard');
 const escapeHTML = require('escape-html');
+const tickets = require('../../models/tickets');
 
 const managersInfo = new Scenes.BaseScene('showManagers');
 
@@ -83,6 +84,26 @@ managersInfo.action(/manager#\d+/, async ctx => {
         'status itemTitle orderID'
       );
 
+      const marks = await tickets.aggregate([
+        {
+          $match: {
+            manager: userID,
+            done: true,
+            mark: {
+              $ne: 0
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            averageMark: {
+              $avg: '$mark'
+            }
+          }
+        }
+      ]);
+
       const stats = genStats(works);
       const sum = stats.done + stats.processing + stats.refund;
 
@@ -94,13 +115,15 @@ managersInfo.action(/manager#\d+/, async ctx => {
         user.telegramID
       }:<a href="tg://user?id=${user.telegramID}">${
         user.username
-      }</a>\n\n<b>Статистика за все время</b>\nВсего заказов взято: ${sum}\nВыполнено: ${
-        stats.done
-      } = ${Number.isNaN(doneP) ? 0 : doneP}%\nВ работе: ${
-        stats.processing
-      } = ${Number.isNaN(processingP) ? 0 : processingP}%\nВозвраты: ${
-        stats.refund
-      } = ${
+      }</a>\n\n<b>Статистика за все время</b>\nТикетов закрыто: ${
+        user.ticketsAnswered || '0'
+      }\nСредняя оценка тикетов: ${
+        marks[0]?.averageMark.toFixed(1) || '-'
+      }\nВсего заказов взято: ${sum}\nВыполнено: ${stats.done} = ${
+        Number.isNaN(doneP) ? 0 : doneP
+      }%\nВ работе: ${stats.processing} = ${
+        Number.isNaN(processingP) ? 0 : processingP
+      }%\nВозвраты: ${stats.refund} = ${
         Number.isNaN(refundP) ? 0 : refundP
       }%\n\n<b>Статистика по последним заказам</b>\n`;
 
@@ -403,7 +426,8 @@ managersInfo.action('drop', async ctx => {
       {
         $set: {
           stats: [],
-          incomeFactors: []
+          incomeFactors: [],
+          ticketsAnswered: 0
         }
       }
     );
@@ -420,7 +444,6 @@ managersInfo.action('drop', async ctx => {
       }
     );
   } catch (e) {
-    null;
     ctx.scene.reenter();
   }
 });

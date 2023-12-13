@@ -47,6 +47,13 @@ const keysDirectoryLocation = path.join(process.cwd(), 'key', 'key.pem');
 global.key = new nodeRSA(
   fs.readFileSync(keysDirectoryLocation).toString('utf-8')
 );
+global.ticketThemes = JSON.parse(
+  fs.readFileSync(path.resolve('ticketThemes.json').toString('utf-8'))
+);
+
+global.helpMessage = fs
+  .readFileSync(path.resolve('help.txt'))
+  .toString('utf-8');
 
 // Подключение к базе данных
 mongoose.connect(settings.base_link);

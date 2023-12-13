@@ -70,6 +70,7 @@ const User = new Schema({
     ],
     default: []
   },
+  ticketsAnswered: Number,
   cardOrder: Number
 });
 

@@ -55,8 +55,16 @@ const loadCards = require('./load-cards');
 const setItemNetCost = require('./set-item-net-cost');
 const findLinkedCard = require('./find-linked-card');
 const managerIncome = require('./manager-income');
+const createTicket = require('./create-ticket');
+const seeTicket = require('./see-ticket');
+const clientTickets = require('./client-tickets');
+const managerTickets = require('./manager-tickets');
+const freeTickets = require('./free-tickets');
+const markTicket = require('./mark-ticket');
+const problemNotSolved = require('./problem-not-solved');
+const ticketsScene = require('./tickets');
 
-module.exports = new Scenes.Stage([
+const stage = new Scenes.Stage([
   start,
   admin,
   managers,
@@ -111,5 +119,17 @@ module.exports = new Scenes.Stage([
   loadCards,
   setItemNetCost,
   findLinkedCard,
-  managerIncome
+  managerIncome,
+  createTicket,
+  seeTicket,
+  clientTickets,
+  managerTickets,
+  freeTickets,
+  markTicket,
+  problemNotSolved,
+  ticketsScene
 ]);
+
+stage.start(ctx => ctx.scene.enter('start'));
+
+module.exports = stage;

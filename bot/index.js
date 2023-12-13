@@ -14,6 +14,7 @@ const { Types } = require('mongoose');
 const cards = require('../models/cards');
 const cardTransactions = require('../models/cards-transactions');
 const escapeHTML = require('escape-html');
+const tickets = require('../models/tickets');
 
 const images = path.join(process.cwd(), 'files', 'images');
 
@@ -77,9 +78,7 @@ function CreateBot(token) {
         }
 
         next();
-      } catch {
-
-      }
+      } catch {}
     },
     async ctx => {
       try {
@@ -93,6 +92,10 @@ function CreateBot(token) {
         console.log(error);
       }
     }
+  );
+
+  bot.action('problem-not-solved', ctx =>
+    ctx.scene.enter('problem-not-solved')
   );
 
   bot.action(
@@ -114,9 +117,7 @@ function CreateBot(token) {
         }
 
         next();
-      } catch {
-
-      }
+      } catch {}
     },
     async ctx => {
       try {
@@ -144,9 +145,7 @@ function CreateBot(token) {
         if (user && user.role === 'admin') {
           next();
         }
-      } catch {
-
-      }
+      } catch {}
     },
     async ctx => {
       try {
@@ -270,9 +269,7 @@ function CreateBot(token) {
         if (user && user.role === 'admin') {
           next();
         }
-      } catch {
-
-      }
+      } catch {}
     },
     async ctx => {
       try {
@@ -448,9 +445,7 @@ function CreateBot(token) {
         if (user && ['admin', 'manager'].includes(user.role)) {
           next();
         }
-      } catch (error) {
-
-      }
+      } catch (error) {}
     },
     async ctx => {
       try {
@@ -557,9 +552,7 @@ function CreateBot(token) {
         if (user && ['admin', 'manager'].includes(user.role)) {
           next();
         }
-      } catch (error) {
-
-      }
+      } catch (error) {}
     },
     async (ctx, next) => {
       try {
@@ -760,6 +753,15 @@ function CreateBot(token) {
           }
         );
 
+        let keyboard = keys.BackMenu.keyboard;
+        if (ctx.callbackQuery.data === 'support') {
+          keyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('Задать вопрос', 'create-ticket')],
+            [Markup.button.callback('Мои тикеты', 'client-tickets')],
+            [Markup.button.callback('Назад', keys.BackMenu.buttons)]
+          ]);
+        }
+
         await ctx.telegram.editMessageCaption(
           ctx.from.id,
           ctx.callbackQuery.message.message_id,
@@ -767,7 +769,7 @@ function CreateBot(token) {
           messages[ctx.callbackQuery.data],
           {
             parse_mode: 'HTML',
-            reply_markup: keys.BackMenu.keyboard.reply_markup
+            reply_markup: keyboard.reply_markup
           }
         );
       } catch (e) {
@@ -778,6 +780,42 @@ function CreateBot(token) {
       }
     }
   );
+
+  bot.action('create-ticket', ctx => ctx.scene.enter('create-ticket'));
+  bot.action('client-tickets', ctx => ctx.scene.enter('client-tickets'));
+  bot.action('manager-tickets', async ctx => {
+    try {
+      const user = await users.findOne(
+        {
+          telegramID: ctx.from.id
+        },
+        {
+          role: 1
+        }
+      );
+
+      if (user && user.role !== 'client') {
+        ctx.scene.enter('manager-tickets');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  bot.action(/mark:([a-z0-9]+)/, async ctx => {
+    try {
+      const raw = /:(?<ticketId>[a-z0-9]+)$/.exec(ctx.callbackQuery.data);
+      if (!raw) {
+        return;
+      }
+
+      ctx.scene.enter('mark-ticket', {
+        ticket: new Types.ObjectId(raw.groups.ticket)
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
   bot.action(/cancelPayment#\d+/, async ctx => {
     try {
@@ -918,7 +956,9 @@ function CreateBot(token) {
           },
           {
             $set: {
-              stats: []
+              stats: [],
+              incomeFactors: [],
+              ticketsAnswered: 0
             }
           }
         );
@@ -929,6 +969,45 @@ function CreateBot(token) {
       null;
     }
   });
+
+  bot.command(
+    'cards',
+    async (ctx, next) => {
+      try {
+        const user = await users.findOne(
+          {
+            telegramID: ctx.from.id
+          },
+          {
+            role: 1
+          }
+        );
+
+        if (user.role === 'client') {
+          return;
+        }
+
+        next();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async ctx => {
+      try {
+        const count = await cards.count({
+          busy: false,
+          hidden: false,
+          hold: {
+            $lt: new Date()
+          }
+        });
+
+        await ctx.reply(`Активных карт: ${count}`);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  );
 
   bot.command('say', async ctx => {
     try {

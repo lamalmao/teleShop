@@ -32,7 +32,8 @@ const AdminButtons = {
   sales: 'sales',
   refunds: 'refunds',
   exit: 'exit',
-  cards: 'card-categories'
+  cards: 'card-categories',
+  tickets: 'tickets'
 };
 
 const ManagersButtons = {
@@ -46,7 +47,7 @@ const AdminKeyboard = Markup.inlineKeyboard([
   [cb('Менеджеры', AdminButtons.managers), cb('Статистика', 'showManagers')],
   [cb('Заказы', AdminButtons.sales), cb('Возвраты', AdminButtons.refunds)],
   [cb('Карты', AdminButtons.cards)],
-  [cb('Пользователи', 'get_user_data')],
+  [cb('Пользователи', 'get_user_data'), cb('Тикеты', AdminButtons.tickets)],
   [cb('Выйти из панели администратора', AdminButtons.exit)]
 ]);
 
@@ -112,12 +113,14 @@ const ManagerWorkButton = {
   list: 'active_orders',
   active: 'manager_list',
   back: 'manager_leave',
-  income: 'manager-income'
+  income: 'manager-income',
+  tickets: 'manager-tickets'
 };
 
 const ManagerWorkKeyboard = Markup.inlineKeyboard([
   [cb('Взять заказ в работу', ManagerWorkButton.list)],
   [cb('Мои заказы', ManagerWorkButton.active)],
+  [cb('Тикеты', ManagerWorkButton.tickets)],
   [cb('Мой доход', ManagerWorkButton.income)],
   [cb('Выйти', ManagerWorkButton.back)]
 ]);
