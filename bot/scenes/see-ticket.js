@@ -6,6 +6,7 @@ const escapeHTML = require('escape-html');
 const moment = require('moment');
 const path = require('path');
 const { Types } = require('mongoose');
+const orders = require('../../models/orders');
 
 const seeTicket = new Scenes.BaseScene('see-ticket');
 
@@ -37,6 +38,24 @@ seeTicket.enterHandler = async ctx => {
       }
     );
     ctx.scene.state.client = client.telegramID;
+
+    const ordersList = [];
+    const userOrders = await orders.find(
+      {
+        client: client.telegramID,
+        paid: true,
+        status: {
+          $in: ['processing', 'untaken']
+        }
+      },
+      {
+        orderID: 1
+      }
+    );
+
+    for (const order of userOrders) {
+      ordersList.push(`<code>${order.orderID}</code>`);
+    }
 
     const manager = ticketObj.manager
       ? await users.findOne(
@@ -90,6 +109,10 @@ seeTicket.enterHandler = async ctx => {
       ticketObj.mark > 0
         ? '\n\n<b>Оценка пользователя: ' + ticketObj.mark.toString() + '</b>'
         : ''
+    }${
+      ordersList.length === 0
+        ? ''
+        : '\nЗаказы пользователя: ' + ordersList.join(', ')
     }`;
 
     const firstMessage = await ticketMessage.findOne(
@@ -179,7 +202,7 @@ seeTicket.enterHandler = async ctx => {
     if (firstMessage.question) {
       const questionText = `<b>${
         role === 'client' ? 'Ваше сообщение:' : 'Сообщение пользователя:'
-      }</b>\n<i>Дата: ${moment(firstMessage.question.date)
+      }</b>\n<i>Дата: ${moment(firstMessage.creationDate)
         .locale('ru')
         .format('DD.MM.YYYY [в] HH:mm:ss')}</i>\n\n<pre>${escapeHTML(
         firstMessage.question.text
@@ -200,7 +223,7 @@ seeTicket.enterHandler = async ctx => {
     if (firstMessage.answer) {
       const answerText = `<b>Ответ менеджера <code>${
         firstMessage.manager || 'неизвестно'
-      }</code></b>\n<i>Дата: ${moment(firstMessage.answer.date)
+      }</code></b>\n<i>Дата: ${moment(firstMessage.answerDate)
         .locale('ru')
         .format('DD.MM.YYYY [в] HH:mm:ss')}</i>\n\n<pre>${escapeHTML(
         firstMessage.answer.text
