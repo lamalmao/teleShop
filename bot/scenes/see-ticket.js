@@ -28,6 +28,8 @@ seeTicket.enterHandler = async ctx => {
     });
 
     const ticketObj = await tickets.findById(ticket);
+    ctx.scene.state.manager = ticketObj.manager;
+
     const client = await users.findOne(
       {
         telegramID: ticketObj.client
@@ -197,7 +199,7 @@ seeTicket.enterHandler = async ctx => {
           [Markup.button.callback('Назад', 'exit')]
         ]).reply_markup
       })
-      .catch(() => console.log());
+      .catch(() => null);
 
     if (firstMessage.question) {
       const questionText = `<b>${
@@ -241,7 +243,6 @@ seeTicket.enterHandler = async ctx => {
       ctx.scene.state.answerMessage = answer.message_id;
     }
   } catch (error) {
-    console.log(error);
     ctx.answerCbQuery('Что-то пошло не так').catch(() => null);
     ctx.scene.leave();
   }
@@ -584,7 +585,7 @@ seeTicket.action(/^manager-answer:(true|false)$/, async ctx => {
             }
           }
         )
-        .catch(() => null);
+        .catch(e => console.log(e));
     }
 
     ctx.telegram
