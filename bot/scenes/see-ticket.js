@@ -135,11 +135,13 @@ seeTicket.enterHandler = async ctx => {
         role === 'client'
           ? 'Ваше последнее сообщение:'
           : 'Последнее сообщение пользователя'
-      }</b>:\n<pre>${escapeHTML(
+      }</b>:\n<blockquote>${escapeHTML(
         lastMessage.question.text
-      )}</pre>\n\n<b>Ответ менеджера:</b>\n${
+      )}</blockquote>\n\n<b>Ответ менеджера:</b>\n${
         lastMessage.answer
-          ? '<pre>' + escapeHTML(firstMessage.answer.text) + '</pre>'
+          ? '<blockquote>' +
+            escapeHTML(firstMessage.answer.text) +
+            '</blockquote>'
           : '<i>ожидается</i>'
       }`
     );
@@ -206,9 +208,9 @@ seeTicket.enterHandler = async ctx => {
         role === 'client' ? 'Ваше сообщение:' : 'Сообщение пользователя:'
       }</b>\n<i>Дата: ${moment(firstMessage.creationDate)
         .locale('ru')
-        .format('DD.MM.YYYY [в] HH:mm:ss')}</i>\n\n<pre>${escapeHTML(
+        .format('DD.MM.YYYY [в] HH:mm:ss')}</i>\n\n<blockquote>${escapeHTML(
         firstMessage.question.text
-      )}</pre>`;
+      )}</blockquote>`;
 
       const question = firstMessage.question.image
         ? await ctx.replyWithPhoto(firstMessage.question.image, {
@@ -227,9 +229,9 @@ seeTicket.enterHandler = async ctx => {
         firstMessage.manager || 'неизвестно'
       }</code></b>\n<i>Дата: ${moment(firstMessage.answerDate)
         .locale('ru')
-        .format('DD.MM.YYYY [в] HH:mm:ss')}</i>\n\n<pre>${escapeHTML(
+        .format('DD.MM.YYYY [в] HH:mm:ss')}</i>\n\n<blockquote>${escapeHTML(
         firstMessage.answer.text
-      )}</pre>`;
+      )}</blockquote>`;
 
       const answer = firstMessage.answer.image
         ? await ctx.replyWithPhoto(firstMessage.answer.image, {
@@ -376,9 +378,9 @@ seeTicket.on(
           ctx.from.id,
           ctx.scene.state.messageMenu,
           undefined,
-          `<b>Ваш ответ:</b>\n\n<pre>${escapeHTML(
+          `<b>Ваш ответ:</b>\n\n<blockquote>${escapeHTML(
             message || ctx.scene.state.answer.text || '-'
-          )}</pre>`,
+          )}</blockquote>`,
           {
             parse_mode: 'HTML'
           }
@@ -435,7 +437,9 @@ seeTicket.action('client-answer', async ctx => {
         ticketObj.manager,
         `<b>Ответ на тикет</b>\n<code>${ticket
           .toString()
-          .toUpperCase()}</code>\n\n<pre>${escapeHTML(text)}</pre>`,
+          .toUpperCase()}</code>\n\n<blockquote>${escapeHTML(
+          text
+        )}</blockquote>`,
         {
           parse_mode: 'HTML'
         }
@@ -593,7 +597,9 @@ seeTicket.action(/^manager-answer:(true|false)$/, async ctx => {
         client,
         `<b>Ответ на ваш тикет</b>\n<code>${ticket
           .toString()
-          .toUpperCase()}</code>\n\n<pre>${escapeHTML(text)}</pre>${
+          .toUpperCase()}</code>\n\n<blockquote>${escapeHTML(
+          text
+        )}</blockquote>${
           close
             ? '<i>Тикет закрыт</i>'
             : '<i>Менеджер ожидает вашего ответа, ответить можно через: Меню - Поддержка - Мои тикеты</i>'
