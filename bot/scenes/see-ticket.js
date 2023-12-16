@@ -521,7 +521,8 @@ seeTicket.action(/^manager-answer:(true|false)$/, async ctx => {
     }
 
     const ticketObj = await tickets.findById(ticket, {
-      done: 1
+      done: 1,
+      manager: 1
     });
 
     if (ticketObj.done) {
@@ -530,12 +531,14 @@ seeTicket.action(/^manager-answer:(true|false)$/, async ctx => {
       return;
     }
 
+  const manager = ticketsObj.manager;
+
     if (!answer?.text) {
       ctx.answerCbQuery('Вы ничего не написали');
       return;
     }
 
-    const { text, image, manager } = ctx.scene.state.answer;
+    const { text, image } = ctx.scene.state.answer;
 
     const close = raw.groups.closeTicket === 'true';
     const now = new Date();
