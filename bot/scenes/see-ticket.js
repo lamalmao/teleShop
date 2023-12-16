@@ -531,7 +531,7 @@ seeTicket.action(/^manager-answer:(true|false)$/, async ctx => {
       return;
     }
 
-  const manager = ticketsObj.manager;
+  const manager = ticketObj.manager;
 
     if (!answer?.text) {
       ctx.answerCbQuery('Вы ничего не написали');
