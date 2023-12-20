@@ -24,7 +24,7 @@ async function genItemMessage(item, isAdmin) {
     if (item.useCards) {
       message += '\n\nМенеджерам выдаются карты';
       message += item.netCost
-        ? `\nСебестоимость: ${item.netCost.UAH} UAH ${item.netCost.USD} USD ${item.netCost.EUR} EUR`
+        ? `\nСебестоимость: ${item.netCost.UAH} UAH ${item.netCost.USD} USD ${item.netCost.EUR} EUR ${item.netCost.LIR} LIR`
         : '\nСебестоимость не указана';
     }
 

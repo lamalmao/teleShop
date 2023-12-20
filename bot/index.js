@@ -94,6 +94,133 @@ function CreateBot(token) {
     }
   );
 
+  bot.command(
+    'ozan',
+    async (ctx, next) => {
+      try {
+        const check = await users.exists({
+          telegramID: ctx.from.id,
+          role: 'admin'
+        });
+
+        if (check) {
+          next();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async ctx => {
+      try {
+        await ctx.reply(
+          `<b>Стоимость создания карты: ${global.ozanCardCost} лир</b>`,
+          {
+            parse_mode: 'HTML',
+            reply_markup: Markup.inlineKeyboard([
+              [Markup.button.callback('Изменить', 'change-ozan-card-cost')]
+            ]).reply_markup
+          }
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  );
+
+  bot.action(/ozan-paid:\d+/, async ctx => {
+    try {
+      const check = await users.findOne({
+        telegramID: ctx.from.id,
+        role: {
+          $in: ['admin', 'manager']
+        }
+      });
+
+      if (!!check) {
+        const raw = /:(?<orderId>\d+)$/.exec(ctx.callbackQuery.data);
+        if (!raw) {
+          return;
+        }
+
+        const { orderId } = raw.groups;
+        ctx.scene.enter('ozan-paid', {
+          order: Number(orderId)
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  bot.action(/ozan-cancel:\d+/, async ctx => {
+    try {
+      const check = await users.exists({
+        telegramID: ctx.from.id,
+        role: {
+          $in: ['admin', 'manager']
+        }
+      });
+
+      if (!check) {
+        ctx.deleteMessage().catch(() => null);
+        return;
+      }
+
+      const raw = /:(?<orderId>\d+)$/.exec(ctx.callbackQuery.data);
+      if (!raw) {
+        return;
+      }
+
+      const { orderId } = raw.groups;
+      const orderID = Number(orderId);
+      const result = await orders.updateOne(
+        {
+          orderID,
+          ozan: true,
+          ozanPaid: false
+        },
+        {
+          $set: {
+            ozan: false
+          }
+        }
+      );
+
+      const text =
+        result.modifiedCount === 1 ? 'Платеж отменён' : 'Более не актуально';
+
+      ctx.answerCbQuery(text).catch(() => null);
+      if (result.modifiedCount === 1) {
+        ctx.scene.enter('take_order', {
+          orderID
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  bot.action(
+    'change-ozan-card-cost',
+    async (ctx, next) => {
+      try {
+        const check = await users.exists({
+          telegramID: ctx.from.id,
+          role: 'admin'
+        });
+
+        if (check) {
+          next();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    ctx => ctx.scene.enter('change-ozan-card-cost')
+  );
+
+  bot.action('manager-ozan', ctx => ctx.scene.enter('manager-ozan'));
+
   bot.action('problem-not-solved', ctx =>
     ctx.scene.enter('problem-not-solved')
   );

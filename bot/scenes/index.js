@@ -63,6 +63,12 @@ const freeTickets = require('./free-tickets');
 const markTicket = require('./mark-ticket');
 const problemNotSolved = require('./problem-not-solved');
 const ticketsScene = require('./tickets');
+const managerOzan = require('./manager-ozan');
+const ozanTransactionsScene = require('./ozan-transactions');
+const createOzanTransaction = require('./create-ozan-transaction');
+const changeOzanCardCost = require('./change-ozan-card-cost');
+const ozanPaid = require('./ozan-paid');
+const keysStory = require('./keys-story');
 
 const stage = new Scenes.Stage([
   start,
@@ -127,7 +133,13 @@ const stage = new Scenes.Stage([
   freeTickets,
   markTicket,
   problemNotSolved,
-  ticketsScene
+  ticketsScene,
+  managerOzan,
+  ozanTransactionsScene,
+  createOzanTransaction,
+  changeOzanCardCost,
+  ozanPaid,
+  keysStory
 ]);
 
 stage.start(ctx => ctx.scene.enter('start'));

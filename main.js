@@ -7,6 +7,8 @@ const preset = require('./preset');
 const CreateBot = require('./bot');
 const createPaymentProvider = require('./payment_service');
 const runUpdater = require('./sheets');
+const users = require('./models/users');
+const ozanAccounts = require('./models/ozan-accounts');
 
 // Форматирование строк
 String.prototype.format = String.prototype.f = function () {
@@ -47,19 +49,19 @@ const keysDirectoryLocation = path.join(process.cwd(), 'key', 'key.pem');
 global.key = new nodeRSA(
   fs.readFileSync(keysDirectoryLocation).toString('utf-8')
 );
+
 global.ticketThemes = JSON.parse(
   fs.readFileSync(path.resolve('ticketThemes.json').toString('utf-8'))
 );
 
+const ozanCardCost = Number(
+  fs.readFileSync(path.resolve('ozan-card-cost.txt')).toString().trim()
+);
+global.ozanCardCost = Number.isNaN(ozanCardCost) ? 29.99 : ozanCardCost;
+
 global.helpMessage = fs
   .readFileSync(path.resolve('help.txt'))
   .toString('utf-8');
-
-// Подключение к базе данных
-mongoose.connect(settings.base_link);
-
-// Инициализация бота
-const bot = CreateBot(settings.bot_token);
 
 // Генерация ключей шифрования
 if (keyGenerated) {
@@ -76,19 +78,61 @@ if (keyGenerated) {
   );
 }
 
-// Запуск бота
-bot.launch();
-console.log('Бот запущен');
+(async () => {
+  // Инициализация бота
+  const bot = CreateBot(settings.bot_token);
 
-// Запуск обработчика платежей
-const paymentWorker = createPaymentProvider(bot);
-paymentWorker.listen(
-  {
-    host: settings.host,
-    port: 3000
-  },
-  () => console.log('Обработчик платежей запущен')
-);
+  // Подключение к базе данных
+  await mongoose.connect(settings.base_link);
+  console.log('База данных подключена');
 
-// Запуск отрисовки таблиц
-runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
+  const employers = await users.find(
+    {
+      role: {
+        $ne: 'client'
+      }
+    },
+    {
+      telegramID: 1
+    }
+  );
+
+  for (const employer of employers) {
+    const check = await ozanAccounts.exists({
+      employer: employer.telegramID
+    });
+
+    if (!check) {
+      await ozanAccounts.create({
+        employer: employer.telegramID
+      });
+
+      bot.telegram
+        .sendMessage(
+          employer.telegramID,
+          '<b>Ваш ozan счёт инициализирован, вы можете найти его в меню менеджера /manager</b>',
+          {
+            parse_mode: 'HTML'
+          }
+        )
+        .catch(() => null);
+    }
+  }
+
+  // Запуск бота
+  bot.launch();
+  console.log('Бот запущен');
+
+  // Запуск обработчика платежей
+  const paymentWorker = createPaymentProvider(bot);
+  paymentWorker.listen(
+    {
+      host: settings.host,
+      port: 3000
+    },
+    () => console.log('Обработчик платежей запущен')
+  );
+
+  // Запуск отрисовки таблиц
+  runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
+})();

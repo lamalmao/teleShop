@@ -5,6 +5,8 @@ const orders = require('../../models/orders');
 const keys = require('../keyboard');
 const escapeHTML = require('escape-html');
 const tickets = require('../../models/tickets');
+const ozanAccounts = require('../../models/ozan-accounts');
+const ozanTransactions = require('../../models/ozan-transactions');
 
 const managersInfo = new Scenes.BaseScene('showManagers');
 
@@ -170,6 +172,12 @@ managersInfo.action(/manager#\d+/, async ctx => {
                   `drop#${user.telegramID}`
                 )
               ],
+              [
+                Markup.button.callback(
+                  'Счёт ozan',
+                  `ozan-account:${user.telegramID}`
+                )
+              ],
               [Markup.button.callback('Назад', `prev`)]
             ]).reply_markup,
             parse_mode: 'HTML'
@@ -307,6 +315,20 @@ managersInfo.action('save-income', async ctx => {
   }
 });
 
+managersInfo.action(/ozan-account:\d+/, async ctx => {
+  try {
+    const raw = /:(?<id>\d+)$/.exec(ctx.callbackQuery.data);
+    const { id } = raw.groups;
+
+    ctx.scene.enter('manager-ozan', {
+      target: Number(id),
+      admin: true
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 managersInfo.action(/manage-income#\d+/, async ctx => {
   try {
     const raw = /#(\d+)$/.exec(ctx.callbackQuery.data);
@@ -431,6 +453,16 @@ managersInfo.action('drop', async ctx => {
         }
       }
     );
+
+    const account = await ozanAccounts.findOne(
+      { employer: Number(ctx.scene.state.target) },
+      {
+        _id: 1
+      }
+    );
+    if (account) {
+      await ozanTransactions.deleteMany({ account: account._id });
+    }
 
     await ctx.telegram.editMessageText(
       ctx.from.id,

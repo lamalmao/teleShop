@@ -17,6 +17,10 @@ const NetCostSchema = new Schema({
     type: Number,
     required: true,
     default: 0
+  },
+  LIR: {
+    type: Number,
+    default: 0
   }
 });
 

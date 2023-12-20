@@ -1,14 +1,14 @@
-const { Scenes, Markup } = require("telegraf");
-const goods = require("../../models/goods");
-const escapeHTML = require("escape-html");
+const { Scenes, Markup } = require('telegraf');
+const goods = require('../../models/goods');
+const escapeHTML = require('escape-html');
 
-const setItemNetCost = new Scenes.BaseScene("set-item-net-cost");
+const setItemNetCost = new Scenes.BaseScene('set-item-net-cost');
 
-setItemNetCost.enterHandler = async (ctx) => {
+setItemNetCost.enterHandler = async ctx => {
   try {
     const item = await goods.findById(ctx.scene.state.itemId);
     if (!item) {
-      throw new Error("Item not found");
+      throw new Error('Item not found');
     }
 
     await ctx.telegram.editMessageCaption(
@@ -17,36 +17,36 @@ setItemNetCost.enterHandler = async (ctx) => {
       undefined,
       `<b>Установка себестоимости для <code>"${escapeHTML(
         item.title
-      )}"</code></b>\n\nПеречислите через пробел себестоимость товара в таком порядке:\n<i>UAH USD EUR</i>\n\nДля разделителя в дробных числах используйте точку`,
+      )}"</code></b>\n\nПеречислите через пробел себестоимость товара в таком порядке:\n<i>UAH USD EUR LIR</i>\n\nДля разделителя в дробных числах используйте точку`,
       {
-        parse_mode: "HTML",
+        parse_mode: 'HTML',
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("Назад", "exit")],
-        ]).reply_markup,
+          [Markup.button.callback('Назад', 'exit')]
+        ]).reply_markup
       }
     );
   } catch (error) {
     console.log(error);
-    ctx.scene.enter("manageItem", ctx.scene.state);
+    ctx.scene.enter('manageItem', ctx.scene.state);
   }
 };
 
 setItemNetCost.on(
-  "message",
+  'message',
   (ctx, next) => {
     ctx.deleteMessage().catch();
     next();
   },
-  async (ctx) => {
+  async ctx => {
     try {
       const raw =
-        /(?<UAH>\d+(.\d+)?)\s+(?<USD>\d+(.\d+)?)\s+(?<EUR>\d+(.\d+)?)/.exec(
+        /(?<UAH>\d+(.\d+)?)\s+(?<USD>\d+(.\d+)?)\s+(?<EUR>\d+(.\d+)?)\s+(?<LIR>\d+(.\d+)?)/.exec(
           ctx.message.text
         );
       if (!raw) {
         ctx
-          .reply("Неверный формат строки")
-          .then((msg) =>
+          .reply('Неверный формат строки')
+          .then(msg =>
             setTimeout(
               () => ctx.deleteMessage(msg.message_id).catch(() => null),
               2500
@@ -56,22 +56,23 @@ setItemNetCost.on(
         return;
       }
 
-      const { UAH, USD, EUR } = raw.groups;
+      const { UAH, USD, EUR, LIR } = raw.groups;
       ctx.scene.state.netWorth = {
         UAH: Number(UAH),
         USD: Number(USD),
         EUR: Number(EUR),
+        LIR: Number(LIR)
       };
 
-      const message = `<b>Сохранить данные значения?</b>\n\n<i>UAH:</i> <code>${UAH}</code>\n<i>USD:</i> <code>${USD}</code>\n<i>EUR:</i> <code>${EUR}</code>\n\nЕсли вы хотите их изменить - просто введите новые в том же формате`;
+      const message = `<b>Сохранить данные значения?</b>\n\n<i>UAH:</i> <code>${UAH}</code>\n<i>USD:</i> <code>${USD}</code>\n<i>EUR:</i> <code>${EUR}</code>\n<i>LIR:</i> <code>${LIR}</code>\n\nЕсли вы хотите их изменить - просто введите новые в том же формате`;
 
       const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback("Сохранить", "save")],
+        [Markup.button.callback('Сохранить', 'save')]
       ]).reply_markup;
       if (!ctx.scene.state.netMenu) {
         const netMenu = await ctx.reply(message, {
-          parse_mode: "HTML",
-          reply_markup: keyboard,
+          parse_mode: 'HTML',
+          reply_markup: keyboard
         });
 
         ctx.scene.state.netMenu = netMenu.message_id;
@@ -83,8 +84,8 @@ setItemNetCost.on(
             undefined,
             message,
             {
-              parse_mode: "HTML",
-              reply_markup: keyboard,
+              parse_mode: 'HTML',
+              reply_markup: keyboard
             }
           )
           .catch(() => null);
@@ -95,7 +96,7 @@ setItemNetCost.on(
   }
 );
 
-setItemNetCost.action("save", async (ctx) => {
+setItemNetCost.action('save', async ctx => {
   try {
     const { netWorth, itemId } = ctx.scene.state;
     if (!netWorth) {
@@ -104,27 +105,27 @@ setItemNetCost.action("save", async (ctx) => {
 
     await goods.updateOne(
       {
-        _id: itemId,
+        _id: itemId
       },
       {
         $set: {
-          netCost: netWorth,
-        },
+          netCost: netWorth
+        }
       }
     );
 
-    ctx.scene.enter("manageItem", ctx.scene.state);
+    ctx.scene.enter('manageItem', ctx.scene.state);
   } catch (error) {
-    ctx.scene.enter("manageItem", ctx.scene.state);
+    ctx.scene.enter('manageItem', ctx.scene.state);
     console.log(error);
   }
 });
 
-setItemNetCost.action("exit", (ctx) =>
-  ctx.scene.enter("manageItem", ctx.scene.state)
+setItemNetCost.action('exit', ctx =>
+  ctx.scene.enter('manageItem', ctx.scene.state)
 );
 
-setItemNetCost.leaveHandler = async (ctx) => {
+setItemNetCost.leaveHandler = async ctx => {
   try {
     if (ctx.scene.state.netMenu) {
       ctx.telegram
@@ -137,7 +138,7 @@ setItemNetCost.leaveHandler = async (ctx) => {
     ctx.scene.state.netMenu = undefined;
   } catch (error) {
     console.log(error);
-    ctx.scene.enter("admin");
+    ctx.scene.enter('admin');
   }
 };
 

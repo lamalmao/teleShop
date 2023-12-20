@@ -12,6 +12,8 @@ const messages = require('../messages');
 const managerKey = require('../../models/manager-keys');
 const escapeHTML = require('escape-html');
 const cards = require('../../models/cards');
+const ozanAccounts = require('../../models/ozan-accounts');
+const keyActions = require('../../models/key-actions');
 
 const takeOrder = new Scenes.BaseScene('take_order');
 
@@ -184,7 +186,7 @@ takeOrder.enterHandler = async function (ctx) {
               Markup.button.callback(
                 'Отменить заказ',
                 'order_cancel',
-                order.keyIssued
+                order.keyIssued || order.ozan
               )
             ],
             [Markup.button.callback('Запросить код', 'request_code')],
@@ -192,21 +194,33 @@ takeOrder.enterHandler = async function (ctx) {
               Markup.button.callback(
                 'Отказаться от выполнения',
                 'order_reject',
-                order.keyIssued
+                order.keyIssued || order.ozan
               )
             ],
             [
               Markup.button.callback(
                 'Взять карту',
                 'take-card',
-                !(item.useCards && !order.cardPaid)
+                !(item.useCards && !order.cardPaid && !order.ozan)
               )
             ],
             [
               Markup.button.callback(
                 'Карта привязана',
                 'card-linked',
-                !item.useCards
+                !(item.useCards && !order.ozan)
+              )
+            ],
+            [
+              Markup.button.callback(
+                'Использовать счёт Ozan',
+                'use-ozan',
+                !(
+                  item.useCards &&
+                  !order.card &&
+                  !!item.netCost?.LIR &&
+                  !order.ozanPaid
+                )
               )
             ],
             [
@@ -297,6 +311,78 @@ takeOrder.on('callback_query', async (ctx, next) => {
   }
 });
 
+takeOrder.action('use-ozan', async ctx => {
+  try {
+    const ozanAccount = await ozanAccounts.findOne({
+      employer: ctx.from.id
+    });
+
+    const item = await goods.findById(ctx.scene.state.order.item, {
+      'netCost.LIR': 1
+    });
+
+    if (!item.netCost?.LIR) {
+      return;
+    }
+
+    if (ozanAccount.balance < item.netCost.LIR) {
+      ctx
+        .answerCbQuery('На вашем Ozan счёте недостаточно средств')
+        .catch(() => null);
+      return;
+    }
+
+    const order = await orders.findOne(
+      {
+        orderID: ctx.scene.state.order.orderID
+      },
+      {
+        ozan: 1,
+        ozanPaid: 1,
+        orderID: 1
+      }
+    );
+
+    if (order.ozanPaid) {
+      ctx.answerCbQuery('Заказ уже оплачен').catch(() => null);
+      return;
+    }
+
+    if (!order.ozan) {
+      await orders.updateOne(
+        {
+          orderID: ctx.scene.state.order.orderID
+        },
+        {
+          $set: {
+            ozan: true,
+            ozanPaid: false
+          }
+        }
+      );
+    }
+
+    await ctx.editMessageText(
+      '<i>Используйте ваш счет для выполнения этого заказа.\n\nПосле успешной оплаты нажмите “Оплатил” и транзакция по вашему счету будет сохранена.</i>',
+      {
+        parse_mode: 'HTML',
+        reply_markup: Markup.inlineKeyboard([
+          [Markup.button.callback('Оплатил', `ozan-paid:${order.orderID}`)],
+          [
+            Markup.button.callback(
+              'Отменить транзакцию',
+              `ozan-cancel:${order.orderID}`
+            )
+          ]
+        ]).reply_markup
+      }
+    );
+    ctx.scene.leave();
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 takeOrder.action('card-linked', async ctx => {
   try {
     const order = await orders.findOne({
@@ -363,7 +449,7 @@ takeOrder.action('return_key', async ctx => {
       )
       .catch(() => null);
 
-    await managerKey.updateOne(
+    const keyObj = await managerKey.findOneAndUpdate(
       {
         _id: order.keyUsed
       },
@@ -373,6 +459,15 @@ takeOrder.action('return_key', async ctx => {
         }
       }
     );
+
+    keyActions
+      .create({
+        order: order.orderID,
+        action: 'returned',
+        manager: ctx.from.id,
+        key: keyObj.value
+      })
+      .catch(() => null);
 
     await users.updateOne(
       {
@@ -487,6 +582,15 @@ takeOrder.action('take_key', async ctx => {
     await ctx.reply(`Ключ для заказа <code>${order.orderID}</code>\n\n<code>${escapeHTML(key.value)}</code>`, {
       parse_mode: 'HTML'
     });
+
+    keyActions
+      .create({
+        order: order.orderID,
+        action: 'taken',
+        manager: ctx.from.id,
+        key: key.value
+      })
+      .catch(() => null);
 
     managerKey
       .countDocuments({
@@ -628,6 +732,13 @@ takeOrder.action('order_done', async ctx => {
       }
     );
 
+    if (order.ozan && !order.ozanPaid) {
+      await ctx.reply(
+        'Сначала подтвердите платеж Ozan (если вы потеряли нужное сообщение - просто нажмите "Использовать Ozan")'
+      );
+      return;
+    }
+
     if (order.card && !order.cardPaid) {
       await ctx.reply(
         'Сначала подтвердите оплату картой (если вы потеряли нужное сообщение - просто нажмите взять карту)'
@@ -697,6 +808,20 @@ takeOrder.action('done', async ctx => {
           }
         }
       );
+
+      managerKey
+        .findById(order.keyUsed, { value: 1 })
+        .then(key => {
+          keyActions
+            .create({
+              order: order.orderID,
+              action: 'used',
+              manager: ctx.from.id,
+              key: key.value
+            })
+            .catch(() => null);
+        })
+        .catch(() => null);
     }
 
     if (user.cardOrder === order.orderID) {
