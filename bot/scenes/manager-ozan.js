@@ -144,7 +144,7 @@ managerOzan.action('ozan-card', async ctx => {
   try {
     ctx.scene.state.ozanMenu = ctx.callbackQuery.message.message_id;
 
-    ctx.reply('<b>Подтверждаете создание карты??</b>', {
+    await ctx.reply('<b>Подтверждаете создание карты?</b>', {
       parse_mode: 'HTML',
       reply_markup: Markup.inlineKeyboard([
         [Markup.button.callback('Да', 'card-created')],
@@ -180,7 +180,7 @@ managerOzan.action('card-created', async ctx => {
   }
 });
 
-managerOzan.action('delete', ctx => ctx.deleteMessage(() => null));
+managerOzan.action('delete', ctx => ctx.deleteMessage().catch(() => null));
 
 managerOzan.action('exit', ctx => {
   const { admin } = ctx.scene.state;
