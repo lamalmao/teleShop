@@ -771,6 +771,8 @@ takeOrder.action('order_done', async ctx => {
 
 takeOrder.action('done', async ctx => {
   try {
+    console.log('Closing order');
+
     const order = await orders.findOneAndUpdate(
       {
         orderID: ctx.scene.state.order.orderID
@@ -851,10 +853,15 @@ takeOrder.action('done', async ctx => {
       )
       .catch(_ => null);
 
+    const item = await goods.findById(order.item, {
+      title: 1
+    });
+
+    const extra = order.ozan ? ' (Ozan)' : order.card ? ' (Карта)' : '';
     const res = await users.updateOne(
       {
         telegramID: ctx.from.id,
-        'stats.id': ctx.scene.state.order.item
+        'stats.title': item.title + extra
       },
       {
         $inc: {
@@ -862,6 +869,8 @@ takeOrder.action('done', async ctx => {
         }
       }
     );
+
+    console.log(res, item.title + extra);
 
     if (res.modifiedCount !== 1) {
       await users.updateOne(
@@ -872,7 +881,7 @@ takeOrder.action('done', async ctx => {
           $push: {
             stats: {
               id: ctx.scene.state.order.item,
-              title: ctx.scene.state.order.itemTitle,
+              title: item.title + extra,
               count: 1
             }
           }
@@ -905,7 +914,7 @@ takeOrder.action('done', async ctx => {
     ctx.answerCbQuery('Готово, клиент уведомлен').catch(_ => null);
     ctx.scene.enter('manager_menu');
   } catch (e) {
-    null;
+    console.log(e);
     ctx.scene.enter('manager_menu');
   }
 });
