@@ -179,7 +179,7 @@ seeTicket.enterHandler = async ctx => {
               'close-ticket',
               !(
                 !ticketObj.done &&
-                messagesCount > 1 &&
+                (ticketObj.waitingForUser || messagesCount > 1) &&
                 role !== 'client' &&
                 !view
               )
@@ -531,7 +531,7 @@ seeTicket.action(/^manager-answer:(true|false)$/, async ctx => {
       return;
     }
 
-  const manager = ticketObj.manager;
+    const manager = ticketObj.manager;
 
     if (!answer?.text) {
       ctx.answerCbQuery('Вы ничего не написали');

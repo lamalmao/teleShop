@@ -78,6 +78,9 @@ managerTickets.on(
       const result = await tickets.updateOne(
         {
           _id: new Types.ObjectId(ticketId),
+          client: {
+            $ne: ctx.from.id
+          },
           done: false
         },
         {
@@ -87,9 +90,9 @@ managerTickets.on(
         }
       );
 
-      if (result.modifiedCount === 0) {
+      if (result.matchedCount === 0) {
         ctx
-          .reply('Тикет не найден, или вы уже над ним работаете')
+          .reply('Тикет не найден или он был открыт вами')
           .then(msg =>
             setTimeout(
               () => ctx.deleteMessage(msg.message_id).catch(() => null),
