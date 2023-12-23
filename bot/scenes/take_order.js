@@ -771,8 +771,6 @@ takeOrder.action('order_done', async ctx => {
 
 takeOrder.action('done', async ctx => {
   try {
-    console.log('Closing order');
-
     const order = await orders.findOneAndUpdate(
       {
         orderID: ctx.scene.state.order.orderID
@@ -869,8 +867,6 @@ takeOrder.action('done', async ctx => {
         }
       }
     );
-
-    console.log(res, item.title + extra);
 
     if (res.modifiedCount !== 1) {
       await users.updateOne(
