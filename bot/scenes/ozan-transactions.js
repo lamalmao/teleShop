@@ -41,13 +41,17 @@ ozanTransactionsScene.enterHandler = async ctx => {
       }
     );
     ctx.scene.state.transactions = transactions;
+    ctx.scene.state.page = 0;
+    ctx.scene.state.pageSize = 30;
+
+    const pagedTransactions = transactions.slice(0, ctx.scene.state.pageSize);
 
     let text = `<b>Список транзакций менеджера <a href="tg://user?id=${target}">${
-      managerUsername || 'Неизвестно'
+      escapeHTML(managerUsername) || 'Неизвестно'
     }</a></b>\n<i>Для выбора транзакции - укажите ее номер из списка ниже</i>\n`;
 
-    for (let i = 0; i < transactions.length; i++) {
-      const { date, amount, success } = transactions[i];
+    for (let i = 0; i < pagedTransactions.length; i++) {
+      const { date, amount, success } = pagedTransactions[i];
       text = text.concat(
         `\n<b>${i + 1}.</b><i>${moment(date)
           .locale('ru')
@@ -69,6 +73,13 @@ ozanTransactionsScene.enterHandler = async ctx => {
           reply_markup: Markup.inlineKeyboard([
             [
               Markup.button.callback(
+                '>>',
+                'page-forward',
+                transactions.length < ctx.scene.state.pageSize
+              )
+            ],
+            [
+              Markup.button.callback(
                 'Удалить все транзакции',
                 'delete-all',
                 !(admin && transactions.length > 0)
@@ -84,6 +95,76 @@ ozanTransactionsScene.enterHandler = async ctx => {
     console.log(error);
   }
 };
+
+ozanTransactionsScene.action(/page-(back|forward)/, async ctx => {
+  try {
+    const raw = /(?<direction>back|forward)/.exec(ctx.callbackQuery.data);
+    if (!raw) {
+      throw new Error('No data');
+    }
+
+    const { direction } = raw.groups;
+    ctx.scene.state.page += direction === 'forward' ? 1 : -1;
+
+    const {
+      transactions,
+      page,
+      pageSize,
+      managerUsername,
+      target,
+      menu,
+      admin
+    } = ctx.scene.state;
+    const pagedTransactions = transactions.slice(
+      page * pageSize,
+      (page + 1) * pageSize
+    );
+
+    let text = `<b>Список транзакций менеджера <a href="tg://user?id=${target}">${
+      escapeHTML(managerUsername) || 'Неизвестно'
+    }</a></b>\n<i>Для выбора транзакции - укажите ее номер из списка ниже</i>\n`;
+
+    let realIndex = page * pageSize;
+    for (let i = 0; i < pagedTransactions.length; i++) {
+      const { date, amount, success } = pagedTransactions[i];
+      text = text.concat(
+        `\n<b>${realIndex + 1}.</b><i>${moment(date)
+          .locale('ru')
+          .format('DD.MM.YYYY [в] HH:mm:ss')}</i> | <code>${
+          amount > 0 ? '+' : ''
+        }${amount.toFixed(2)}</code> лир | ${success ? '✔️' : '❌'}`
+      );
+
+      realIndex++;
+    }
+
+    ctx.telegram
+      .editMessageText(ctx.from.id, menu, undefined, text, {
+        parse_mode: 'HTML',
+        reply_markup: Markup.inlineKeyboard([
+          [
+            Markup.button.callback('<<', 'page-back', page === 0),
+            Markup.button.callback(
+              '>>',
+              'page-forward',
+              !(page < Math.ceil(transactions.length / pageSize))
+            )
+          ],
+          [
+            Markup.button.callback(
+              'Удалить все транзакции',
+              'delete-all',
+              !(admin && transactions.length > 0)
+            )
+          ],
+          [Markup.button.callback('Назад', 'exit')]
+        ]).reply_markup
+      })
+      .catch(e => console.log(e));
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 ozanTransactionsScene.action('delete-all', async ctx => {
   try {
