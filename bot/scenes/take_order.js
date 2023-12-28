@@ -53,6 +53,9 @@ takeOrder.enterHandler = async function (ctx) {
 
       let order = await orders.findOne({
         orderID: orderID,
+        steam: {
+          $exists: false
+        },
         queryPart
       });
 

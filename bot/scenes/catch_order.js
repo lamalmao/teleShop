@@ -1,22 +1,25 @@
-const { Scenes, Markup } = require("telegraf");
+const { Scenes, Markup } = require('telegraf');
 
-const keys = require("../keyboard");
-const orders = require("../../models/orders");
-const users = require("../../models/users");
+const keys = require('../keyboard');
+const orders = require('../../models/orders');
+const users = require('../../models/users');
 
-const catchOrder = new Scenes.BaseScene("catch_order");
+const catchOrder = new Scenes.BaseScene('catch_order');
 
 catchOrder.enterHandler = async function (ctx) {
   try {
     const user = await users.findOne(
       {
         telegramID: ctx.from.id,
+        steam: {
+          $exists: false
+        }
       },
-      "role"
+      'role'
     );
 
-    if (user.role === "client") {
-      ctx.reply("У вас нет доступа");
+    if (user.role === 'client') {
+      ctx.reply('У вас нет доступа');
       ctx.scene.leave();
       return;
     }
@@ -27,28 +30,28 @@ catchOrder.enterHandler = async function (ctx) {
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
-      "Ввведите номер заказа",
+      'Ввведите номер заказа',
       {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("Назад", "manager_menu")],
-        ]).reply_markup,
+          [Markup.button.callback('Назад', 'manager_menu')]
+        ]).reply_markup
       }
     );
   } catch (e) {
     null;
-    ctx.scene.enter("start");
+    ctx.scene.enter('start');
   }
 };
 
-catchOrder.on("message", (ctx, next) => {
-  ctx.deleteMessage().catch((_) => null);
+catchOrder.on('message', (ctx, next) => {
+  ctx.deleteMessage().catch(_ => null);
   next();
 });
 
-catchOrder.hears(/\d+/, async (ctx) => {
+catchOrder.hears(/\d+/, async ctx => {
   try {
     const order = await orders.findOne({
-      orderID: Number(ctx.message.text),
+      orderID: Number(ctx.message.text)
     });
 
     if (order) {
@@ -57,47 +60,47 @@ catchOrder.hears(/\d+/, async (ctx) => {
         ctx.from.id,
         ctx.scene.state.menu.message_id,
         undefined,
-        "Заказ найден",
+        'Заказ найден',
         {
           reply_markup: Markup.inlineKeyboard([
             [
               Markup.button.callback(
                 `${order.orderID}: ${order.itemTitle}`,
-                "intercept"
-              ),
+                'intercept'
+              )
             ],
-            [Markup.button.callback("Назад", "manager_menu")],
-          ]).reply_markup,
+            [Markup.button.callback('Назад', 'manager_menu')]
+          ]).reply_markup
         }
       );
     } else {
       const curCtx = ctx;
       ctx
-        .reply("Заказ не найден")
-        .then((msg) => {
+        .reply('Заказ не найден')
+        .then(msg => {
           setTimeout(function () {
             curCtx.telegram
               .deleteMessage(curCtx.from.id, msg.message_id)
-              .catch((_) => null);
+              .catch(_ => null);
           }, 2000);
         })
-        .catch((_) => null);
+        .catch(_ => null);
     }
   } catch (e) {
     null;
-    ctx.scene.enter("start");
+    ctx.scene.enter('start');
   }
 });
 
-catchOrder.action("intercept", async (ctx) => {
+catchOrder.action('intercept', async ctx => {
   try {
-    ctx.scene.enter("take_order", {
+    ctx.scene.enter('take_order', {
       orderID: ctx.scene.state.orderID,
-      interception: true,
+      interception: true
     });
   } catch (e) {
     null;
-    ctx.scene.enter("start");
+    ctx.scene.enter('start');
   }
 });
 

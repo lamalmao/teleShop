@@ -29,8 +29,7 @@ const Order = new Schema({
     default: Date.now
   },
   item: {
-    type: String,
-    required: true
+    type: String
   },
   itemTitle: {
     type: String,
@@ -50,8 +49,7 @@ const Order = new Schema({
   },
   game: {
     type: String,
-    enum: global.games,
-    required: true
+    enum: global.games
   },
   refundData: String,
   refundStatus: {
@@ -70,6 +68,9 @@ const Order = new Schema({
     type: SchemaTypes.ObjectId,
     required: false
   },
+  kupikodID: String,
+  steam: Boolean,
+  steamUsername: String,
   key: String,
   card: SchemaTypes.ObjectId,
   cardNumber: String,

@@ -69,6 +69,7 @@ const createOzanTransaction = require('./create-ozan-transaction');
 const changeOzanCardCost = require('./change-ozan-card-cost');
 const ozanPaid = require('./ozan-paid');
 const keysStory = require('./keys-story');
+const refillSteam = require('./refill-steam');
 
 const stage = new Scenes.Stage([
   start,
@@ -139,7 +140,8 @@ const stage = new Scenes.Stage([
   createOzanTransaction,
   changeOzanCardCost,
   ozanPaid,
-  keysStory
+  keysStory,
+  refillSteam
 ]);
 
 stage.start(ctx => ctx.scene.enter('start'));

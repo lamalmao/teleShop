@@ -9,6 +9,7 @@ const createPaymentProvider = require('./payment_service');
 const runUpdater = require('./sheets');
 const users = require('./models/users');
 const ozanAccounts = require('./models/ozan-accounts');
+const createSteamWorker = require('./steam-worker');
 
 // Форматирование строк
 String.prototype.format = String.prototype.f = function () {
@@ -122,6 +123,11 @@ if (keyGenerated) {
   // Запуск бота
   bot.launch();
   console.log('Бот запущен');
+
+  const steamWorker = createSteamWorker(bot);
+
+  steamWorker(30 * 1000);
+  console.log('Steam обработчик запущен');
 
   // Запуск обработчика платежей
   const paymentWorker = createPaymentProvider(bot);

@@ -1,11 +1,11 @@
-const { Scenes, Markup } = require("telegraf");
-const { Types } = require("mongoose");
-const path = require("path");
+const { Scenes, Markup } = require('telegraf');
+const { Types } = require('mongoose');
+const path = require('path');
 
-const categories = require("../../models/categories");
-const mainCategory = new Scenes.BaseScene("mainCategory");
+const categories = require('../../models/categories');
+const mainCategory = new Scenes.BaseScene('mainCategory');
 
-const images = path.join(process.cwd(), "files", "images");
+const images = path.join(process.cwd(), 'files', 'images');
 
 mainCategory.enterHandler = async function (ctx) {
   try {
@@ -14,9 +14,9 @@ mainCategory.enterHandler = async function (ctx) {
     const subCategories = await categories.find(
       {
         parent: Types.ObjectId(categoryID),
-        hidden: false,
+        hidden: false
       },
-      "_id title"
+      '_id title'
     );
 
     let keyboard = [],
@@ -38,17 +38,17 @@ mainCategory.enterHandler = async function (ctx) {
 
       first = !first;
     }
-    keyboard.push([Markup.button.callback("Назад", "shop")]);
+    keyboard.push([Markup.button.callback('Назад', 'shop')]);
 
     await ctx.telegram.editMessageMedia(
       ctx.from.id,
       ctx.callbackQuery.message.message_id,
       undefined,
       {
-        type: "photo",
+        type: 'photo',
         media: {
-          source: path.join(images, category.image),
-        },
+          source: path.join(images, category.image)
+        }
       }
     );
 
@@ -58,15 +58,14 @@ mainCategory.enterHandler = async function (ctx) {
       undefined,
       category.description,
       {
-        reply_markup: Markup.inlineKeyboard(keyboard).reply_markup,
+        reply_markup: Markup.inlineKeyboard(keyboard).reply_markup
       }
     );
 
     ctx.scene.leave();
-  } catch (e) {
-    null;
-    ctx.answerCbQuery("Что-то пошло не так").catch((_) => null);
-    ctx.scene.enter("shop", { menu: ctx.scene.state.menu });
+  } catch {
+    ctx.answerCbQuery('Что-то пошло не так').catch(_ => null);
+    ctx.scene.enter('shop', { menu: ctx.scene.state.menu });
   }
 };
 

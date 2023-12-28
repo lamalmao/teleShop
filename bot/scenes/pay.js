@@ -1,15 +1,15 @@
-const { Scenes, Markup } = require("telegraf");
-const crypto = require("crypto");
-const path = require("path");
+const { Scenes, Markup } = require('telegraf');
+const crypto = require('crypto');
+const path = require('path');
 
-const payments = require("../../models/payments");
-const messages = require("../messages");
-const pay = new Scenes.BaseScene("pay");
+const payments = require('../../models/payments');
+const messages = require('../messages');
+const pay = new Scenes.BaseScene('pay');
 const refillImage = path.join(
   process.cwd(),
-  "files",
-  "images",
-  "blank_refill.jpg"
+  'files',
+  'images',
+  'blank_refill.jpg'
 );
 
 pay.enterHandler = async function (ctx) {
@@ -18,7 +18,7 @@ pay.enterHandler = async function (ctx) {
       user: ctx.from.id,
       amount: ctx.scene.state.amount,
       paymentID: crypto.randomInt(1000000, 9999999),
-      payment_message: ctx.scene.state.menu.message_id,
+      payment_message: ctx.scene.state.menu.message_id
     });
 
     const anyPayUrl = payment.genUrl();
@@ -29,10 +29,10 @@ pay.enterHandler = async function (ctx) {
       ctx.scene.state.menu.message_id,
       undefined,
       {
-        type: "photo",
+        type: 'photo',
         media: {
-          source: refillImage,
-        },
+          source: refillImage
+        }
       }
     );
 
@@ -43,29 +43,29 @@ pay.enterHandler = async function (ctx) {
       messages.payment.provided.format(ctx.scene.state.amount),
       {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.url("AnyPay", anyPayUrl)],
+          [Markup.button.url('AnyPay', anyPayUrl)],
           [
             Markup.button.url(
-              "Lava (комиссия ниже)",
-              lavaUrl ? lavaUrl : "https://google.com",
+              'Lava (комиссия ниже)',
+              lavaUrl ? lavaUrl : 'https://google.com',
               !lavaUrl
-            ),
+            )
           ],
           [
             Markup.button.callback(
-              "Проверить платёж",
-              "lava-check#" + payment.paymentID,
+              'Проверить платёж',
+              'lava-check#' + payment.paymentID,
               true
-            ),
-          ],
+            )
+          ]
         ]).reply_markup,
-        parse_mode: "HTML",
+        parse_mode: 'HTML'
       }
     );
   } catch (e) {
     null;
   } finally {
-    ctx.scene.enter("start");
+    ctx.scene.enter('start');
   }
 };
 

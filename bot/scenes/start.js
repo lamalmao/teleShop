@@ -9,7 +9,6 @@ start.enterHandler = async function (ctx) {
 
   try {
     const userId = ctx.from.id;
-
     const user = await users.findOne({
       telegramID: userId
     });

@@ -1,46 +1,46 @@
-const { Scenes, Markup } = require("telegraf");
+const { Scenes, Markup } = require('telegraf');
 
-const users = require("../../models/users");
-const orders = require("../../models/orders");
-const keys = require("../keyboard");
+const users = require('../../models/users');
+const orders = require('../../models/orders');
+const keys = require('../keyboard');
 
-const ordersList = new Scenes.BaseScene("orders_list");
+const ordersList = new Scenes.BaseScene('orders_list');
 
 ordersList.enterHandler = async function (ctx) {
   try {
     let user = await users.findOne({
-      telegramID: ctx.from.id,
+      telegramID: ctx.from.id
     });
 
     var dbRequest = {
-      status: "untaken",
-      paid: true,
+      status: 'untaken',
+      steam: {
+        $exists: false
+      },
+      paid: true
     };
 
-    if (user.role === "manager" && user.game !== "all") {
+    if (user.role === 'manager' && user.game !== 'all') {
       dbRequest.game = user.game;
     }
 
-    null;
-
-    if (user.role === "admin" || user.role === "manager") {
-      const active = await orders.find(dbRequest, "orderID itemTitle client");
-
+    if (user.role === 'admin' || user.role === 'manager') {
+      const active = await orders.find(dbRequest, 'orderID itemTitle client');
       const keyboard = await genOrdersKeyboard(active);
 
       await ctx.telegram.editMessageText(
         ctx.from.id,
         ctx.callbackQuery.message.message_id,
         undefined,
-        "Выберите заказ",
+        'Выберите заказ',
         {
-          reply_markup: keyboard.reply_markup,
+          reply_markup: keyboard.reply_markup
         }
       );
     } else {
       ctx.telegram
         .deleteMessage(ctx.from.id, ctx.callbackQuery.message.message_id)
-        .catch((_) => null);
+        .catch(_ => null);
     }
   } catch (e) {
     null;
@@ -56,22 +56,22 @@ async function genOrdersKeyboard(orders) {
   for (order of orders) {
     const userOnline = await users.findOne(
       {
-        telegramID: order.client,
+        telegramID: order.client
       },
-      "onlineUntil"
+      'onlineUntil'
     );
 
-    let status = "🔴";
+    let status = '🔴';
     if (userOnline && userOnline.onlineUntil) {
       status =
-        userOnline.onlineUntil.getTime() >= new Date().getTime() ? "🟢" : "🔴";
+        userOnline.onlineUntil.getTime() >= new Date().getTime() ? '🟢' : '🔴';
     }
 
     keyboard.push([
       Markup.button.callback(
         `${status} ${order.orderID}: "${order.itemTitle}"`,
         `manager_take#${order.orderID}`
-      ),
+      )
     ]);
     counter++;
     if (counter >= 48) break;
@@ -79,10 +79,10 @@ async function genOrdersKeyboard(orders) {
 
   keyboard.push(
     [
-      Markup.button.callback("Обновить", keys.ManagerWorkMenu.buttons.list),
-      Markup.button.callback("Назад", "manager_menu"),
+      Markup.button.callback('Обновить', keys.ManagerWorkMenu.buttons.list),
+      Markup.button.callback('Назад', 'manager_menu')
     ],
-    [Markup.button.callback("Взять заказ по номеру", "catch_order")]
+    [Markup.button.callback('Взять заказ по номеру', 'catch_order')]
   );
 
   return Markup.inlineKeyboard(keyboard);

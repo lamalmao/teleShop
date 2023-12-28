@@ -970,6 +970,7 @@ function CreateBot(token) {
     }
   });
 
+  bot.action('refill-steam', ctx => ctx.scene.enter('refill-steam'));
   bot.action(/lava-check#\d+/, ctx => ctx.scene.enter('lava-check'));
   bot.action(/main_section#\w+/, ctx => ctx.scene.enter('mainCategory'));
   bot.action(/sub_section#\w+/, ctx => ctx.scene.enter('subCategory'));
