@@ -15,6 +15,7 @@ const cards = require('../models/cards');
 const cardTransactions = require('../models/cards-transactions');
 const escapeHTML = require('escape-html');
 const tickets = require('../models/tickets');
+const { getBalance } = require('../kupikod');
 
 const images = path.join(process.cwd(), 'files', 'images');
 
@@ -1012,6 +1013,27 @@ function CreateBot(token) {
     }
   });
 
+  bot.command('kupikod', async ctx => {
+    try {
+      const check = await users.exists({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      });
+
+      if (!check) {
+        return;
+      }
+
+      const balance = await getBalance();
+      if (!balance) {
+        await ctx.reply('Не получилось узнать баланс');
+      } else {
+        await ctx.reply(`Баланс kupikod: ${balance} рублей`);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
   bot.command('admin', ctx => ctx.scene.enter('admin'));
   bot.command('manager', ctx => ctx.scene.enter('manager_menu'));
   bot.action('online_alert', async ctx => {

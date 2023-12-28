@@ -81,7 +81,24 @@ async function checkOrder(id) {
   }
 }
 
+async function getBalance() {
+  try {
+    const response = await axios.get(`${baseUrl}/partner-balance`, {
+      headers: {
+        token
+      }
+    });
+
+    const { data } = response;
+    return data.balance;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
 module.exports = {
+  getBalance,
   checkUsername,
   refillSteamViaAPI,
   checkOrder

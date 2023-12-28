@@ -19,7 +19,7 @@ refillSteam.enterHandler = async ctx => {
     });
 
     await ctx.editMessageCaption(
-      `Укажите логин Steam аккаунта, на который хотите пополнить баланс:\n\nАвтоматическое пополнение баланса в Steam на аккаунты России, Украины, Казахстана.\n\n⚠️ Обратите внимание! Логин - это то, что вы указываете при входе в Steam. Указав неверные данные, средства уйдут другому пользователю. посмотреть свой <a href="https://store.steampowered.com/account/">логин</a>\n\n<a href="https://telegra.ph/Oshibki-08-14">Прочитай если уровень STEAM LVL 0</a>`,
+      `Укажите логин Steam аккаунта, на который хотите пополнить баланс:\n\nАвтоматическое пополнение баланса в Steam на аккаунты России, Украины, Казахстана.\n\n⚠️ Обратите внимание! Логин - это то, что вы указываете при входе в Steam. Указав неверные данные, средства уйдут другому пользователю. Чтобы посмотреть свой нажми <a href="https://store.steampowered.com/account/">тут</a>\n\n<a href="https://telegra.ph/Popolnenie-balansa-Steam-v-FBZ-SHOP-12-28">Прочитай если пополняешь впервые</a>`,
       {
         parse_mode: 'HTML',
         reply_markup: Markup.inlineKeyboard([
