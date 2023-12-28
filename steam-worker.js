@@ -54,7 +54,7 @@ function createSteamWorker(bot) {
                 }
               );
 
-              await bot.telegram
+              bot.telegram
                 .sendMessage(
                   order.client,
                   `Заказ <code>${order.orderID}</code> - "${escapeHTML(
