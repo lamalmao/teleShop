@@ -1,24 +1,24 @@
-const { Scenes, Markup } = require("telegraf");
-const categories = require("../../models/categories");
-const path = require("path");
-const users = require("../../models/users");
-const EventEmitter = require("node:events");
+const { Scenes, Markup } = require('telegraf');
+const categories = require('../../models/categories');
+const path = require('path');
+const users = require('../../models/users');
+const EventEmitter = require('node:events');
 
 class StopEmitter extends EventEmitter {}
 
-const shareMessage = new Scenes.BaseScene("share-message");
+const shareMessage = new Scenes.BaseScene('share-message');
 
 const menu = Markup.inlineKeyboard([
-  [Markup.button.callback("Добавить линию", "add-line")],
-  [Markup.button.callback("Изменить текст", "edit-text")],
+  [Markup.button.callback('Добавить линию', 'add-line')],
+  [Markup.button.callback('Изменить текст', 'edit-text')],
   [
-    Markup.button.callback("Предпросмотр", "preview"),
-    Markup.button.callback("Отправить", "send"),
+    Markup.button.callback('Предпросмотр', 'preview'),
+    Markup.button.callback('Отправить', 'send')
   ],
-  [Markup.button.callback("Отмена", "exit")],
+  [Markup.button.callback('Отмена', 'exit')]
 ]);
 
-const generateEditingMenu = (ctx) => {
+const generateEditingMenu = ctx => {
   if (!ctx.session.lines) {
     return null;
   }
@@ -37,8 +37,8 @@ const generateEditingMenu = (ctx) => {
       );
     }
     keyboard[i].push(
-      Markup.button.callback("-", `delete-line:${i}`),
-      Markup.button.callback("+", `push-to:${i}`)
+      Markup.button.callback('-', `delete-line:${i}`),
+      Markup.button.callback('+', `push-to:${i}`)
     );
   }
 
@@ -50,7 +50,7 @@ const sendMessage = async (ctx, keys, user) => {
     await ctx.telegram.sendPhoto(user, ctx.session.photo, {
       caption: ctx.session.message.caption,
       caption_entities: ctx.session.message.caption_entities,
-      reply_markup: keys,
+      reply_markup: keys
     });
   } else {
     await ctx.telegram.sendMessage(
@@ -60,13 +60,13 @@ const sendMessage = async (ctx, keys, user) => {
         entities:
           ctx.session.message.caption_entities || ctx.session.message.entities,
         reply_markup: keys,
-        disable_web_page_preview: true,
+        disable_web_page_preview: true
       }
     );
   }
 };
 
-const generateMenu = (ctx) => {
+const generateMenu = ctx => {
   if (!ctx.session.lines) {
     return null;
   }
@@ -90,20 +90,20 @@ const generateMenu = (ctx) => {
   return keyboard;
 };
 
-shareMessage.enterHandler = async (ctx) => {
+shareMessage.enterHandler = async ctx => {
   try {
     await ctx.reply(
-      "Введите сообщение (форматирование можно использовать)\nЕсли нужно добавить изображение - отправьте его отдельно после текста сообщения, для изменения - просто отправьте новое"
+      'Введите сообщение (форматирование можно использовать)\nЕсли нужно добавить изображение - отправьте его отдельно после текста сообщения, для изменения - просто отправьте новое'
     );
 
     ctx.session.lines = [];
-    ctx.session.action = "message-edit";
+    ctx.session.action = 'message-edit';
   } catch (error) {
     null;
   }
 };
 
-shareMessage.on("photo", async (ctx) => {
+shareMessage.on('photo', async ctx => {
   try {
     ctx.deleteMessage().catch(() => null);
 
@@ -115,7 +115,7 @@ shareMessage.on("photo", async (ctx) => {
     const msg = await ctx.replyWithPhoto(photo, {
       caption: ctx.session.message.text,
       caption_entities: ctx.session.message.entities,
-      reply_markup: keys ? Markup.inlineKeyboard(keys).reply_markup : null,
+      reply_markup: keys ? Markup.inlineKeyboard(keys).reply_markup : null
     });
 
     ctx.session.message = msg;
@@ -128,7 +128,7 @@ shareMessage.on("photo", async (ctx) => {
 });
 
 shareMessage.on(
-  "message",
+  'message',
   (ctx, next) => {
     ctx.deleteMessage().catch(() => null);
     if (ctx.session.action) {
@@ -137,7 +137,7 @@ shareMessage.on(
   },
   async (ctx, next) => {
     try {
-      if (ctx.session.action !== "message-edit") {
+      if (ctx.session.action !== 'message-edit') {
         next();
         return;
       }
@@ -149,21 +149,21 @@ shareMessage.on(
 
       const editing = await ctx.replyWithPhoto(
         {
-          source: path.resolve("files", "images", "blank_noimage.jpg"),
+          source: path.resolve('files', 'images', 'blank_noimage.jpg')
         },
         {
           caption: msg.text,
           caption_entities: msg.entities,
           reply_markup: keys
             ? Markup.inlineKeyboard(keys).reply_markup
-            : undefined,
+            : undefined
         }
       );
 
       ctx.session.messageId = editing.message_id;
 
-      await ctx.reply("Управление сообщением", {
-        reply_markup: menu.reply_markup,
+      await ctx.reply('Управление сообщением', {
+        reply_markup: menu.reply_markup
       });
 
       if (ctx.session.textMenu) {
@@ -180,37 +180,39 @@ shareMessage.on(
   },
   async (ctx, next) => {
     try {
-      if (ctx.session.action !== "button") {
+      if (ctx.session.action !== 'button') {
         next();
         return;
       }
 
-      const data = ctx.message.text.split("\n");
+      const data = ctx.message.text.split('\n');
       if (!data || data.length !== 2) {
-        throw new Error("Wrong message format");
+        throw new Error('Wrong message format');
       }
 
       let value;
 
-      if (ctx.session.buttonTarget === "link") {
+      if (ctx.session.buttonTarget === 'link') {
         const url = new URL(data[1]);
         value = url.href;
-      } else if (ctx.session.buttonTarget === "category") {
+      } else if (ctx.session.buttonTarget === 'category') {
         const category = await categories.findById(data[1], {
-          type: 1,
+          type: 1
         });
 
-        value = `${category.type === "main" ? "main_section" : "sub_section"}#${
+        value = `${category.type === 'main' ? 'main_section' : 'sub_section'}#${
           data[1]
         }`;
-      } else {
+      } else if (ctx.session.buttonTarget === 'item') {
         value = `item#${data[1]}`;
+      } else {
+        value = data[1].trim();
       }
 
       ctx.session.lines[ctx.session.line].push({
-        link: ctx.session.buttonTarget === "link",
+        link: ctx.session.buttonTarget === 'link',
         text: data[0],
-        value,
+        value
       });
 
       const keys = generateEditingMenu(ctx);
@@ -234,13 +236,13 @@ shareMessage.on(
         .catch(() => null);
       ctx.session.buttonMainMenu = undefined;
     } catch (error) {
-      ctx.reply("Неверный формат сообщения или неверно указана ссылка");
+      ctx.reply('Неверный формат сообщения или неверно указана ссылка');
       null;
     }
   },
   async (ctx, next) => {
     try {
-      if (ctx.session.action !== "text-edit") {
+      if (ctx.session.action !== 'text-edit') {
         next();
         return;
       }
@@ -254,7 +256,7 @@ shareMessage.on(
         ctx.message.text,
         {
           caption_entities: ctx.message.entities,
-          reply_markup: keys ? Markup.inlineKeyboard(keys).reply_markup : null,
+          reply_markup: keys ? Markup.inlineKeyboard(keys).reply_markup : null
         }
       );
 
@@ -269,7 +271,7 @@ shareMessage.on(
   }
 );
 
-shareMessage.action("add-line", async (ctx) => {
+shareMessage.action('add-line', async ctx => {
   try {
     ctx.session.lines.push([]);
 
@@ -286,7 +288,7 @@ shareMessage.action("add-line", async (ctx) => {
   }
 });
 
-shareMessage.action(/delete-line:\d+/, async (ctx) => {
+shareMessage.action(/delete-line:\d+/, async ctx => {
   try {
     const data = /(d+)/.exec(ctx.callbackQuery.data);
     if (!data) {
@@ -311,7 +313,7 @@ shareMessage.action(/delete-line:\d+/, async (ctx) => {
   }
 });
 
-shareMessage.action(/push-to:/, async (ctx) => {
+shareMessage.action(/push-to:/, async ctx => {
   try {
     const data = /(\d+)/.exec(ctx.callbackQuery.data);
     if (!data) {
@@ -321,13 +323,14 @@ shareMessage.action(/push-to:/, async (ctx) => {
     const line = Number(data[1]);
     ctx.session.line = line;
 
-    const buttonMainMenu = await ctx.reply("Тип кнопки", {
+    const buttonMainMenu = await ctx.reply('Тип кнопки', {
       reply_markup: Markup.inlineKeyboard([
-        [Markup.button.callback("Категория", "push-category")],
-        [Markup.button.callback("Товар", "push-item")],
-        [Markup.button.callback("Ссылка", "push-link")],
-        [Markup.button.callback("Отмена", "cancel")],
-      ]).reply_markup,
+        [Markup.button.callback('Категория', 'push-category')],
+        [Markup.button.callback('Товар', 'push-item')],
+        [Markup.button.callback('Ссылка', 'push-link')],
+        [Markup.button.callback('Другое', 'push-custom')],
+        [Markup.button.callback('Отмена', 'cancel')]
+      ]).reply_markup
     });
 
     ctx.session.buttonMainMenu = buttonMainMenu.message_id;
@@ -336,20 +339,23 @@ shareMessage.action(/push-to:/, async (ctx) => {
   }
 });
 
-shareMessage.action(/push-(category|item|link)/, async (ctx) => {
+shareMessage.action(/push-(category|item|link|custom)/, async ctx => {
   try {
-    const target = ctx.callbackQuery.data.split("-")[1];
+    const target = ctx.callbackQuery.data.split('-')[1];
 
     let footer;
     switch (target) {
-      case "category":
-        footer = "id категории";
+      case 'category':
+        footer = 'id категории';
         break;
-      case "item":
-        footer = "id товара";
+      case 'item':
+        footer = 'id товара';
         break;
-      case "link":
-        footer = "ссылка";
+      case 'link':
+        footer = 'ссылка';
+        break;
+      case 'custom':
+        footer = 'query строка';
         break;
     }
 
@@ -360,28 +366,28 @@ shareMessage.action(/push-(category|item|link)/, async (ctx) => {
     const msg = await ctx.reply(
       `Укажите текст кнопки и значение в таком виде:\n\n<i>текст\n${footer}</i>`,
       {
-        parse_mode: "HTML",
+        parse_mode: 'HTML'
       }
     );
 
     ctx.session.buttonMenu = msg.message_id;
     ctx.session.buttonTarget = target;
 
-    ctx.session.action = "button";
+    ctx.session.action = 'button';
   } catch (error) {
     null;
   }
 });
 
-shareMessage.action("edit-text", async (ctx) => {
+shareMessage.action('edit-text', async ctx => {
   try {
-    const textMenu = await ctx.reply("Введите новый текст", {
+    const textMenu = await ctx.reply('Введите новый текст', {
       reply_markup: Markup.inlineKeyboard([
-        [Markup.button.callback("Отмена", "cancel")],
-      ]).reply_markup,
+        [Markup.button.callback('Отмена', 'cancel')]
+      ]).reply_markup
     });
 
-    ctx.session.action = "text-edit";
+    ctx.session.action = 'text-edit';
     ctx.session.textMenu = textMenu.message_id;
 
     ctx.answerCbQuery().catch(() => null);
@@ -390,17 +396,17 @@ shareMessage.action("edit-text", async (ctx) => {
   }
 });
 
-shareMessage.action("cancel", (ctx) => {
+shareMessage.action('cancel', ctx => {
   ctx.deleteMessage().catch(() => null);
-  ctx.session.action = "undefiend";
+  ctx.session.action = 'undefiend';
 });
 
-shareMessage.action("exit", (ctx) => {
+shareMessage.action('exit', ctx => {
   ctx.scene.leave();
-  ctx.reply("Вышел").catch(() => null);
+  ctx.reply('Вышел').catch(() => null);
 });
 
-shareMessage.action("preview", async (ctx) => {
+shareMessage.action('preview', async ctx => {
   try {
     const keys = generateMenu(ctx);
 
@@ -414,27 +420,27 @@ shareMessage.action("preview", async (ctx) => {
   }
 });
 
-shareMessage.action("send", (ctx) => {
+shareMessage.action('send', ctx => {
   ctx
-    .reply("Вы уверены?", {
+    .reply('Вы уверены?', {
       reply_markup: Markup.inlineKeyboard([
-        [Markup.button.callback("Да", "yes")],
-        [Markup.button.callback("Нет", "cancel")],
-      ]).reply_markup,
+        [Markup.button.callback('Да', 'yes')],
+        [Markup.button.callback('Нет', 'cancel')]
+      ]).reply_markup
     })
     .catch(() => null);
 
   ctx.answerCbQuery().catch(() => null);
 });
 
-shareMessage.action("yes", async (ctx) => {
+shareMessage.action('yes', async ctx => {
   try {
     const em = new StopEmitter();
 
     const targets = await users.find(
       {},
       {
-        telegramID: 1,
+        telegramID: 1
       }
     );
     const usersCount = targets.length;
@@ -467,13 +473,13 @@ shareMessage.action("yes", async (ctx) => {
       }
 
       if (stop) {
-        em.emit("hush");
+        em.emit('hush');
       }
 
       i++;
     }, 1000);
 
-    em.on("hush", () => {
+    em.on('hush', () => {
       clearTimeout(timer);
       context.reply(
         `Рассылка завершена\n\nУспешно: ${
@@ -482,8 +488,8 @@ shareMessage.action("yes", async (ctx) => {
       );
     });
 
-    await ctx.reply("Рассылка началась, по окончании вы получите уведомление");
-    await ctx.reply("Редактор закрыт");
+    await ctx.reply('Рассылка началась, по окончании вы получите уведомление');
+    await ctx.reply('Редактор закрыт');
     ctx.scene.leave();
   } catch (error) {
     null;

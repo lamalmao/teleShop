@@ -126,7 +126,9 @@ refillSteam.on(
           undefined,
           `<b>Вы подтверждаете пополнение Steam аккаунта "${escapeHTML(
             username
-          )} на ${amount} рублей?"</b>\n\n<i>Если хотите изменить сумму - напишите новую</i>`,
+          )} на ${amount} рублей за <b>${Math.ceil(
+            amount * 1.16
+          )} рублей</b>?"</b>\n\n<i>Если хотите изменить сумму - напишите новую</i>`,
           {
             parse_mode: 'HTML',
             reply_markup: Markup.inlineKeyboard([
