@@ -127,7 +127,7 @@ refillSteam.on(
           `<b>Вы подтверждаете пополнение Steam аккаунта "${escapeHTML(
             username
           )} на ${amount} рублей за <b>${Math.ceil(
-            amount * 1.16
+            amount * global.steamFee
           )} рублей</b>?"</b>\n\n<i>Если хотите изменить сумму - напишите новую</i>`,
           {
             parse_mode: 'HTML',
@@ -164,7 +164,7 @@ refillSteam.action(/set-amount:\d+/, async ctx => {
         `<b>Вы подтверждаете пополнение Steam аккаунта "${escapeHTML(
           username
         )} на ${amount} рублей за <b>${Math.ceil(
-          amount * 1.16
+          amount * global.steamFee
         )} рублей</b>?"</b>\n\n<i>Если хотите изменить сумму - напишите новую</i>`,
         {
           parse_mode: 'HTML',
@@ -197,7 +197,7 @@ refillSteam.action('refill', async ctx => {
       throw new Error('No user found');
     }
 
-    const finalAmount = Math.ceil(amount * 1.16);
+    const finalAmount = Math.ceil(amount * global.steamFee);
     if (user.balance < finalAmount) {
       const refillAmount = finalAmount - user.balance;
       ctx.reply(`На вашем счету не хватает ${refillAmount} рублей`);

@@ -1013,6 +1013,23 @@ function CreateBot(token) {
     }
   });
 
+  bot.command('fee', async ctx => {
+    try {
+      const check = await users.exists({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      });
+
+      if (!check) {
+        return;
+      }
+
+      ctx.scene.enter('steam-fee');
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
   bot.command('kupikod', async ctx => {
     try {
       const check = await users.exists({

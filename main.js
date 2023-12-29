@@ -64,6 +64,19 @@ global.helpMessage = fs
   .readFileSync(path.resolve('help.txt'))
   .toString('utf-8');
 
+global.steamFee = Number(
+  (
+    1.1 +
+    Number(fs.readFileSync(path.resolve('steam.txt').toString())) / 100
+  ).toFixed(2)
+);
+console.log(global.steamFee);
+
+if (Number.isNaN(global.steamFee)) {
+  console.log('Комиссия должна быть числом');
+  process.exit(0);
+}
+
 // Генерация ключей шифрования
 if (keyGenerated) {
   bot.telegram.sendDocument(
