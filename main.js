@@ -159,15 +159,15 @@ if (keyGenerated) {
   console.log('Очистка тикетов запущена');
 
   // Запуск обработчика платежей
-  // const paymentWorker = createPaymentProvider(bot);
-  // paymentWorker.listen(
-  //   {
-  //     host: settings.host,
-  //     port: 3000
-  //   },
-  //   () => console.log('Обработчик платежей запущен')
-  // );
+  const paymentWorker = createPaymentProvider(bot);
+  paymentWorker.listen(
+    {
+      host: settings.host,
+      port: 3000
+    },
+    () => console.log('Обработчик платежей запущен')
+  );
 
   // Запуск отрисовки таблиц
-  // runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
+  runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
 })();
