@@ -854,6 +854,12 @@ takeOrder.action('done', async ctx => {
       )
       .catch(_ => null);
 
+    if (order.sendAfter) {
+      ctx.telegram
+        .sendMessage(ctx.scene.state.order.client, order.sendAfter)
+        .catch(() => null);
+    }
+
     const item = await goods.findById(order.item, {
       title: 1
     });

@@ -1,53 +1,54 @@
-const { Schema, model, Types } = require("mongoose");
+const { Schema, model, Types, SchemaTypes } = require('mongoose');
 
 const Categories = new Schema({
   title: {
     type: String,
-    required: "Название категории обязательный параметр",
-    unique: "Такая категория уже существует",
+    required: 'Название категории обязательный параметр',
+    unique: 'Такая категория уже существует'
   },
   description: {
     type: String,
-    required: "Описание категории обязательный параметр",
+    required: 'Описание категории обязательный параметр'
   },
   image: {
     type: String,
     required: true,
-    default: "blank_logo.jpg",
+    default: 'blank_logo.jpg'
   },
   type: {
     type: String,
     required: true,
-    default: "main",
+    default: 'main',
     enum: {
-      values: ["main", "sub"],
-      message: 'Тип категории может быть "main" или "sub"',
-    },
+      values: ['main', 'sub'],
+      message: 'Тип категории может быть "main" или "sub"'
+    }
   },
   parent: {
     type: String,
     required: true,
-    validate: checkCategoryExistence,
+    validate: checkCategoryExistence
   },
   hidden: {
     type: Boolean,
     required: true,
-    default: false,
+    default: false
   },
+  accessItem: SchemaTypes.ObjectId
 });
 
-const categories = model("categories", Categories);
+const categories = model('categories', Categories);
 
 async function checkCategoryExistence(categoryID) {
-  if (this.type === "main" && categoryID !== "core")
+  if (this.type === 'main' && categoryID !== 'core')
     throw new Error('"Родителем" основных категорий может быть только "core"');
-  else if (this.type === "sub") {
+  else if (this.type === 'sub') {
     const parent = await categories.findOne(
       {
         _id: categoryID,
-        type: "main",
+        type: 'main'
       },
-      "_id type title"
+      '_id type title'
     );
 
     if (!parent)

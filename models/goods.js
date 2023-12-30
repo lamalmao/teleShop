@@ -103,7 +103,8 @@ const Goods = new Schema({
     default: false
   },
   managerReward: Number,
-  netCost: NetCostSchema
+  netCost: NetCostSchema,
+  customPrefix: String
 });
 
 async function checkCategoryExistence(category) {

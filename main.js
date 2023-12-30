@@ -10,6 +10,8 @@ const runUpdater = require('./sheets');
 const users = require('./models/users');
 const ozanAccounts = require('./models/ozan-accounts');
 const createSteamWorker = require('./steam-worker');
+const cleanTickets = require('./ticketsWorker');
+const startTicketsCleanup = require('./ticketsWorker');
 
 // Форматирование строк
 String.prototype.format = String.prototype.f = function () {
@@ -25,6 +27,7 @@ const settings = preset();
 global.paymentToken = settings.anypay_token;
 global.projectID = settings.anypay_project_id;
 global.managerID = settings.manager_id;
+global.cardWorkerID = settings.card_worker_id;
 global.ownerID = settings.owner_id;
 global.games = ['fortnite', 'brawlstars', 'genshin', 'all'];
 global.lavaToken = settings.lava_token;
@@ -70,10 +73,20 @@ global.steamFee = Number(
     Number(fs.readFileSync(path.resolve('steam.txt').toString())) / 100
   ).toFixed(2)
 );
-console.log(global.steamFee);
 
 if (Number.isNaN(global.steamFee)) {
   console.log('Комиссия должна быть числом');
+  process.exit(0);
+}
+
+global.rubToUah = Number(
+  fs.readFileSync(path.resolve('rub-to-uah.txt')).toString()
+);
+
+global.uaRefillCard = fs.readFileSync('ua-card.txt').toString();
+
+if (Number.isNaN(global.rubToUah)) {
+  console.log('Курс должен быть числом');
   process.exit(0);
 }
 
@@ -142,16 +155,19 @@ if (keyGenerated) {
   steamWorker(30 * 1000);
   console.log('Steam обработчик запущен');
 
+  startTicketsCleanup(bot, 30 * 60 * 1000, 48);
+  console.log('Очистка тикетов запущена');
+
   // Запуск обработчика платежей
-  const paymentWorker = createPaymentProvider(bot);
-  paymentWorker.listen(
-    {
-      host: settings.host,
-      port: 3000
-    },
-    () => console.log('Обработчик платежей запущен')
-  );
+  // const paymentWorker = createPaymentProvider(bot);
+  // paymentWorker.listen(
+  //   {
+  //     host: settings.host,
+  //     port: 3000
+  //   },
+  //   () => console.log('Обработчик платежей запущен')
+  // );
 
   // Запуск отрисовки таблиц
-  runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
+  // runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
 })();

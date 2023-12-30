@@ -297,6 +297,9 @@ function CreateBot(token) {
               date: {
                 $gte: from,
                 $lte: to
+              },
+              steam: {
+                $exists: false
               }
             }
           },
@@ -317,6 +320,9 @@ function CreateBot(token) {
               date: {
                 $gte: from,
                 $lte: to
+              },
+              steam: {
+                $exists: false
               }
             }
           },
@@ -556,6 +562,10 @@ function CreateBot(token) {
     ctx.answerCbQuery().catch(_ => null);
     next();
   });
+
+  bot.action(/gift-access-proceed:[a-z0-9]+/, ctx =>
+    ctx.scene.enter('gift-access-proceed')
+  );
 
   bot.action(
     /^(card-paid|card-weld-error|card-pay-error|card-return|card-linked):[0-9]+:[a-z0-9]+/,
@@ -971,6 +981,20 @@ function CreateBot(token) {
     }
   });
 
+  bot.command('card', async ctx => {
+    try {
+      const check = await users.exists({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      });
+
+      if (check) {
+        ctx.scene.enter('ua-card-settings');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
   bot.action('refill-steam', ctx => ctx.scene.enter('refill-steam'));
   bot.action(/lava-check#\d+/, ctx => ctx.scene.enter('lava-check'));
   bot.action(/main_section#\w+/, ctx => ctx.scene.enter('mainCategory'));
@@ -1081,6 +1105,12 @@ function CreateBot(token) {
       null;
     }
   });
+
+  bot.action(/ua-card-refill:\d+/, ctx => {
+    ctx.deleteMessage().catch(() => null);
+    ctx.scene.enter('ua-card-refill');
+  });
+
   bot.action('manager_menu', ctx => ctx.scene.enter('manager_menu'));
   bot.action('catch_order', ctx => ctx.scene.enter('catch_order'));
   bot.action(keys.ManagerWorkMenu.buttons.active, ctx =>

@@ -43,10 +43,23 @@ pay.enterHandler = async function (ctx) {
       messages.payment.provided.format(ctx.scene.state.amount),
       {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.url('AnyPay', anyPayUrl)],
           [
             Markup.button.url(
-              'Lava (комиссия ниже)',
+              'Lava 🇷🇺',
+              lavaUrl ? lavaUrl : 'https://google.com',
+              !lavaUrl
+            )
+          ],
+          [Markup.button.url('AnyPay 🇷🇺🇰🇿🇧🇾', anyPayUrl)],
+          [
+            Markup.button.callback(
+              'Перевод на карту 🇺🇦',
+              `ua-card-refill:${payment.paymentID}`
+            )
+          ],
+          [
+            Markup.button.url(
+              'Криптовалюта',
               lavaUrl ? lavaUrl : 'https://google.com',
               !lavaUrl
             )
@@ -63,7 +76,7 @@ pay.enterHandler = async function (ctx) {
       }
     );
   } catch (e) {
-    null;
+    console.log(e);
   } finally {
     ctx.scene.enter('start');
   }

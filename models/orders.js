@@ -77,7 +77,8 @@ const Order = new Schema({
   cardPaid: Boolean,
   avoidHold: Boolean,
   ozan: Boolean,
-  ozanPaid: Boolean
+  ozanPaid: Boolean,
+  sendAfter: String
 });
 
 const orders = model('orders', Order);

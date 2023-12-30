@@ -1,76 +1,78 @@
-const { Scenes, Markup } = require("telegraf");
-const orders = require("../../models/orders");
-const payments = require("../../models/payments");
+const { Scenes, Markup } = require('telegraf');
+const orders = require('../../models/orders');
+const payments = require('../../models/payments');
+const crypto = require('crypto');
 
-const users = require("../../models/users");
-const escape = require("escape-html");
+const users = require('../../models/users');
+const escape = require('escape-html');
+const escapeHTML = require('escape-html');
 
 const statuses = new Map();
-statuses.set("untaken", "ожидает");
-statuses.set("processing", "в работе");
-statuses.set("done", "выполнен");
-statuses.set("refund", "оформлен возврат");
-statuses.set("canceled", "отменен");
+statuses.set('untaken', 'ожидает');
+statuses.set('processing', 'в работе');
+statuses.set('done', 'выполнен');
+statuses.set('refund', 'оформлен возврат');
+statuses.set('canceled', 'отменен');
 
 const platforms = new Map();
-platforms.set("pc", "PC / macOS");
-platforms.set("ps", "Playstation 4/5");
-platforms.set("android", "Android");
-platforms.set("nintendo", "Nintendo");
-platforms.set("xbox", "XBox");
+platforms.set('pc', 'PC / macOS');
+platforms.set('ps', 'Playstation 4/5');
+platforms.set('android', 'Android');
+platforms.set('nintendo', 'Nintendo');
+platforms.set('xbox', 'XBox');
 
-const manageUser = new Scenes.BaseScene("manage_user");
+const manageUser = new Scenes.BaseScene('manage_user');
 
 manageUser.enterHandler = async function (ctx) {
   try {
     const user = await users.findOne(
       {
-        telegramID: ctx.from.id,
+        telegramID: ctx.from.id
       },
-      "role"
+      'role'
     );
 
     if (!user) {
-      ctx.scene.enter("start", {
-        menu: ctx.scene.state.menu,
+      ctx.scene.enter('start', {
+        menu: ctx.scene.state.menu
       });
       return;
     }
 
-    if (user.role !== "admin") {
-      ctx.answerCbQuery("У вас нет доступа").catch((_) => null);
-      ctx.scene.enter("start", {
-        menu: ctx.scene.state.menu,
+    if (user.role !== 'admin') {
+      ctx.answerCbQuery('У вас нет доступа').catch(_ => null);
+      ctx.scene.enter('start', {
+        menu: ctx.scene.state.menu
       });
       return;
     }
 
     const target = await users.findOne({
-      telegramID: ctx.scene.state.user,
+      telegramID: ctx.scene.state.user
     });
 
     const msg = `Пользователь ${target.telegramID}:${target.username}\n\nБаланс: ${target.balance} р.`;
     let keyboard = [
-      [Markup.button.callback("Изменить баланс", "change_balance")],
+      [Markup.button.callback('Изменить баланс', 'change_balance')]
     ];
 
     const refills = await payments.find({
       user: target.telegramID,
-      status: "paid",
+      status: 'paid'
     });
 
     const ordersList = await orders.find({
       client: target.telegramID,
-      paid: true,
+      paid: true
     });
 
     const story = refills.concat(ordersList);
 
     for (let payment of story.sort((a, b) => (a.date > b.date ? 1 : -1))) {
-      const date = new Date(payment.date).toLocaleDateString("ru-RU", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
+      const date = new Date(payment.date).toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
       });
 
       if (payment.itemTitle) {
@@ -78,18 +80,18 @@ manageUser.enterHandler = async function (ctx) {
           Markup.button.callback(
             `-${payment.amount}₽ - ${payment.itemTitle}`,
             `user_order#${payment.orderID}`
-          ),
+          )
         ]);
       } else {
         keyboard.push([
           Markup.button.callback(
             `+${payment.amount}₽ от ${date}`,
             `user_payment#${payment.paymentID}`
-          ),
+          )
         ]);
       }
     }
-    keyboard.push([Markup.button.callback("Назад", "back")]);
+    keyboard.push([Markup.button.callback('Назад', 'back')]);
 
     await ctx.telegram.editMessageText(
       ctx.from.id,
@@ -97,74 +99,92 @@ manageUser.enterHandler = async function (ctx) {
       undefined,
       msg,
       {
-        reply_markup: Markup.inlineKeyboard(keyboard).reply_markup,
+        reply_markup: Markup.inlineKeyboard(keyboard).reply_markup
       }
     );
   } catch (e) {
     null;
-    ctx.scene.enter("admin", {
-      menu: ctx.scene.state.menu,
+    ctx.scene.enter('admin', {
+      menu: ctx.scene.state.menu
     });
   }
 };
 
-manageUser.action(/user_payment#\d+/, async (ctx) => {
+manageUser.action(/user_payment#\d+/, async ctx => {
   try {
     const paymentID = Number(/\d+$/.exec(ctx.callbackQuery.data)[0]);
     const payment = await payments.findOne({
-      paymentID,
+      paymentID
     });
 
-    if (!payment) throw new Error("Платеж не найден");
+    if (!payment) throw new Error('Платеж не найден');
+
+    let issuerMsg = '';
+    if (payment.issuer) {
+      const issuer = await users.findOne(
+        { telegramID: payment.issuer },
+        {
+          username: 1
+        }
+      );
+
+      issuerMsg = ` - <a href="tg://user?id=${payment.issuer}">${escapeHTML(
+        issuer.username
+      )}</a>`;
+    }
 
     await ctx.telegram.editMessageText(
       ctx.from.id,
       ctx.scene.state.menu.message_id,
       undefined,
-      `Платеж <code>${payment.transactionID}</code>\n\nДата: <b>${new Date(
+      `Платеж <code>${
+        payment.transactionID || payment.paymentID
+      }</code>\n\nДата: <b>${new Date(
         payment.date
-      ).toLocaleString()} по МСК</b>\nСумма: <b>${payment.amount} руб.</b>`,
+      ).toLocaleString()} по МСК</b>\nСумма: <b>${
+        payment.amount
+      } руб.</b>\n<b>С помощью:</b> ${payment.service || '-'}${issuerMsg}`,
       {
-        parse_mode: "HTML",
+        parse_mode: 'HTML',
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("Назад", "prev")],
-        ]).reply_markup,
+          [Markup.button.callback('Назад', 'prev')]
+        ]).reply_markup
       }
     );
   } catch (e) {
     null;
-    ctx.scene.enter("admin", {
-      menu: ctx.scene.state.menu,
+    ctx.scene.enter('admin', {
+      menu: ctx.scene.state.menu
     });
   }
 });
 
-manageUser.action(/user_order#\d+/, async (ctx) => {
+manageUser.action(/user_order#\d+/, async ctx => {
   try {
     const orderID = Number(/\d+$/.exec(ctx.callbackQuery.data)[0]);
     const order = await orders.findOne({
-      orderID,
+      orderID
     });
 
-    if (!order) throw new Error("Заказ не найден");
+    if (!order) throw new Error('Заказ не найден');
 
     const data = order.data.login
       ? `<i>Логин:</i> <code>${escape(
           order.data.login
         )}</code>\n<i>Пароль:</i> <code>${escape(order.data.password)}</code>`
-      : "[ДАННЫЕ УДАЛЕНЫ]";
+      : '[ДАННЫЕ УДАЛЕНЫ]';
 
     const client = await users.findOne(
         {
-          telegramID: order.client,
+          telegramID: order.client
         },
-        "username"
+        'username'
       ),
       manager = await users.findOne(
         {
-          telegramID: order.manager,
+          telegramID: order.manager
         },
-        "username"
+        'username'
       );
 
     let msg = `<b>Заказ</b> <code>${
@@ -177,12 +197,12 @@ manageUser.action(/user_order#\d+/, async (ctx) => {
           order.manager +
           '">' +
           manager.username +
-          "</a>"
-        : "<b>заказ не в работе</b>"
+          '</a>'
+        : '<b>заказ не в работе</b>'
     }\n<i>Статус</i>: <b>${statuses.get(
       order.status
     )}</b>\n<i>Дата:</i> <b>${new Date(order.date).toLocaleString(
-      "ru-RU"
+      'ru-RU'
     )}</b>\n\n<i>Товар:</i> <b>${order.itemTitle}</b>\n<i>Цена:</i> <b>${
       order.amount
     }₽</b>\n\n<i>Платформа:</i> <b>${platforms.get(
@@ -195,7 +215,7 @@ manageUser.action(/user_order#\d+/, async (ctx) => {
       )}</b>\nДанные для возврата: <b>${
         order.refundData
           ? order.refundData
-          : "пользователь еще не предоставил данные"
+          : 'пользователь еще не предоставил данные'
       }</b>`;
     }
 
@@ -205,73 +225,73 @@ manageUser.action(/user_order#\d+/, async (ctx) => {
       undefined,
       msg,
       {
-        parse_mode: "HTML",
+        parse_mode: 'HTML',
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("Назад", "prev")],
-        ]).reply_markup,
+          [Markup.button.callback('Назад', 'prev')]
+        ]).reply_markup
       }
     );
   } catch (e) {
     null;
-    ctx.scene.enter("admin", {
-      menu: ctx.scene.state.menu,
+    ctx.scene.enter('admin', {
+      menu: ctx.scene.state.menu
     });
   }
 });
 
-manageUser.action("back", (ctx) => {
-  ctx.scene.enter("get_user_data", {
-    menu: ctx.scene.state.menu,
+manageUser.action('back', ctx => {
+  ctx.scene.enter('get_user_data', {
+    menu: ctx.scene.state.menu
   });
 });
 
-manageUser.action("prev", (ctx) => {
-  ctx.scene.enter("manage_user", {
+manageUser.action('prev', ctx => {
+  ctx.scene.enter('manage_user', {
     menu: ctx.scene.state.menu,
-    user: ctx.scene.state.user,
+    user: ctx.scene.state.user
   });
 });
 
-manageUser.action("change_balance", async (ctx) => {
+manageUser.action('change_balance', async ctx => {
   try {
     await ctx.telegram.editMessageText(
       ctx.from.id,
       ctx.scene.state.menu.message_id,
       undefined,
-      "Как изменить баланс? +/-[сумма]\nНапример: +100",
+      'Как изменить баланс? +/-[сумма]\nНапример: +100',
       {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("Назад", "prev")],
-        ]).reply_markup,
+          [Markup.button.callback('Назад', 'prev')]
+        ]).reply_markup
       }
     );
 
-    ctx.scene.state.action = "balance";
+    ctx.scene.state.action = 'balance';
   } catch (e) {
     null;
-    ctx.scene.enter("admin", {
-      menu: ctx.scene.state.menu,
+    ctx.scene.enter('admin', {
+      menu: ctx.scene.state.menu
     });
   }
 });
 
 manageUser.on(
-  "message",
+  'message',
   (ctx, next) => {
-    ctx.deleteMessage().catch((_) => null);
+    ctx.deleteMessage().catch(_ => null);
     if (ctx.scene.state.action) next();
   },
-  async (ctx) => {
+  async ctx => {
     try {
-      if (ctx.scene.state.action !== "balance") {
+      if (ctx.scene.state.action !== 'balance') {
         return;
       }
 
       const amount = Number(ctx.message.text);
       if (Number.isNaN(amount)) {
         ctx
-          .reply("Введите число")
-          .then((msg) =>
+          .reply('Введите число')
+          .then(msg =>
             setTimeout(
               () => ctx.deleteMessage(msg.message_id).catch(() => null),
               2500
@@ -281,19 +301,30 @@ manageUser.on(
         return;
       }
 
+      payments
+        .create({
+          amount: Math.floor(amount),
+          service: 'system',
+          paymentID: crypto.randomInt(100000000, 999999999),
+          status: 'paid',
+          user: ctx.scene.state.user,
+          issuer: ctx.from.id
+        })
+        .catch(e => console.log(e.message));
+
       await users.updateOne(
         {
-          telegramID: ctx.scene.state.user,
+          telegramID: ctx.scene.state.user
         },
         {
           $inc: {
-            balance: Math.floor(amount),
-          },
+            balance: Math.floor(amount)
+          }
         }
       );
 
       ctx.scene.state.action = undefined;
-      ctx.scene.enter("manage_user", ctx.scene.state);
+      ctx.scene.enter('manage_user', ctx.scene.state);
     } catch (error) {
       console.log(error);
     }

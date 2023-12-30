@@ -106,7 +106,6 @@ profile.action(keys.ProfileMenu.buttons.refill, async ctx => {
 
     ctx.scene.state.action = 'refill';
   } catch (e) {
-    null;
     ctx.answerCbQuery(`Ошибка: ${e.message}`).catch(_ => null);
     ctx.scene.enter('profile', { menu: ctx.scene.state.menu });
   }

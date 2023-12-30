@@ -24,18 +24,26 @@ const Payment = new Schema({
   date: {
     type: Date,
     default: Date.now
-  }
+  },
+  service: {
+    type: String,
+    enum: ['lava', 'anypay', 'system', 'card']
+  },
+  uahAmount: Number,
+  issuer: Number
 });
 
-Payment.methods.genUrl = function() {
-  const signString = `RUB:${this.amount.toFixed(2)}:${global.paymentToken}:${global.projectID}:${this.paymentID}`;
+Payment.methods.genUrl = function () {
+  const signString = `RUB:${this.amount.toFixed(2)}:${global.paymentToken}:${
+    global.projectID
+  }:${this.paymentID}`;
   const sign = crypto.createHash('md5').update(signString).digest('hex');
 
   // prettier-ignore
   return `https://anypay.io/merchant?merchant_id=${global.projectID}&pay_id=${this.paymentID}&amount=${this.amount.toFixed(2)}&currency=RUB&sign=${sign}`;
 };
 
-Payment.methods.createLavaPayment = async function() {
+Payment.methods.createLavaPayment = async function () {
   try {
     const body = {
       sum: this.amount,
@@ -55,8 +63,8 @@ Payment.methods.createLavaPayment = async function() {
         headers: {
           Signature: signature,
           Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       }
     );
 
@@ -70,7 +78,7 @@ Payment.methods.createLavaPayment = async function() {
     console.log(error.message);
     console.log(error.response ? error.response.data : '');
   }
-}
+};
 
 const payments = model('payments', Payment);
 

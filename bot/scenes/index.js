@@ -1,4 +1,6 @@
-const { Scenes } = require('telegraf');
+const { Scenes, Markup } = require('telegraf');
+const users = require('../../models/users');
+const payments = require('../../models/payments');
 
 const start = require('./start');
 const admin = require('./admin');
@@ -71,6 +73,9 @@ const ozanPaid = require('./ozan-paid');
 const keysStory = require('./keys-story');
 const refillSteam = require('./refill-steam');
 const steamFee = require('./steam-fee');
+const uaCardRefill = require('./ua-card-refill');
+const uaCardSettings = require('./ua-card-settings');
+const giftAccessProceed = require('./gift-access-proceed');
 
 const stage = new Scenes.Stage([
   start,
@@ -143,8 +148,102 @@ const stage = new Scenes.Stage([
   ozanPaid,
   keysStory,
   refillSteam,
-  steamFee
+  steamFee,
+  uaCardRefill,
+  uaCardSettings,
+  giftAccessProceed
 ]);
+
+stage.action(/(approve|decline)-ua-card-payment:\d+/, async ctx => {
+  try {
+    const check = await users.findOne({
+      telegramID: ctx.from.id,
+      role: 'admin'
+    });
+
+    if (!check) {
+      await ctx.deleteMessage();
+      return;
+    }
+
+    const raw =
+      /(?<action>approve|decline)-ua-card-payment:(?<paymentId>\d+)/.exec(
+        ctx.callbackQuery.data
+      );
+    if (!raw) {
+      await ctx.deleteMessage();
+      return;
+    }
+
+    const { action, paymentId } = raw.groups;
+    const paymentID = Number(paymentId);
+
+    const payment = await payments.findOneAndUpdate(
+      {
+        paymentID,
+        status: 'waiting'
+      },
+      {
+        $set: {
+          status: action === 'approve' ? 'paid' : 'rejected',
+          service: 'card'
+        }
+      }
+    );
+
+    if (!payment) {
+      ctx
+        .reply('Платеж не найден или уже был обработан')
+        .then(msg =>
+          setTimeout(
+            () => ctx.deleteMessage(msg.message_id).catch(() => null),
+            2500
+          )
+        )
+        .catch(() => null);
+      return;
+    }
+
+    if (action === 'approve') {
+      await users.updateOne(
+        {
+          telegramID: payment.user
+        },
+        {
+          $inc: {
+            balance: payment.amount
+          }
+        }
+      );
+
+      ctx.telegram
+        .sendMessage(
+          payment.user,
+          `Ваш платеж <code>${paymentId}</code> подтвержден администратором`,
+          {
+            parse_mode: 'HTML'
+          }
+        )
+        .catch(() => null);
+
+      ctx.deleteMessage().catch(() => null);
+    } else {
+      ctx.telegram
+        .sendMessage(
+          payment.user,
+          `Ваш платеж <code>${paymentId}</code> не был подтвержден администратором, так как средства не были получены\n\nЕсли вы отправили средства, создайте Тикет во вкладке поддержка`,
+          {
+            parse_mode: 'HTML'
+          }
+        )
+        .catch(() => null);
+
+      ctx.editMessageReplyMarkup(Markup.removeKeyboard()).catch(() => null);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 stage.start(ctx => ctx.scene.enter('start'));
 

@@ -60,5 +60,10 @@ module.exports = {
     type: 'string',
     default: '',
     required: true
+  },
+  card_worker_id: {
+    type: 'number',
+    default: 0,
+    required: true
   }
 };
