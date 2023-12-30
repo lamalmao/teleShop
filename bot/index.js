@@ -387,6 +387,28 @@ function CreateBot(token) {
     }
   );
 
+  bot.command('steam', async ctx => {
+    try {
+      const check = await users.exists({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      });
+
+      if (!check) {
+        return;
+      }
+
+      global.steamEnabled = !global.steamEnabled;
+      await ctx.reply(
+        global.steamEnabled
+          ? 'Пополнение стима теперь включено'
+          : 'Пополнение стима теперь отключено'
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
   bot.command(
     'balance',
     async (ctx, next) => {
@@ -995,7 +1017,28 @@ function CreateBot(token) {
       console.log(error);
     }
   });
-  bot.action('refill-steam', ctx => ctx.scene.enter('refill-steam'));
+  bot.action('refill-steam', ctx => {
+    try {
+      if (!global.steamEnabled) {
+        ctx
+          .reply(
+            'В данный момент у нашего магазина закончились средства для пополнения Steam\n\nПриносим наши извинения за неудобства, нужно подождать некоторое время и сервис снова станет доступен'
+          )
+          .then(msg =>
+            setTimeout(
+              () => ctx.deleteMessage(msg.message_id).catch(() => null),
+              10000
+            )
+          )
+          .catch(() => null);
+        return;
+      }
+
+      ctx.scene.enter('refill-steam');
+    } catch (error) {
+      console.log(error);
+    }
+  });
   bot.action(/lava-check#\d+/, ctx => ctx.scene.enter('lava-check'));
   bot.action(/main_section#\w+/, ctx => ctx.scene.enter('mainCategory'));
   bot.action(/sub_section#\w+/, ctx => ctx.scene.enter('subCategory'));

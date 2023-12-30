@@ -90,6 +90,8 @@ if (Number.isNaN(global.rubToUah)) {
   process.exit(0);
 }
 
+global.steamEnabled = true;
+
 // Генерация ключей шифрования
 if (keyGenerated) {
   bot.telegram.sendDocument(
