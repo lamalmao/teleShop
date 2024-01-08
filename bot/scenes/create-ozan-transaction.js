@@ -7,10 +7,15 @@ const createOzanTransaction = new Scenes.WizardScene(
   'create-ozan-transaction',
   async ctx => {
     try {
+      console.log('Before');
+
       const check = await users.exists({
         telegramID: ctx.from.id,
         role: 'admin'
       });
+
+      console.log('Hello there');
+
       if (!check) {
         throw new Error('No access');
       }
@@ -143,7 +148,7 @@ createOzanTransaction.action('exit', ctx =>
 );
 
 createOzanTransaction.action('back', ctx =>
-  ctx.scene.enter('create-ozan-transaction', ctx.scene.state)
+  ctx.scene.enter('manager-ozan', ctx.scene.state)
 );
 
 module.exports = createOzanTransaction;
