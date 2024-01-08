@@ -136,12 +136,21 @@ managersInfo.action(/manager#\d+/, async ctx => {
       }
       if (summary > 0) msg += `<b>Всего:</b> ${summary}\n`;
 
+      const ordersInWork = await orders.find({
+        manager: user.telegramID,
+        status: 'processing',
+        paid: true
+      });
+
       let inWork = '';
-      for (let order of works) {
-        if (order.status === 'processing') {
-          inWork += `\n<code>${order.orderID}</code>: "${order.itemTitle}"`;
-        }
+      for (const order of ordersInWork.slice(0, 100)) {
+        inWork += `\n<code>${order.orderID}</code>: "${order.itemTitle}"`;
       }
+
+      if (inWork && ordersInWork.length > 100) {
+        inWork += `\n<b>...еще ${ordersInWork.length - 100}</b>`;
+      }
+
       msg += '\n<b>Активные заказы</b>';
       msg += inWork !== '' ? inWork : '\n<i>Активных заказов нет</i>';
 
@@ -183,10 +192,9 @@ managersInfo.action(/manager#\d+/, async ctx => {
             parse_mode: 'HTML'
           }
         )
-        .catch(_ => null);
+        .catch(e => console.log(e));
     }
   } catch (e) {
-    null;
     ctx.scene.reenter();
   }
 });

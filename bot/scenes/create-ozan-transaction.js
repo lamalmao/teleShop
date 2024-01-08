@@ -7,14 +7,10 @@ const createOzanTransaction = new Scenes.WizardScene(
   'create-ozan-transaction',
   async ctx => {
     try {
-      console.log('Before');
-
       const check = await users.exists({
         telegramID: ctx.from.id,
         role: 'admin'
       });
-
-      console.log('Hello there');
 
       if (!check) {
         throw new Error('No access');
