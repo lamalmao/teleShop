@@ -50,7 +50,9 @@ function createSteamWorker(bot) {
                   telegramID: order.client
                 },
                 {
-                  $inc: order.amount
+                  $inc: {
+                    balance: order.amount
+                  }
                 }
               );
 
