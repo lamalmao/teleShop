@@ -453,9 +453,9 @@ function CreateBot(token) {
 
         await ctx.reply(
           `<b>Суммарный баланс карт</b>\n\n<i>UAH - ${
-            data.get('UAH').toFixed(2) || 0
-          }</i>\n<i>USD - ${data.get('USD').toFixed(2) || 0}</i>\n<i>EUR - ${
-            data.get('EUR').toFixed(2) || 0
+            data.get('UAH')?.toFixed(2) || 0
+          }</i>\n<i>USD - ${data.get('USD')?.toFixed(2) || 0}</i>\n<i>EUR - ${
+            data.get('EUR')?.toFixed(2) || 0
           }</i>\n\n<b>Всего карт: ${total}</b>\n<i>Активных карт: ${active}</i>\n<i>В холде: ${
             total - active
           }</i>`,
