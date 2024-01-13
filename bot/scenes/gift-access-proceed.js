@@ -32,9 +32,7 @@ giftAccessProceed.enterHandler = async ctx => {
       client: ctx.from.id,
       item: id.toString(),
       paid: true,
-      status: {
-        $nin: ['canceled', 'refund']
-      }
+      status: 'processing'
     });
 
     if (checkActiveOrders) {
