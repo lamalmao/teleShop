@@ -108,9 +108,13 @@ uaCardRefill.on('photo', async ctx => {
     const image = ctx.message.photo[ctx.message.photo.length - 1].file_id;
     ctx.telegram
       .sendPhoto(global.cardWorkerID, image, {
-        caption: `Счет <code>${payment.paymentID}</code> на ${
-          payment.amount
-        } ₽ успешно оплачен ${moment(new Date()).format(
+        caption: `Счет <code>${
+          payment.paymentID
+        }</code> (пользователь <a href="tg://id?user=${ctx.from.id}">${
+          ctx.from.id
+        }</a>) на ${payment.amount} ₽ успешно оплачен ${moment(
+          new Date()
+        ).format(
           'DD.MM.YYYY [в] HH:mm'
         )}, проверьте поступление средств на сумму ${uahAmount} ₴`,
         parse_mode: 'HTML',

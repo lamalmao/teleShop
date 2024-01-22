@@ -1,11 +1,12 @@
-const { Schema, model, Types, SchemaTypes, trusted } = require("mongoose");
-const { z } = require("zod");
-const cardTransactions = require("./cards-transactions");
+const { Schema, model, Types, SchemaTypes, trusted } = require('mongoose');
+const { z } = require('zod');
+const cardTransactions = require('./cards-transactions');
 
 const Currencies = z.union([
-  z.literal("USD"),
-  z.literal("UAH"),
-  z.literal("EUR"),
+  z.literal('USD'),
+  z.literal('UAH'),
+  z.literal('EUR'),
+  z.literal('LIR')
 ]);
 
 const TransactionParams = z.object({
@@ -17,7 +18,7 @@ const TransactionParams = z.object({
   busy: z.boolean().optional(),
   order: z.number().optional(),
   success: z.boolean().optional().default(true),
-  cardBalance: z.number(),
+  cardBalance: z.number()
 });
 
 const CardSchema = new Schema(
@@ -25,53 +26,53 @@ const CardSchema = new Schema(
     number: {
       type: String,
       required: true,
-      unique: true,
+      unique: true
     },
     cvc: {
       type: String,
-      required: true,
+      required: true
     },
     duration: {
       type: String,
       validate: /((0[1-9])|(1[0-2]))\/([2,3][0-9])/,
-      required: true,
+      required: true
     },
     balance: {
       type: Number,
-      required: true,
+      required: true
     },
     currency: {
       type: String,
       required: true,
-      enum: ["USD", "EUR", "UAH"],
+      enum: ['USD', 'EUR', 'UAH', 'LIR']
     },
     hidden: {
       type: Boolean,
       required: true,
-      default: false,
+      default: false
     },
     busy: {
       type: Boolean,
       required: true,
-      default: false,
+      default: false
     },
     hold: {
       type: Date,
-      default: () => new Date(Date.now() - 60000),
+      default: () => new Date(Date.now() - 60000)
     },
     added: {
       type: Date,
-      default: Date.now,
+      default: Date.now
     },
     bank: {
       type: String,
-      required: true,
+      required: true
     },
     cardholder: {
       type: String,
-      required: true,
+      required: true
     },
-    category: SchemaTypes.ObjectId,
+    category: SchemaTypes.ObjectId
   },
   {
     methods: {
@@ -86,7 +87,7 @@ const CardSchema = new Schema(
             description,
             busy,
             order,
-            success,
+            success
           } = TransactionParams.parse(params);
 
           if (amount === 0) {
@@ -98,15 +99,15 @@ const CardSchema = new Schema(
           const result = await cards.findByIdAndUpdate(card, {
             $set: {
               hold: sendToHold ? new Date(Date.now() + 86400000) : undefined,
-              busy,
+              busy
             },
             $inc: {
-              balance: increase,
-            },
+              balance: increase
+            }
           });
 
           if (result.modifiedCount === 0) {
-            throw new Error("Ошибка во время обновления карты");
+            throw new Error('Ошибка во время обновления карты');
           }
 
           const balanceAfter = cardBalance + (success ? amount : 0);
@@ -118,7 +119,7 @@ const CardSchema = new Schema(
             issuer,
             orderId: order,
             success,
-            balanceAfter,
+            balanceAfter
           });
 
           return transaction;
@@ -126,10 +127,10 @@ const CardSchema = new Schema(
           console.log(error);
           return null;
         }
-      },
-    },
+      }
+    }
   }
 );
 
-const cards = model("cards", CardSchema);
+const cards = model('cards', CardSchema);
 module.exports = cards;

@@ -72,6 +72,20 @@ async function cleanTickets(bot, timeout = 48) {
         )
         .catch(() => null);
 
+      if (target.manager) {
+        bot.telegram
+          .sendMessage(
+            target.manager,
+            `Тикет - <code>${target._id
+              .toString()
+              .toUpperCase()}</code> был автоматически закрыт\n\nТак как от пользователя не было получено ответа за последние 48 часов`,
+            {
+              parse_mode: 'HTML'
+            }
+          )
+          .catch(() => null);
+      }
+
       console.log(`${target._id.toString()} closed`);
     }
   } catch (error) {

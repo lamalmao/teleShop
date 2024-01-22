@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model, SchemaTypes } = require('mongoose');
 const crypto = require('crypto');
 const axios = require('axios');
 
@@ -27,10 +27,11 @@ const Payment = new Schema({
   },
   service: {
     type: String,
-    enum: ['lava', 'anypay', 'system', 'card']
+    enum: ['lava', 'anypay', 'system', 'card', 'promo']
   },
   uahAmount: Number,
-  issuer: Number
+  issuer: Number,
+  promo: String
 });
 
 Payment.methods.genUrl = function () {

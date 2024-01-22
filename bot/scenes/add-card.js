@@ -1,26 +1,26 @@
-const { Scenes, Markup } = require("telegraf");
-const cards = require("../../models/cards");
-const escapeHTML = require("escape-html");
+const { Scenes, Markup } = require('telegraf');
+const cards = require('../../models/cards');
+const escapeHTML = require('escape-html');
 
 const addCard = new Scenes.WizardScene(
-  "add-card",
-  async (ctx) => {
+  'add-card',
+  async ctx => {
     try {
       ctx.wizard.state.menu = ctx.callbackQuery.message;
 
       const messageData = {
-        text: "<b>Введите данные карты в формате</b>\n\n<code>1111222233334444 mm/yy cvc</code>",
+        text: '<b>Введите данные карты в формате</b>\n\n<code>1111222233334444 mm/yy cvc</code>',
         keyboard: Markup.inlineKeyboard([
-          [Markup.button.callback("Назад", "exit")],
-        ]).reply_markup,
+          [Markup.button.callback('Назад', 'exit')]
+        ]).reply_markup
       };
 
       ctx.wizard.state.messages = new Map([
-        [ctx.wizard.cursor.toString(), messageData],
+        [ctx.wizard.cursor.toString(), messageData]
       ]);
       await ctx.editMessageText(messageData.text, {
-        parse_mode: "HTML",
-        reply_markup: messageData.keyboard,
+        parse_mode: 'HTML',
+        reply_markup: messageData.keyboard
       });
 
       ctx.wizard.next();
@@ -29,9 +29,9 @@ const addCard = new Scenes.WizardScene(
       ctx.reply(error.message).catch(() => null);
     }
   },
-  async (ctx) => {
+  async ctx => {
     try {
-      if (ctx.updateType !== "message") return;
+      if (ctx.updateType !== 'message') return;
       ctx.deleteMessage().catch(() => null);
 
       const data =
@@ -41,13 +41,13 @@ const addCard = new Scenes.WizardScene(
       if (!data) {
         ctx
           .reply(
-            "<b>⚠️ Сообщение не соответствует форме</b>\n\n<code>1111222233334444 mm/yy cvc</code>",
+            '<b>⚠️ Сообщение не соответствует форме</b>\n\n<code>1111222233334444 mm/yy cvc</code>',
             {
-              parse_mode: "HTML",
+              parse_mode: 'HTML'
             }
           )
           .catch(() => null)
-          .then((msg) =>
+          .then(msg =>
             setTimeout(
               () =>
                 ctx.telegram
@@ -61,18 +61,18 @@ const addCard = new Scenes.WizardScene(
 
       const { groups } = data;
 
-      const number = groups.number.replace(/\s+/g, "");
+      const number = groups.number.replace(/\s+/g, '');
       const check = await cards.exists({
-        number: number,
+        number: number
       });
 
       if (check) {
         ctx
           .reply(`⚠️ Карта <code>${number}</code> уже существует`, {
-            parse_mode: "HTML",
+            parse_mode: 'HTML'
           })
           .catch(() => null)
-          .then((msg) =>
+          .then(msg =>
             setTimeout(
               () =>
                 ctx.telegram
@@ -86,10 +86,10 @@ const addCard = new Scenes.WizardScene(
 
       ctx.wizard.state.card = {
         ...groups,
-        number,
+        number
       };
 
-      const banks = await cards.distinct("bank");
+      const banks = await cards.distinct('bank');
       const keys = [];
       if (banks) {
         for (const bank of banks) {
@@ -97,13 +97,13 @@ const addCard = new Scenes.WizardScene(
         }
       }
       keys.push([
-        Markup.button.callback("Назад", "back"),
-        Markup.button.callback("Отмена", "exit"),
+        Markup.button.callback('Назад', 'back'),
+        Markup.button.callback('Отмена', 'exit')
       ]);
 
       const messageData = {
-        text: "<b>Укажите банк</b>",
-        keyboard: Markup.inlineKeyboard(keys).reply_markup,
+        text: '<b>Укажите банк</b>',
+        keyboard: Markup.inlineKeyboard(keys).reply_markup
       };
 
       ctx.wizard.state.messages.set(ctx.wizard.cursor.toString(), messageData);
@@ -114,8 +114,8 @@ const addCard = new Scenes.WizardScene(
         undefined,
         messageData.text,
         {
-          parse_mode: "HTML",
-          reply_markup: messageData.keyboard,
+          parse_mode: 'HTML',
+          reply_markup: messageData.keyboard
         }
       );
       ctx.wizard.next();
@@ -124,19 +124,19 @@ const addCard = new Scenes.WizardScene(
       ctx.reply(error.message).catch(() => null);
     }
   },
-  async (ctx) => {
+  async ctx => {
     try {
       let bank;
-      if (ctx.updateType === "message") {
+      if (ctx.updateType === 'message') {
         ctx.deleteMessage().catch(() => null);
         bank = ctx.message.text;
-      } else if (ctx.updateType === "callback_query") {
+      } else if (ctx.updateType === 'callback_query') {
         bank = /^bank:(.+)$/.exec(ctx.callbackQuery.data)[1];
       }
 
       ctx.wizard.state.card.bank = bank;
 
-      const names = await cards.distinct("cardholder");
+      const names = await cards.distinct('cardholder');
       const keyboard = [];
       if (names) {
         for (const name of names) {
@@ -145,13 +145,13 @@ const addCard = new Scenes.WizardScene(
       }
 
       keyboard.push([
-        Markup.button.callback("Назад", "back"),
-        Markup.button.callback("Отмена", "cancel"),
+        Markup.button.callback('Назад', 'back'),
+        Markup.button.callback('Отмена', 'cancel')
       ]);
 
       const messageData = {
-        text: "<b>Укажите владельца карты в формате</b>\n\n<code>NAME SURNAME</code>",
-        keyboard: Markup.inlineKeyboard(keyboard).reply_markup,
+        text: '<b>Укажите владельца карты в формате</b>\n\n<code>NAME SURNAME</code>',
+        keyboard: Markup.inlineKeyboard(keyboard).reply_markup
       };
 
       ctx.wizard.state.messages.set(ctx.wizard.cursor.toString(), messageData);
@@ -162,8 +162,8 @@ const addCard = new Scenes.WizardScene(
         undefined,
         messageData.text,
         {
-          parse_mode: "HTML",
-          reply_markup: messageData.keyboard,
+          parse_mode: 'HTML',
+          reply_markup: messageData.keyboard
         }
       );
 
@@ -173,15 +173,15 @@ const addCard = new Scenes.WizardScene(
       ctx.reply(error.message).catch(() => null);
     }
   },
-  async (ctx) => {
+  async ctx => {
     try {
       let name;
       if (
-        ctx.updateType === "callback_query" &&
-        ctx.callbackQuery.data.startsWith("name")
+        ctx.updateType === 'callback_query' &&
+        ctx.callbackQuery.data.startsWith('name')
       ) {
         name = /:([a-zа-яёA-ZА-ЯЁ\s\.]+)$/i.exec(ctx.callbackQuery.data)[1];
-      } else if (ctx.updateType === "message") {
+      } else if (ctx.updateType === 'message') {
         ctx.deleteMessage().catch(() => null);
 
         const raw = /^[a-zа-я\.]+ [a-zа-я\.]+$/i.exec(
@@ -191,13 +191,13 @@ const addCard = new Scenes.WizardScene(
         if (!raw) {
           ctx
             .reply(
-              "<b>⚠️ Сообщение не соответствует форме</b>\n\n<code>NAME SURNAME</code>",
+              '<b>⚠️ Сообщение не соответствует форме</b>\n\n<code>NAME SURNAME</code>',
               {
-                parse_mode: "HTML",
+                parse_mode: 'HTML'
               }
             )
             .catch(() => null)
-            .then((msg) =>
+            .then(msg =>
               setTimeout(
                 () =>
                   ctx.telegram
@@ -217,18 +217,19 @@ const addCard = new Scenes.WizardScene(
       ctx.wizard.state.card.cardholder = name;
 
       const messageData = {
-        text: "<b>Укажите валюту карты</b>",
+        text: '<b>Укажите валюту карты</b>',
         keyboard: Markup.inlineKeyboard([
           [
-            Markup.button.callback("UAH", "UAH"),
-            Markup.button.callback("USD", "USD"),
-            Markup.button.callback("EUR", "EUR"),
+            Markup.button.callback('UAH', 'UAH'),
+            Markup.button.callback('USD', 'USD'),
+            Markup.button.callback('EUR', 'EUR'),
+            Markup.button.callback('LIR', 'LIR')
           ],
           [
-            Markup.button.callback("Назад", "back"),
-            Markup.button.callback("Отмена", "exit"),
-          ],
-        ]).reply_markup,
+            Markup.button.callback('Назад', 'back'),
+            Markup.button.callback('Отмена', 'exit')
+          ]
+        ]).reply_markup
       };
 
       ctx.wizard.state.messages.set(ctx.wizard.cursor.toString(), messageData);
@@ -239,8 +240,8 @@ const addCard = new Scenes.WizardScene(
         undefined,
         messageData.text,
         {
-          parse_mode: "HTML",
-          reply_markup: messageData.keyboard,
+          parse_mode: 'HTML',
+          reply_markup: messageData.keyboard
         }
       );
 
@@ -250,13 +251,13 @@ const addCard = new Scenes.WizardScene(
       ctx.reply(error.message).catch(() => null);
     }
   },
-  async (ctx) => {
+  async ctx => {
     try {
-      if (ctx.updateType !== "callback_query") return;
+      if (ctx.updateType !== 'callback_query') return;
 
       const currency = ctx.callbackQuery.data;
-      if (!["USD", "EUR", "UAH"].includes(currency)) {
-        ctx.answerCbQuery("Укажите валюту").catch(() => null);
+      if (!['USD', 'EUR', 'UAH', 'LIR'].includes(currency)) {
+        ctx.answerCbQuery('Укажите валюту').catch(() => null);
         return;
       }
 
@@ -264,14 +265,14 @@ const addCard = new Scenes.WizardScene(
       ctx.wizard.state.card.balance = 0;
 
       const messageData = {
-        text: "<b>Укажите баланс карты</b>",
+        text: '<b>Укажите баланс карты</b>',
         keyboard: Markup.inlineKeyboard([
-          [Markup.button.callback("Нулевой баланс", "next")],
+          [Markup.button.callback('Нулевой баланс', 'next')],
           [
-            Markup.button.callback("Назад", "back"),
-            Markup.button.callback("Отмена", "exit"),
-          ],
-        ]).reply_markup,
+            Markup.button.callback('Назад', 'back'),
+            Markup.button.callback('Отмена', 'exit')
+          ]
+        ]).reply_markup
       };
 
       ctx.wizard.state.messages.set(ctx.wizard.cursor.toString(), messageData);
@@ -282,8 +283,8 @@ const addCard = new Scenes.WizardScene(
         undefined,
         messageData.text,
         {
-          parse_mode: "HTML",
-          reply_markup: messageData.keyboard,
+          parse_mode: 'HTML',
+          reply_markup: messageData.keyboard
         }
       );
 
@@ -293,18 +294,18 @@ const addCard = new Scenes.WizardScene(
       ctx.reply(error.message).catch(() => null);
     }
   },
-  async (ctx) => {
+  async ctx => {
     try {
-      if (ctx.updateType === "message") {
+      if (ctx.updateType === 'message') {
         ctx.deleteMessage().catch(() => null);
         const balance = Number(ctx.message.text);
         if (Number.isNaN(balance) || balance < 0) {
           ctx
-            .reply("<b>⚠️ Укажите положительно число или ноль</b>", {
-              parse_mode: "HTML",
+            .reply('<b>⚠️ Укажите положительно число или ноль</b>', {
+              parse_mode: 'HTML'
             })
             .catch(() => null)
-            .then((msg) =>
+            .then(msg =>
               setTimeout(
                 () =>
                   ctx.telegram
@@ -318,8 +319,8 @@ const addCard = new Scenes.WizardScene(
 
         ctx.wizard.state.card.balance = balance;
       } else if (
-        ctx.updateType !== "callback_query" ||
-        ctx.callbackQuery.data !== "next"
+        ctx.updateType !== 'callback_query' ||
+        ctx.callbackQuery.data !== 'next'
       ) {
         return;
       }
@@ -343,14 +344,14 @@ const addCard = new Scenes.WizardScene(
           card.currency
         }</code>`,
         {
-          parse_mode: "HTML",
+          parse_mode: 'HTML',
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("Сохранить", "save-card")],
+            [Markup.button.callback('Сохранить', 'save-card')],
             [
-              Markup.button.callback("Назад", "back"),
-              Markup.button.callback("Отмена", "exit"),
-            ],
-          ]).reply_markup,
+              Markup.button.callback('Назад', 'back'),
+              Markup.button.callback('Отмена', 'exit')
+            ]
+          ]).reply_markup
         }
       );
     } catch (error) {
@@ -360,7 +361,7 @@ const addCard = new Scenes.WizardScene(
   }
 );
 
-addCard.action("back", async (ctx) => {
+addCard.action('back', async ctx => {
   try {
     const message = ctx.wizard.state.messages.get(
       (ctx.wizard.cursor - 2).toString()
@@ -373,32 +374,32 @@ addCard.action("back", async (ctx) => {
       undefined,
       message.text,
       {
-        parse_mode: "HTML",
-        reply_markup: message.keyboard,
+        parse_mode: 'HTML',
+        reply_markup: message.keyboard
       }
     );
 
     ctx.wizard.back();
   } catch (error) {
     console.log(error);
-    ctx.answerCbQuery("Что-то пошло не так").catch(() => null);
+    ctx.answerCbQuery('Что-то пошло не так').catch(() => null);
   }
 });
 
-addCard.action("exit", (ctx) =>
-  ctx.scene.enter("manage-card-category", ctx.scene.state)
+addCard.action('exit', ctx =>
+  ctx.scene.enter('manage-card-category', ctx.scene.state)
 );
 
-addCard.action("save-card", async (ctx) => {
+addCard.action('save-card', async ctx => {
   try {
     const card = await cards.create({
       ...ctx.wizard.state.card,
       category: ctx.scene.state.id,
-      balance: 0,
+      balance: 0
     });
 
     if (!card) {
-      throw new Error("Failed card creation");
+      throw new Error('Failed card creation');
     }
 
     if (ctx.wizard.state.card.balance > 0) {
@@ -407,21 +408,21 @@ addCard.action("save-card", async (ctx) => {
         currency: card.currency,
         issuer: ctx.from.id,
         sendToHold: false,
-        description: "Начальный баланс",
+        description: 'Начальный баланс',
         busy: false,
-        cardBalance: 0,
+        cardBalance: 0
       });
     }
 
     ctx.scene.state.card = card._id;
 
-    ctx.scene.enter("manage-card", ctx.scene.state);
+    ctx.scene.enter('manage-card', ctx.scene.state);
   } catch (error) {
     console.log(error);
     ctx
-      .reply("Что-то пошло не так во время сохранения карты")
+      .reply('Что-то пошло не так во время сохранения карты')
       .catch(() => null);
-    ctx.scene.enter("manage-card-category", ctx.scene.state);
+    ctx.scene.enter('manage-card-category', ctx.scene.state);
   }
 });
 

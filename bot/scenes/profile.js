@@ -148,4 +148,8 @@ profile.action(keys.ProfileMenu.buttons.story, ctx => {
   });
 });
 
+profile.action(keys.ProfileMenu.buttons.promo, ctx =>
+  ctx.scene.enter('activate-promo', ctx.scene.state)
+);
+
 module.exports = profile;

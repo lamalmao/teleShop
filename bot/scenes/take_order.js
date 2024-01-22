@@ -1328,7 +1328,7 @@ takeOrder.action('take-card', async ctx => {
                 },
                 {
                   balance: {
-                    $gte: item.netCost.UAH
+                    $gte: item.netCost.UAH || Number.MAX_SAFE_INTEGER
                   }
                 }
               ]
@@ -1340,7 +1340,7 @@ takeOrder.action('take-card', async ctx => {
                 },
                 {
                   balance: {
-                    $gte: item.netCost.USD
+                    $gte: item.netCost.USD || Number.MAX_SAFE_INTEGER
                   }
                 }
               ]
@@ -1352,7 +1352,19 @@ takeOrder.action('take-card', async ctx => {
                 },
                 {
                   balance: {
-                    $gte: item.netCost.EUR
+                    $gte: item.netCost.EUR || Number.MAX_SAFE_INTEGER
+                  }
+                }
+              ]
+            },
+            {
+              $and: [
+                {
+                  currency: { $eq: 'LIR' }
+                },
+                {
+                  balance: {
+                    $gte: item.netCost.LIR || Number.MAX_SAFE_INTEGER
                   }
                 }
               ]
@@ -1403,16 +1415,18 @@ takeOrder.action('take-card', async ctx => {
       return;
     }
 
+    // card.number.slice(
+    //   0,
+    //   4
+    // )} ${card.number.slice(4, 8)} ${card.number.slice(
+    //   8,
+    //   12
+    // )} ${card.number.slice(12, 16)
+
     await ctx.reply(
       `<b>Карта для заказа <code>${
         ctx.scene.state.order.orderID
-      }</code></b>\n\n<i>Номер:</i> <code>${card.number.slice(
-        0,
-        4
-      )} ${card.number.slice(4, 8)} ${card.number.slice(
-        8,
-        12
-      )} ${card.number.slice(12, 16)}
+      }</code></b>\n\n<i>Номер:</i> <code>${card.number}
       </code>\n<i>Срок действия:</i> <code>${escapeHTML(
         card.duration
       )}</code>\n<i>CVC:</i> <code>${

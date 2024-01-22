@@ -1,41 +1,41 @@
-const { Schema, SchemaTypes, model } = require("mongoose");
+const { Schema, SchemaTypes, model } = require('mongoose');
 
 const CardTransaction = new Schema({
   card: {
     type: SchemaTypes.ObjectId,
-    required: true,
+    required: true
   },
   amount: {
     type: Number,
-    required: true,
+    required: true
   },
   currency: {
     type: String,
-    enum: ["UAH", "EUR", "USD"],
-    required: true,
+    enum: ['UAH', 'EUR', 'USD', 'LIR'],
+    required: true
   },
   date: {
     type: Date,
     default: Date.now,
-    required: true,
+    required: true
   },
   issuer: {
     type: Number,
-    required: true,
+    required: true
   },
   success: {
     type: Boolean,
     required: true,
-    default: true,
+    default: true
   },
   balanceAfter: {
     type: Number,
-    required: true,
+    required: true
   },
   description: String,
-  orderId: Number,
+  orderId: Number
 });
 
-const cardTransactions = model("cards-transactions", CardTransaction);
+const cardTransactions = model('cards-transactions', CardTransaction);
 
 module.exports = cardTransactions;

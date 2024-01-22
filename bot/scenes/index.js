@@ -76,6 +76,11 @@ const steamFee = require('./steam-fee');
 const uaCardRefill = require('./ua-card-refill');
 const uaCardSettings = require('./ua-card-settings');
 const giftAccessProceed = require('./gift-access-proceed');
+const promotionsScene = require('./promotions');
+const createPromo = require('./create-promo');
+const promotionsList = require('./promotions-list');
+const managePromotion = require('./manage-promotion');
+const activatePromo = require('./activate-promo');
 
 const stage = new Scenes.Stage([
   start,
@@ -151,7 +156,12 @@ const stage = new Scenes.Stage([
   steamFee,
   uaCardRefill,
   uaCardSettings,
-  giftAccessProceed
+  giftAccessProceed,
+  promotionsScene,
+  createPromo,
+  promotionsList,
+  managePromotion,
+  activatePromo
 ]);
 
 stage.action(/(approve|decline)-ua-card-payment:\d+/, async ctx => {

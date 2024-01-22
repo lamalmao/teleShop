@@ -124,7 +124,9 @@ paymentsStory.action(/payment#\d+/, async ctx => {
         payment.date
       ).toLocaleString()} по МСК</b>\nСумма: <b>${
         payment.amount
-      } руб.</b>\n<b>С помощью: </b> ${payment.service || '-'}`,
+      } руб.</b>\n<b>С помощью: </b> ${payment.service || '-'}${
+        payment.promo ? '\nПромокод: ' + payment.promo : ''
+      }`,
       {
         parse_mode: 'HTML'
       }

@@ -34,7 +34,8 @@ const AdminButtons = {
   exit: 'exit',
   cards: 'card-categories',
   tickets: 'tickets',
-  keyStory: 'keys-story'
+  keyStory: 'keys-story',
+  promotions: 'promotions'
 };
 
 const ManagersButtons = {
@@ -50,6 +51,7 @@ const AdminKeyboard = Markup.inlineKeyboard([
   [cb('Карты', AdminButtons.cards)],
   [cb('История ключей', AdminButtons.keyStory)],
   [cb('Пользователи', 'get_user_data'), cb('Тикеты', AdminButtons.tickets)],
+  [cb('Промокоды', AdminButtons.promotions)],
   [cb('Выйти из панели администратора', AdminButtons.exit)]
 ]);
 
@@ -102,12 +104,14 @@ const GoodsManageKeyboard = Markup.inlineKeyboard([
 
 const ProfileMenuButtons = {
   refill: 'refill',
-  story: 'spendingLog'
+  story: 'spendingLog',
+  promo: 'promo'
 };
 
 const ProfileMenuKeyboard = Markup.inlineKeyboard([
   [cb('Пополнить баланс 💰', ProfileMenuButtons.refill)],
   [cb('История баланса 🔎', ProfileMenuButtons.story)],
+  [cb('Активировать промокод', ProfileMenuButtons.promo)],
   [cb('Назад', BackButton)]
 ]);
 
