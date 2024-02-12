@@ -60,8 +60,7 @@ pay.enterHandler = async function (ctx) {
           [
             Markup.button.url(
               'Криптовалюта',
-              lavaUrl ? lavaUrl : 'https://google.com',
-              !lavaUrl
+              anyPayUrl
             )
           ],
           [
