@@ -61,6 +61,24 @@ function CreateBot(token) {
     }
   });
 
+  bot.command('lava', async ctx => {
+    try {
+      const check = await users.exists({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      });
+
+      if (!check) {
+        return;
+      }
+
+      global.lava = !global.lava;
+      await ctx.reply(global.lava ? 'Lava включена' : 'Lava отключена');
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
   bot.command(
     'deltrans',
     async (ctx, next) => {

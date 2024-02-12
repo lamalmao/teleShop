@@ -47,7 +47,7 @@ pay.enterHandler = async function (ctx) {
             Markup.button.url(
               'Lava 🇷🇺',
               lavaUrl ? lavaUrl : 'https://google.com',
-              !lavaUrl
+              !(lavaUrl && global.lava)
             )
           ],
           [Markup.button.url('AnyPay 🇷🇺🇰🇿🇧🇾', anyPayUrl)],

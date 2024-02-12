@@ -62,28 +62,24 @@ const ozanCardCost = Number(
   fs.readFileSync(path.resolve('ozan-card-cost.txt')).toString().trim()
 );
 global.ozanCardCost = Number.isNaN(ozanCardCost) ? 29.99 : ozanCardCost;
-
 global.helpMessage = fs
   .readFileSync(path.resolve('help.txt'))
   .toString('utf-8');
-
 global.steamFee = Number(
   (
     1.1 +
     Number(fs.readFileSync(path.resolve('steam.txt').toString())) / 100
   ).toFixed(2)
 );
-
 if (Number.isNaN(global.steamFee)) {
   console.log('Комиссия должна быть числом');
   process.exit(0);
 }
-
 global.rubToUah = Number(
   fs.readFileSync(path.resolve('rub-to-uah.txt')).toString()
 );
-
 global.uaRefillCard = fs.readFileSync('ua-card.txt').toString();
+global.lava = true;
 
 if (Number.isNaN(global.rubToUah)) {
   console.log('Курс должен быть числом');
@@ -171,5 +167,5 @@ if (keyGenerated) {
   );
 
   // Запуск отрисовки таблиц
-  runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
+  // runUpdater(settings.spreadsheet_id, settings.sheets_update_interval);
 })();
