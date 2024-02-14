@@ -115,7 +115,7 @@ refunds.action(/proceed_refund#\d+/, async ctx => {
       );
     }
   } catch (e) {
-    null;
+    console.log(e);
   }
 });
 
