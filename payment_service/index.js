@@ -34,6 +34,8 @@ function createPaymentProvider(bot) {
     try {
       var msg = 'OK';
 
+      console.log(req.body);
+
       const paymentID = req.body.pay_id ? req.body.pay_id : req.body.order_id;
 
       const payment = await payments.findOne({
