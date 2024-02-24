@@ -44,11 +44,19 @@ function createPaymentProvider(bot) {
       });
       if (!payment) throw new Error('Payment not found');
 
-      if (req.body.status === 'paid' || req.body.status === 'success') {
+      if (
+        req.body.status === 'paid' ||
+        req.body.status === 'success' ||
+        (req.body.status instanceof Array
+          ? req.body.status.includes('paid')
+          : false)
+      ) {
         payment.status = 'paid';
         payment.transactionID = Number(
           req.body.transaction_id
-            ? req.body.transaction_id
+            ? req.body.transaction_id instanceof Array
+              ? req.body.transaction_id[0]
+              : req.body.transaction_id
             : req.body.invoice_id
         );
 
@@ -57,6 +65,8 @@ function createPaymentProvider(bot) {
         if (Number.isNaN(payment.transactionID) || !payment.transactionID) {
           payment.transactionID = 0;
         }
+
+        console.log(payment);
 
         const user = await users.findOne(
           {
