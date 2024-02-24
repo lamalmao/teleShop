@@ -34,8 +34,6 @@ function createPaymentProvider(bot) {
     try {
       var msg = 'OK';
 
-      console.log(req.body);
-
       const paymentID = req.body.pay_id ? req.body.pay_id : req.body.order_id;
 
       const payment = await payments.findOne({
@@ -65,8 +63,6 @@ function createPaymentProvider(bot) {
         if (Number.isNaN(payment.transactionID) || !payment.transactionID) {
           payment.transactionID = 0;
         }
-
-        console.log(payment);
 
         const user = await users.findOne(
           {
