@@ -66,7 +66,8 @@ const checkSign = (sign, payment, token, shopId) => {
 const freekassaHandler = freekassaSettings => {
   return async (req, res, next) => {
     try {
-      const ip = req.socket.remoteAddress;
+      const ip = req.get('X-Real-IP');
+      console.log(ip);
       if (!allowedIPs.includes(ip)) {
         res.status(401).json({ error: 'Forbidden' });
         return;
