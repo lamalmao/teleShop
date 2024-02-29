@@ -75,7 +75,7 @@ pay.enterHandler = async function (ctx) {
           ],
           [
             Markup.button.url(
-              'Оплата скинами',
+              'Оплата скинами CS2, Dota 2, Rust',
               skinsbackUrl || 'https://google.com',
               !(skinsbackUrl && global.paymentMethods.skinsback)
             )
