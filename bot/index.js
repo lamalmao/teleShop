@@ -79,6 +79,26 @@ function CreateBot(token) {
     }
   });
 
+  bot.command('freekassa', async ctx => {
+    try {
+      const check = await users.exists({
+        telegramID: ctx.from.id,
+        role: 'admin'
+      });
+
+      if (!check) {
+        return;
+      }
+
+      global.freekassa = !global.freekassa;
+      await ctx.reply(
+        global.freekassa ? 'Freekassa включена' : 'Freekassa отключена'
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
   bot.command(
     'deltrans',
     async (ctx, next) => {

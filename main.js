@@ -6,11 +6,9 @@ const nodeRSA = require('node-rsa');
 const preset = require('./preset');
 const CreateBot = require('./bot');
 const createPaymentProvider = require('./payment_service');
-const runUpdater = require('./sheets');
 const users = require('./models/users');
 const ozanAccounts = require('./models/ozan-accounts');
 const createSteamWorker = require('./steam-worker');
-const cleanTickets = require('./ticketsWorker');
 const startTicketsCleanup = require('./ticketsWorker');
 
 // Форматирование строк
@@ -32,10 +30,13 @@ global.ownerID = settings.owner_id;
 global.games = ['fortnite', 'brawlstars', 'genshin', 'all'];
 global.lavaToken = settings.lava_token;
 global.lavaProjectId = settings.lava_project_id;
+global.freekassaId = settings.freekassa_shop_id;
+global.freekassaSecret = settings.freekassa_payment_token;
+global.freekassa = true;
 
 const keyFileDirectory = path.join(process.cwd(), 'key');
 const keyFileLocation = path.join(keyFileDirectory, 'key.pem');
-var keyGenerated = false;
+let keyGenerated = false;
 
 if (!fs.existsSync(keyFileLocation)) {
   if (!fs.existsSync(keyFileDirectory)) fs.mkdirSync(keyFileDirectory);
@@ -157,7 +158,10 @@ if (keyGenerated) {
   console.log('Очистка тикетов запущена');
 
   // Запуск обработчика платежей
-  const paymentWorker = createPaymentProvider(bot);
+  const paymentWorker = createPaymentProvider(bot, {
+    token: settings.freekassa_notifications_token,
+    shopId: settings.freekassa_shop_id
+  });
   paymentWorker.listen(
     {
       host: settings.host,

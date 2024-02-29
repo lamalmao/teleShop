@@ -2,6 +2,10 @@ const express = require('express');
 
 const users = require('../models/users');
 const payments = require('../models/payments');
+const multer = require('multer');
+const { freekassaHandler } = require('./freekassa');
+
+const formsParser = multer();
 
 const allowedIPs = [
   '185.162.128.38',
@@ -16,8 +20,27 @@ const allowedIPs = [
   '62.122.173.38'
 ];
 
-function createPaymentProvider(bot) {
+function createPaymentProvider(bot, freekassaSettings) {
   const app = express();
+
+  const notifyUser = (req, res) => {
+    const { message, user, amount, answer } = res.locals;
+
+    bot.telegram
+      .editMessageCaption(
+        user,
+        message,
+        undefined,
+        `Ваш баланс пополнен на ${amount} ₽`
+      )
+      .catch(() =>
+        bot.telegram
+          .sendMessage(user, `Ваш баланс пополнен на ${amount} ₽`)
+          .catch(() => null)
+      );
+
+    res.end(answer);
+  };
 
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
@@ -94,6 +117,13 @@ function createPaymentProvider(bot) {
       res.end(msg);
     }
   });
+
+  app.post(
+    '/freekassa',
+    formsParser.none(),
+    freekassaHandler(freekassaSettings),
+    notifyUser
+  );
 
   return app;
 }

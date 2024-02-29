@@ -22,6 +22,7 @@ pay.enterHandler = async function (ctx) {
     });
 
     const anyPayUrl = payment.genUrl();
+    const freekassaUrl = payment.createFreekassaPaymentURL();
     const lavaUrl = await payment.createLavaPayment();
 
     await ctx.telegram.editMessageMedia(
@@ -51,18 +52,14 @@ pay.enterHandler = async function (ctx) {
             )
           ],
           [Markup.button.url('AnyPay 🇷🇺🇰🇿🇧🇾', anyPayUrl)],
+          [Markup.button.url('Freekassa 🇷🇺', freekassaUrl, !global.freekassa)],
           [
             Markup.button.callback(
               'Перевод на карту 🇺🇦',
               `ua-card-refill:${payment.paymentID}`
             )
           ],
-          [
-            Markup.button.url(
-              'Криптовалюта',
-              anyPayUrl
-            )
-          ],
+          [Markup.button.url('Криптовалюта', anyPayUrl)],
           [
             Markup.button.callback(
               'Проверить платёж',

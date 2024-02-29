@@ -13,12 +13,27 @@ module.exports = {
   },
   anypay_token: {
     type: 'string',
-    default: 'APNYPAY_TOKEN',
+    default: 'ANYPAY_TOKEN',
     required: true
   },
   anypay_project_id: {
     type: 'number',
     default: 0,
+    required: true
+  },
+  freekassa_shop_id: {
+    type: 'number',
+    default: 0,
+    required: true
+  },
+  freekassa_payment_token: {
+    type: 'string',
+    default: '',
+    required: true
+  },
+  freekassa_notifications_token: {
+    type: 'string',
+    default: '',
     required: true
   },
   host: {

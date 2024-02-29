@@ -27,7 +27,7 @@ const Payment = new Schema({
   },
   service: {
     type: String,
-    enum: ['lava', 'anypay', 'system', 'card', 'promo']
+    enum: ['lava', 'anypay', 'system', 'card', 'promo', 'freekassa']
   },
   uahAmount: Number,
   issuer: Number,
@@ -77,7 +77,29 @@ Payment.methods.createLavaPayment = async function () {
     return data.url ? data.url : null;
   } catch (error) {
     console.log(error.message);
-    console.log(error.response ? error.response.data : '');
+  }
+};
+
+Payment.methods.createFreekassaPaymentURL = function () {
+  try {
+    const sign = crypto
+      .createHash('md5')
+      .update(
+        `${global.freekassaId}:${this.amount}:${global.freekassaSecret}:RUB:${this.paymentID}`
+      )
+      .digest()
+      .toString('hex');
+
+    const url = new URL('https://pay.freekassa.ru/');
+    url.searchParams.set('m', global.freekassaId);
+    url.searchParams.set('oa', this.amount);
+    url.searchParams.set('currency', 'RUB');
+    url.searchParams.set('o', this.paymentID);
+    url.searchParams.set('s', sign);
+
+    return url.href;
+  } catch (error) {
+    console.log(error.message);
   }
 };
 
