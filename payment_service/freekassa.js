@@ -77,10 +77,10 @@ const freekassaHandler = freekassaSettings => {
         MERCHANT_ORDER_ID: paymentID,
         SIGN: externalSign,
         AMOUNT: amount,
-        TEST: test
+        status_check: test
       } = req.body;
 
-      if (test == 1) {
+      if (test === '1') {
         res.end('YES');
         return;
       }
