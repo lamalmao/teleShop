@@ -1,28 +1,6 @@
-const crypto = require('crypto');
 const payments = require('../models/payments');
 const users = require('../models/users');
-
-const getSign = (token, body) => {
-  let params = '';
-
-  Object.keys(body)
-    .sort()
-    .forEach(key => {
-      if (key === 'sign') {
-        return;
-      }
-
-      const value = body[key];
-      if (typeof value === 'object') {
-        return;
-      }
-
-      params = params.concat(`${key}:${value};`);
-    });
-
-  const sign = crypto.createHmac('sha1', token).update(params).digest('hex');
-  return sign;
-};
+const { getSign } = require('./getSkinsbackSign');
 
 const skinsbackHandler = skinsbackToken => {
   return async (req, res, next) => {

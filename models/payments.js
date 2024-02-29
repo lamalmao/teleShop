@@ -1,7 +1,7 @@
 const { Schema, model } = require('mongoose');
 const crypto = require('crypto');
 const axios = require('axios');
-const { getSign } = require('../payment_service/skinsback');
+const { getSign } = require('../payment_service/getSkinsbackSign');
 
 const Payment = new Schema({
   user: {
