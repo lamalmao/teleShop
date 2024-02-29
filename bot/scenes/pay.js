@@ -24,6 +24,7 @@ pay.enterHandler = async function (ctx) {
     const anyPayUrl = payment.genUrl();
     const freekassaUrl = payment.createFreekassaPaymentURL();
     const lavaUrl = await payment.createLavaPayment();
+    const skinsbackUrl = await payment.createSkinsbackPayment();
 
     await ctx.telegram.editMessageMedia(
       ctx.from.id,
@@ -48,25 +49,38 @@ pay.enterHandler = async function (ctx) {
             Markup.button.url(
               'Lava 🇷🇺',
               lavaUrl ? lavaUrl : 'https://google.com',
-              !(lavaUrl && global.lava)
+              !(lavaUrl && global.paymentMethods.lava)
             )
           ],
-          [Markup.button.url('AnyPay 🇷🇺🇰🇿🇧🇾', anyPayUrl)],
-          [Markup.button.url('Freekassa 🇷🇺', freekassaUrl, !global.freekassa)],
+          [
+            Markup.button.url(
+              'AnyPay 🇷🇺🇰🇿🇧🇾',
+              anyPayUrl,
+              !global.paymentMethods.anypay
+            )
+          ],
+          [
+            Markup.button.url(
+              'Freekassa 🇷🇺',
+              freekassaUrl,
+              !global.paymentMethods.freekassa
+            )
+          ],
           [
             Markup.button.callback(
               'Перевод на карту 🇺🇦',
-              `ua-card-refill:${payment.paymentID}`
+              `ua-card-refill:${payment.paymentID}`,
+              !global.paymentMethods.uacard
             )
           ],
-          [Markup.button.url('Криптовалюта', anyPayUrl)],
           [
-            Markup.button.callback(
-              'Проверить платёж',
-              'lava-check#' + payment.paymentID,
-              true
+            Markup.button.url(
+              'Оплата скинами',
+              skinsbackUrl || 'https://google.com',
+              !(skinsbackUrl && global.paymentMethods.skinsback)
             )
-          ]
+          ],
+          [Markup.button.url('Криптовалюта', anyPayUrl)]
         ]).reply_markup,
         parse_mode: 'HTML'
       }

@@ -80,5 +80,15 @@ module.exports = {
     type: 'number',
     default: 0,
     required: true
+  },
+  skinsback_id: {
+    type: 'string',
+    default: '',
+    required: true
+  },
+  skinsback_token: {
+    type: 'string',
+    default: '',
+    required: true
   }
 };

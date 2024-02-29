@@ -81,6 +81,7 @@ const createPromo = require('./create-promo');
 const promotionsList = require('./promotions-list');
 const managePromotion = require('./manage-promotion');
 const activatePromo = require('./activate-promo');
+const paymentServices = require('./payment-services');
 
 const stage = new Scenes.Stage([
   start,
@@ -161,7 +162,8 @@ const stage = new Scenes.Stage([
   createPromo,
   promotionsList,
   managePromotion,
-  activatePromo
+  activatePromo,
+  paymentServices
 ]);
 
 stage.action(/(approve|decline)-ua-card-payment:\d+/, async ctx => {

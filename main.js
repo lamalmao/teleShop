@@ -32,7 +32,8 @@ global.lavaToken = settings.lava_token;
 global.lavaProjectId = settings.lava_project_id;
 global.freekassaId = settings.freekassa_shop_id;
 global.freekassaSecret = settings.freekassa_payment_token;
-global.freekassa = true;
+global.skinsbackId = settings.skinsback_id;
+global.skinsbackToken = settings.skinsback_token;
 
 const keyFileDirectory = path.join(process.cwd(), 'key');
 const keyFileLocation = path.join(keyFileDirectory, 'key.pem');
@@ -80,7 +81,10 @@ global.rubToUah = Number(
   fs.readFileSync(path.resolve('rub-to-uah.txt')).toString()
 );
 global.uaRefillCard = fs.readFileSync('ua-card.txt').toString();
-global.lava = true;
+
+global.paymentMethods = JSON.parse(
+  fs.readFileSync(path.resolve('payments.json'))
+);
 
 if (Number.isNaN(global.rubToUah)) {
   console.log('Курс должен быть числом');
@@ -158,10 +162,14 @@ if (keyGenerated) {
   console.log('Очистка тикетов запущена');
 
   // Запуск обработчика платежей
-  const paymentWorker = createPaymentProvider(bot, {
-    token: settings.freekassa_notifications_token,
-    shopId: settings.freekassa_shop_id
-  });
+  const paymentWorker = createPaymentProvider(
+    bot,
+    {
+      token: settings.freekassa_notifications_token,
+      shopId: settings.freekassa_shop_id
+    },
+    settings.skinsback_token
+  );
   paymentWorker.listen(
     {
       host: settings.host,

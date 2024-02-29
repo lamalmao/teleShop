@@ -1,6 +1,7 @@
-const { Schema, model, SchemaTypes } = require('mongoose');
+const { Schema, model } = require('mongoose');
 const crypto = require('crypto');
 const axios = require('axios');
+const { getSign } = require('../payment_service/skinsback');
 
 const Payment = new Schema({
   user: {
@@ -27,7 +28,15 @@ const Payment = new Schema({
   },
   service: {
     type: String,
-    enum: ['lava', 'anypay', 'system', 'card', 'promo', 'freekassa']
+    enum: [
+      'lava',
+      'anypay',
+      'system',
+      'card',
+      'promo',
+      'freekassa',
+      'skinsback'
+    ]
   },
   uahAmount: Number,
   issuer: Number,
@@ -100,6 +109,37 @@ Payment.methods.createFreekassaPaymentURL = function () {
     return url.href;
   } catch (error) {
     console.log(error.message);
+  }
+};
+
+Payment.methods.createSkinsbackPayment = async function () {
+  try {
+    const body = {
+      method: 'create',
+      shopid: global.skinsbackId,
+      order_id: this.paymentID.toString(),
+      currency: 'rub',
+      min_amount: this.amount
+    };
+
+    const sign = getSign(global.skinsbackToken, body);
+    body.sign = sign;
+
+    const response = await axios.post('https://skinsback.com/api.php', body, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.status !== 200) {
+      return null;
+    }
+
+    return response.data.url;
+  } catch (error) {
+    console.log(error.message);
+    return null;
   }
 };
 

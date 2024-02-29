@@ -4,6 +4,7 @@ const users = require('../models/users');
 const payments = require('../models/payments');
 const multer = require('multer');
 const { freekassaHandler } = require('./freekassa');
+const { skinsbackHandler } = require('./skinsback');
 
 const formsParser = multer();
 
@@ -20,7 +21,7 @@ const allowedIPs = [
   '62.122.173.38'
 ];
 
-function createPaymentProvider(bot, freekassaSettings) {
+function createPaymentProvider(bot, freekassaSettings, skinsbackToken) {
   const app = express();
 
   const notifyUser = (req, res) => {
@@ -124,6 +125,8 @@ function createPaymentProvider(bot, freekassaSettings) {
     freekassaHandler(freekassaSettings),
     notifyUser
   );
+
+  app.post('/skinsback', skinsbackHandler(skinsbackToken), notifyUser);
 
   return app;
 }

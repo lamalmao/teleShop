@@ -35,7 +35,8 @@ const AdminButtons = {
   cards: 'card-categories',
   tickets: 'tickets',
   keyStory: 'keys-story',
-  promotions: 'promotions'
+  promotions: 'promotions',
+  paymentServices: 'payment-services'
 };
 
 const ManagersButtons = {
@@ -52,6 +53,7 @@ const AdminKeyboard = Markup.inlineKeyboard([
   [cb('История ключей', AdminButtons.keyStory)],
   [cb('Пользователи', 'get_user_data'), cb('Тикеты', AdminButtons.tickets)],
   [cb('Промокоды', AdminButtons.promotions)],
+  [cb('Платежные системы', AdminButtons.paymentServices)],
   [cb('Выйти из панели администратора', AdminButtons.exit)]
 ]);
 
