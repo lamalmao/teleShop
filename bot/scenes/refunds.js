@@ -83,23 +83,19 @@ refunds.action(/proceed_refund#\d+/, async ctx => {
           Markup.button.callback('Выполнен', `approve#${orderID}`),
           Markup.button.callback('Отменить', `decline#${orderID}`)
         ],
-        [
-          Markup.button.url(
-            'Связаться с пользователем',
-            `tg://user?id=${order.client}`
-          )
-        ],
         [Markup.button.callback('Обновить', `proceed_refund#${orderID}`)],
         [Markup.button.callback('Назад', keys.AdminMenu.buttons.refunds)]
       ];
       const data = order.refundData
         ? beautyData(order.refundData)
         : '<b>пользователь еще не предоставил данные</b>';
-      const msg = `Заказ <code>${order.orderID}</code>\n\n<i>Товар:</i> ${
-        order.itemTitle
-      }\n<i>Цена:</i> <b>${order.amount}₽</b>\n<i>Дата:</i> ${new Date(
-        order.date
-      ).toLocaleString(
+      const msg = `Заказ <code>${
+        order.orderID
+      }</code> пользователя <a href="tg://user?id=${order.client}">${
+        order.client
+      }</a>\n\n<i>Товар:</i> ${order.itemTitle}\n<i>Цена:</i> <b>${
+        order.amount
+      }₽</b>\n<i>Дата:</i> ${new Date(order.date).toLocaleString(
         'ru-RU'
       )}\n\n<i>Информация для возврата средств:\n</i> ${data}`;
 
