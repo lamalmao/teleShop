@@ -128,6 +128,10 @@ function CreateBot(token) {
     }
   );
 
+  bot.action(/create-payment-link:.+/, ctx =>
+    ctx.scene.enter('create-payment-link')
+  );
+
   bot.action(/ozan-paid:\d+/, async ctx => {
     try {
       const check = await users.findOne({

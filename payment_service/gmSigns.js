@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
+const querystring = require('querystring');
 
 const publicCert = fs.readFileSync(path.resolve('gm.crt')).toString();
 
@@ -59,7 +61,33 @@ const testObj = {
   terminal_disable_methods: ['bitcoin', 'card']
 };
 
+const getGmExchangeRate = async () => {
+  const params = {
+    project: global.gmId,
+    from: 'RUB',
+    to: 'USD',
+    rand: crypto.randomBytes(16).toString('hex')
+  };
+
+  const sign = hmacSign(params, global.gmToken);
+  params.signature = sign;
+
+  const body = querystring.stringify(params);
+  const response = await axios.post(
+    'https://paygate.gamemoney.com/exchange/rate',
+    body,
+    {
+      headers: {
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  return response.data.buy;
+};
+
 module.exports = {
   hmacSign,
-  checkRSASign
+  checkRSASign,
+  getGmExchangeRate
 };

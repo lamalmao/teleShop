@@ -23,9 +23,6 @@ pay.enterHandler = async function (ctx) {
 
     const anyPayUrl = payment.genUrl();
     const freekassaUrl = payment.createFreekassaPaymentURL();
-    const lavaUrl = await payment.createLavaPayment();
-    const skinsbackUrl = await payment.createSkinsbackPayment();
-    const gmUrl = await payment.createGmPayment();
 
     await ctx.telegram.editMessageMedia(
       ctx.from.id,
@@ -47,32 +44,38 @@ pay.enterHandler = async function (ctx) {
       {
         reply_markup: Markup.inlineKeyboard([
           [
-            Markup.button.url(
-              'GameMoney (оплата картой с минимальной комиссией) 🇷🇺',
-              gmUrl || 'https://google.com',
-              !(global.paymentMethods.gm && gmUrl)
+            Markup.button.callback(
+              'GameMoney (оплата картой) 🇷🇺',
+              `create-payment-link:gm-rub:${payment.paymentID}`,
+              !global.paymentMethods.gm
             )
           ],
           [
-            Markup.button.url(
+            Markup.button.callback(
               'Lava (СБП) 🇷🇺',
-              lavaUrl ? lavaUrl : 'https://google.com',
-              !(lavaUrl && global.paymentMethods.lava)
+              `create-payment-link:lava:${payment.paymentID}`,
+              !global.paymentMethods.lava
             )
           ],
           [
-            Markup.button.url(
+            Markup.button.callback(
               'AnyPay 🇷🇺🇰🇿🇧🇾',
-              anyPayUrl,
+              `create-payment-link:anypay:${payment.paymentID}`,
               !global.paymentMethods.anypay
             )
           ],
-
           [
-            Markup.button.url(
+            Markup.button.callback(
               'Freekassa 🇷🇺',
-              freekassaUrl,
+              `create-payment-link:freekassa:${payment.paymentID}`,
               !global.paymentMethods.freekassa
+            )
+          ],
+          [
+            Markup.button.callback(
+              'Зарубежные карты 🌎',
+              `create-payment-link:gm-usd:${payment.paymentID}`,
+              !global.paymentMethods.gm
             )
           ],
           [
@@ -83,13 +86,19 @@ pay.enterHandler = async function (ctx) {
             )
           ],
           [
-            Markup.button.url(
+            Markup.button.callback(
               'Оплата скинами CS2, Dota 2, Rust 🔫',
-              skinsbackUrl || 'https://google.com',
-              !(skinsbackUrl && global.paymentMethods.skinsback)
+              `create-payment-link:skinsback:${payment.paymentID}`,
+              !global.paymentMethods.skinsback
             )
           ],
-          [Markup.button.url('Криптовалюта ⚡️', anyPayUrl)]
+          [
+            Markup.button.callback(
+              'Криптовалюта ⚡️',
+              `create-payment-link:anypay:${payment.paymentID}`,
+              !global.paymentMethods.anypay
+            )
+          ]
         ]).reply_markup,
         parse_mode: 'HTML'
       }

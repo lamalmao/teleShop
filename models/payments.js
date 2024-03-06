@@ -2,9 +2,7 @@ const { Schema, model } = require('mongoose');
 const crypto = require('crypto');
 const axios = require('axios');
 const { getSign } = require('../payment_service/getSkinsbackSign');
-const { hmacSign, checkRSASign } = require('../payment_service/gmSigns');
-const { readFileSync } = require('fs');
-const { resolve } = require('path');
+const { hmacSign, getGmExchangeRate } = require('../payment_service/gmSigns');
 const querystring = require('querystring');
 
 const Payment = new Schema({
@@ -148,13 +146,22 @@ Payment.methods.createSkinsbackPayment = async function () {
   }
 };
 
-Payment.methods.createGmPayment = async function () {
+Payment.methods.createGmPayment = async function (currency) {
   try {
+    let amount;
+    if (currency === 'RUB') {
+      amount = this.amount.toFixed(2);
+    } else {
+      const rate = await getGmExchangeRate();
+      amount = (this.amount / rate).toFixed(2);
+    }
+
     const body = {
       project: global.gmId,
       user: this.user.toString(),
-      amount: this.amount.toFixed(2),
-      project_invoice: this.paymentID.toString()
+      amount,
+      project_invoice: this.paymentID.toString(),
+      currency
     };
 
     const sign = hmacSign(body, global.gmToken);
