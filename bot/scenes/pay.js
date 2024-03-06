@@ -48,7 +48,14 @@ pay.enterHandler = async function (ctx) {
         reply_markup: Markup.inlineKeyboard([
           [
             Markup.button.url(
-              'Lava 🇷🇺',
+              'GameMoney (оплата картой с минимальной комиссией) 🇷🇺',
+              gmUrl || 'https://google.com',
+              !(global.paymentMethods.gm && gmUrl)
+            )
+          ],
+          [
+            Markup.button.url(
+              'Lava (СБП) 🇷🇺',
               lavaUrl ? lavaUrl : 'https://google.com',
               !(lavaUrl && global.paymentMethods.lava)
             )
@@ -60,13 +67,7 @@ pay.enterHandler = async function (ctx) {
               !global.paymentMethods.anypay
             )
           ],
-          [
-            Markup.button.url(
-              'GameMoney',
-              gmUrl || 'https://google.com',
-              !(global.paymentMethods.gm && gmUrl)
-            )
-          ],
+
           [
             Markup.button.url(
               'Freekassa 🇷🇺',
@@ -83,12 +84,12 @@ pay.enterHandler = async function (ctx) {
           ],
           [
             Markup.button.url(
-              'Оплата скинами CS2, Dota 2, Rust',
+              'Оплата скинами CS2, Dota 2, Rust 🔫',
               skinsbackUrl || 'https://google.com',
               !(skinsbackUrl && global.paymentMethods.skinsback)
             )
           ],
-          [Markup.button.url('Криптовалюта', anyPayUrl)]
+          [Markup.button.url('Криптовалюта ⚡️', anyPayUrl)]
         ]).reply_markup,
         parse_mode: 'HTML'
       }
