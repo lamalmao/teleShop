@@ -13,16 +13,22 @@ const gmHandler = () => {
         amount: receivedAmount
       } = req.body;
 
-      if (status !== 'success') {
+      if (status !== 'Paid') {
         res.status(400).end('Not interested');
+        return;
       }
 
       const signBody = structuredClone(req.body);
       delete signBody.signature;
 
+      console.log(req.body);
+
       const signCheck = checkRSASign(signBody, sign);
+      console.log(signCheck);
       if (!signCheck) {
-        res.status(401).end('Failed sign check');
+        res.status(401).json({
+          error: 'Wrong signature'
+        });
         return;
       }
 
