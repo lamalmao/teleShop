@@ -21,8 +21,6 @@ const gmHandler = () => {
       const signBody = structuredClone(req.body);
       delete signBody.signature;
 
-      console.log(req.body);
-
       const signCheck = checkRSASign(signBody, sign);
       console.log(signCheck);
       if (!signCheck) {
