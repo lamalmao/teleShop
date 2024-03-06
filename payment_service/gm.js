@@ -2,7 +2,7 @@ const payments = require('../models/payments');
 const users = require('../models/users');
 const { checkRSASign } = require('./gmSigns');
 
-const gmHandler = gmSettings => {
+const gmHandler = () => {
   return async (req, res, next) => {
     try {
       const {

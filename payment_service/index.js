@@ -131,13 +131,7 @@ function createPaymentProvider(bot, freekassaSettings, skinsbackToken) {
 
   app.post('/skinsback', skinsbackHandler(skinsbackToken), notifyUser);
 
-  app.post(
-    '/gm',
-    gmHandler({
-      gmRsaPubKey: readFileSync(resolve('pubgm.pem'))
-    }),
-    notifyUser
-  );
+  app.post('/gm', gmHandler(), notifyUser);
 
   return app;
 }
