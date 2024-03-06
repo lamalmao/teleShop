@@ -115,5 +115,7 @@ files/*/*
 
 credentials.json
 
-key.pem
 *.csv
+
+*.crt
+*.pem

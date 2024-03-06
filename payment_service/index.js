@@ -2,9 +2,12 @@ const express = require('express');
 
 const users = require('../models/users');
 const payments = require('../models/payments');
+const { readFileSync } = require('fs');
+const { resolve } = require('path');
 const multer = require('multer');
 const { freekassaHandler } = require('./freekassa');
 const { skinsbackHandler } = require('./skinsback');
+const { gmHandler } = require('./gm');
 
 const formsParser = multer();
 
@@ -127,6 +130,14 @@ function createPaymentProvider(bot, freekassaSettings, skinsbackToken) {
   );
 
   app.post('/skinsback', skinsbackHandler(skinsbackToken), notifyUser);
+
+  app.post(
+    '/gm',
+    gmHandler({
+      gmRsaPubKey: readFileSync(resolve('pubgm.pem'))
+    }),
+    notifyUser
+  );
 
   return app;
 }

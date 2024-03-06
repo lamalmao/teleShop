@@ -34,6 +34,8 @@ global.freekassaId = settings.freekassa_shop_id;
 global.freekassaSecret = settings.freekassa_payment_token;
 global.skinsbackId = settings.skinsback_id;
 global.skinsbackToken = settings.skinsback_token;
+global.gmId = settings.gm_project_id;
+global.gmToken = settings.gm_token;
 
 const keyFileDirectory = path.join(process.cwd(), 'key');
 const keyFileLocation = path.join(keyFileDirectory, 'key.pem');

@@ -2,6 +2,10 @@ const { Schema, model } = require('mongoose');
 const crypto = require('crypto');
 const axios = require('axios');
 const { getSign } = require('../payment_service/getSkinsbackSign');
+const { hmacSign, checkRSASign } = require('../payment_service/gmSigns');
+const { readFileSync } = require('fs');
+const { resolve } = require('path');
+const querystring = require('querystring');
 
 const Payment = new Schema({
   user: {
@@ -35,7 +39,8 @@ const Payment = new Schema({
       'card',
       'promo',
       'freekassa',
-      'skinsback'
+      'skinsback',
+      'gamemoney'
     ]
   },
   uahAmount: Number,
@@ -139,6 +144,39 @@ Payment.methods.createSkinsbackPayment = async function () {
     return response.data.url;
   } catch (error) {
     console.log(error.message);
+    return null;
+  }
+};
+
+Payment.methods.createGmPayment = async function () {
+  try {
+    const body = {
+      project: global.gmId,
+      user: this.user.toString(),
+      amount: this.amount.toFixed(2),
+      project_invoice: this.paymentID.toString()
+    };
+
+    const sign = hmacSign(body, global.gmToken);
+    body.signature = sign;
+
+    const response = await axios.post(
+      'https://paygate.gamemoney.com/terminal/create',
+      querystring.stringify(body),
+      {
+        headers: {
+          Accept: 'application/json'
+        }
+      }
+    );
+
+    if (response.status !== 200) {
+      return null;
+    }
+
+    return response.data.url;
+  } catch (error) {
+    console.log(error);
     return null;
   }
 };

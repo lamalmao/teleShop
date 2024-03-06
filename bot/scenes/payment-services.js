@@ -7,7 +7,7 @@ const paymentServices = new Scenes.BaseScene('payment-services');
 
 paymentServices.enterHandler = async ctx => {
   try {
-    const { lava, anypay, freekassa, skinsback, uacard } =
+    const { lava, anypay, freekassa, skinsback, uacard, gm } =
       global.paymentMethods;
 
     await ctx.editMessageText('Платёжные системы', {
@@ -30,6 +30,9 @@ paymentServices.enterHandler = async ctx => {
             (skinsback ? '🟢' : '🔴') + ' Skinsback',
             'switch:skinsback'
           )
+        ],
+        [
+          Markup.button.callback((gm ? '🟢' : '🔴') + ' GameMoney', 'switch:gm')
         ],
         [
           Markup.button.callback(

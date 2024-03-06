@@ -25,6 +25,7 @@ pay.enterHandler = async function (ctx) {
     const freekassaUrl = payment.createFreekassaPaymentURL();
     const lavaUrl = await payment.createLavaPayment();
     const skinsbackUrl = await payment.createSkinsbackPayment();
+    const gmUrl = await payment.createGmPayment();
 
     await ctx.telegram.editMessageMedia(
       ctx.from.id,
@@ -57,6 +58,13 @@ pay.enterHandler = async function (ctx) {
               'AnyPay 🇷🇺🇰🇿🇧🇾',
               anyPayUrl,
               !global.paymentMethods.anypay
+            )
+          ],
+          [
+            Markup.button.url(
+              'GameMoney',
+              gmUrl || 'https://google.com',
+              !(global.paymentMethods.gm && gmUrl)
             )
           ],
           [

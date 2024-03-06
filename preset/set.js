@@ -90,5 +90,15 @@ module.exports = {
     type: 'string',
     default: '',
     required: true
+  },
+  gm_token: {
+    type: 'string',
+    default: '',
+    required: true
+  },
+  gm_project_id: {
+    type: 'number',
+    default: 0,
+    required: true
   }
 };

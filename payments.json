@@ -1,7 +1,8 @@
 {
   "lava": true,
-  "freekassa": false,
+  "freekassa": true,
   "anypay": true,
-  "skinsback": false,
-  "uacard": true
+  "skinsback": true,
+  "uacard": true,
+  "gm": true
 }
