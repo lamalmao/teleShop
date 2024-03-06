@@ -26,6 +26,7 @@ const gmHandler = () => {
         return;
       }
 
+      const amount = Math.round(Number(receivedAmount));
       const payment = await payments.findOneAndUpdate(
         {
           paymentID: Number(paymentID),
@@ -38,7 +39,8 @@ const gmHandler = () => {
             status: 'paid',
             transactionID,
             service: 'gamemoney',
-            date: new Date()
+            date: new Date(),
+            amount
           }
         }
       );
@@ -50,7 +52,6 @@ const gmHandler = () => {
         return;
       }
 
-      const amount = Math.ceil(Number(receivedAmount));
       await users.updateOne(
         {
           telegramID: payment.user
