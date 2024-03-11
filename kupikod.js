@@ -54,10 +54,9 @@ async function refillSteamViaAPI(login, value, id) {
     if (status === 200) {
       return data.id;
     } else {
-      return false;
+      return null;
     }
   } catch (error) {
-    console.log(error);
     return null;
   }
 }
@@ -77,7 +76,7 @@ async function checkOrder(id) {
     const { data } = response;
     return data.state;
   } catch (error) {
-    return error.request.data?.state;
+    return null;
   }
 }
 

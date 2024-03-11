@@ -15,6 +15,10 @@ function createSteamWorker(bot) {
 
           for (const order of steamOrders) {
             const check = await checkOrder(order.kupikodID);
+            if (!check) {
+              continue;
+            }
+
             if (check === 'success') {
               await orders.updateOne(
                 {
@@ -38,7 +42,7 @@ function createSteamWorker(bot) {
                   }
                 )
                 .catch(() => null);
-            } else if (check === 'error') {
+            } else if (check === 'false') {
               await orders.findByIdAndUpdate(order._id, {
                 $set: {
                   status: 'canceled'
