@@ -45,7 +45,7 @@ pay.enterHandler = async function (ctx) {
         reply_markup: Markup.inlineKeyboard([
           [
             Markup.button.callback(
-              'GameMoney (оплата картой) 🇷🇺',
+              'GameMoney (оплата картой) 🇷🇺🇰🇿',
               `create-payment-link:gm-rub:${payment.paymentID}`,
               !global.paymentMethods.gm
             )
@@ -71,13 +71,13 @@ pay.enterHandler = async function (ctx) {
               !global.paymentMethods.freekassa
             )
           ],
-          [
-            Markup.button.callback(
-              'Зарубежные карты 🌎',
-              `create-payment-link:gm-usd:${payment.paymentID}`,
-              !global.paymentMethods.gm
-            )
-          ],
+          // [
+          //   Markup.button.callback(
+          //     'Зарубежные карты 🌎',
+          //     `create-payment-link:gm-usd:${payment.paymentID}`,
+          //     !global.paymentMethods.gm
+          //   )
+          // ],
           [
             Markup.button.callback(
               'Перевод на карту 🇺🇦',
