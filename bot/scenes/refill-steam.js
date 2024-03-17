@@ -105,9 +105,9 @@ refillSteam.on(
       const { username, menu } = ctx.scene.state;
 
       const amount = Number(ctx.message.text.trim());
-      if (Number.isNaN(amount) || amount < 30 || amount > 10000) {
+      if (Number.isNaN(amount) || amount < 50 || amount > 10000) {
         ctx
-          .reply('Введите сумму более 30 рублей и менее 10.000 рублей')
+          .reply('Введите сумму более 50 рублей и менее 10.000 рублей')
           .then(msg =>
             setTimeout(
               () => ctx.deleteMessage(msg.message_id).catch(() => null),
