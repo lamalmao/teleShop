@@ -42,7 +42,11 @@ function createSteamWorker(bot) {
                   }
                 )
                 .catch(() => null);
-            } else if (check === 'false') {
+            } else if (
+              check === 'false' ||
+              check === null ||
+              check === 'error'
+            ) {
               await orders.findByIdAndUpdate(order._id, {
                 $set: {
                   status: 'canceled'
